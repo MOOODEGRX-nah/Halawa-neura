@@ -2,6 +2,10 @@
 نقطة بداية Neura — يجهز البيئة ثم يشغل الواجهة
 """
 import sys
+from pathlib import Path
+
+# إصلاح ضروري لـ Python المدمج: إضافة مجلد هذا الملف لمسار الاستيراد
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import Config
 import downloader
@@ -20,9 +24,9 @@ def console_download_if_missing(cfg):
             print(f"\rجاري التحميل... {pct}%", end="", flush=True)
         try:
             downloader.download_model("chat", cfg.models_dir, cb)
-            print("\n✅ اكتمل التحميل!")
+            print("\nاكتمل التحميل!")
         except Exception as e:
-            print(f"\n❌ فشل التحميل: {e}")
+            print(f"\nفشل التحميل: {e}")
             print("يمكنك التحميل لاحقاً من داخل البرنامج (الإعدادات)")
     else:
         print("سيعمل Neura بالوضع الأساسي (يمكن التحميل لاحقاً من الإعدادات)")
@@ -41,7 +45,7 @@ def main():
         from neura_app import main as app_main
         ft.app(target=app_main)
     except ImportError:
-        print("❌ مكتبة flet غير مثبتة. شغّل install.bat أولاً.")
+        print("مكتبة flet غير مثبتة. شغل install.bat أولاً.")
         input("اضغط Enter للخروج...")
 
 
