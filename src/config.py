@@ -22,7 +22,7 @@ DEFAULT_CONFIG = {
     "voice_enabled": True,
     "vision_enabled": False,
     "models": {
-        "chat": "qwen2.5-7b-instruct-q4_k_m.gguf",
+        "chat": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
         "vision": "llava-v1.5-7b-q4_k.gguf",
         "vision_mmproj": "mmproj-model-f16.gguf"
     },

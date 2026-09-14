@@ -6,8 +6,8 @@ from pathlib import Path
 
 MODELS = {
     "chat": {
-        "url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf",
-        "filename": "qwen2.5-7b-instruct-q4_k_m.gguf",
+        "url": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+        "filename": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
         "desc": "نموذج المحادثة Qwen 2.5 7B (~4.7GB)"
     },
     "vision": {
