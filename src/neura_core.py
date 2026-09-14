@@ -16,7 +16,7 @@ SYSTEM_PROMPT = """أنت مساعد ذكي اسمه Neura يعمل على جه�
 4. لا تخترع روابط أو مواقع غير معروفة."""
 
 
-class JarvisCore:
+class NeuraCore:
     def __init__(self, config, db):
         self.config = config
         self.db = db

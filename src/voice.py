@@ -5,7 +5,7 @@
 import threading
 
 
-class JarvisVoice:
+class NeuraVoice:
     def __init__(self, lang="ar-SA"):
         self.lang = lang
         self.tts_ok = False

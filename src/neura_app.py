@@ -6,10 +6,10 @@ import threading
 import flet as ft
 
 from config import Config, APP_NAME, APP_VERSION
-from database import JarvisDatabase
-from neura_core import JarvisCore
-from voice import JarvisVoice
-from vision import JarvisVision
+from database import NeuraDatabase
+from neura_core import NeuraCore
+from voice import NeuraVoice
+from vision import NeuraVision
 from github_bridge import GitHubBridge
 import downloader
 
@@ -41,10 +41,10 @@ def main(page: ft.Page):
 
     # ===== النواة =====
     config = Config()
-    db = JarvisDatabase(config.data_dir / "neura_memory.db")
-    core = JarvisCore(config, db)
-    voice = JarvisVoice(config.get("language", "ar-SA"))
-    vision = JarvisVision(config)
+    db = NeuraDatabase(config.data_dir / "neura_memory.db")
+    core = NeuraCore(config, db)
+    voice = NeuraVoice(config.get("language", "ar-SA"))
+    vision = NeuraVision(config)
     gh = GitHubBridge()
 
     # ===== أدوات مساعدة =====

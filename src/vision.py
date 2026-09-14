@@ -3,7 +3,7 @@
 """
 
 
-class JarvisVision:
+class NeuraVision:
     def __init__(self, config):
         self.config = config
         self.llm = None

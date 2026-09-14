@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class JarvisDatabase:
+class NeuraDatabase:
     def __init__(self, db_path):
         self.path = Path(db_path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
