@@ -1,45 +1,38 @@
 @echo off
 chcp 65001 >nul
-title JARVIS - Installer
+title Neura - Installer
+setlocal
+
+set PYDIR=%~dp0python-embed
+set PYZIP=%~dp0python-embed.zip
+set PYURL=https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip
+set GETPIP=https://bootstrap.pypa.io/get-pip.py
+
+if not exist "%PYDIR%\python.exe" (
+    echo [1/4] تحميل Python المدمج...
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%PYURL%' -OutFile '%PYZIP%'"
+    powershell -Command "Expand-Archive -Path '%PYZIP%' -DestinationPath '%PYDIR%' -Force"
+    del "%PYZIP%"
+
+    echo [2/4] تفعيل site-packages...
+    powershell -Command "(Get-Content '%PYDIR%\python311._pth') -replace '#import site','import site' | Set-Content '%PYDIR%\python311._pth'"
+
+    echo [3/4] تثبيت pip...
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%GETPIP%' -OutFile '%PYDIR%\get-pip.py'"
+    "%PYDIR%\python.exe" "%PYDIR%\get-pip.py" --no-warn-script-location
+) else (
+    echo [1/4] Python المدمج موجود - تخطي التحميل.
+)
+
+echo [4/4] تثبيت المكتبات...
+"%PYDIR%\python.exe" -m pip install --upgrade pip --no-warn-script-location
+"%PYDIR%\python.exe" -m pip install -r "%~dp0requirements.txt" --no-warn-script-location
+"%PYDIR%\python.exe" -m pip install llama-cpp-python --no-warn-script-location
+"%PYDIR%\python.exe" -m pip install SpeechRecognition pyttsx3 --no-warn-script-location
+"%PYDIR%\python.exe" -m pip install PyGithub --no-warn-script-location
+
+echo.
 echo ============================================
-echo    JARVIS - تثبيت الاعتماديات
-echo ============================================
-
-where python >nul 2>nul
-if errorlevel 1 (
-    echo [خطأ] Python غير مثبت! ثبته من python.org مع خيار Add to PATH
-    pause
-    exit /b 1
-)
-
-if not exist .venv (
-    echo [1/5] انشاء بيئة افتراضية...
-    python -m venv .venv
-)
-
-call .venv\Scripts\activate.bat
-
-echo [2/5] تحديث pip...
-python -m pip install --upgrade pip
-
-echo [3/5] تثبيت الحزم الاساسية...
-pip install -r requirements.txt
-
-echo [4/5] تثبيت محرك الذكاء llama.cpp...
-pip install llama-cpp-python
-if errorlevel 1 (
-    echo [تنبيه] فشل تثبيت llama-cpp-python - سيعمل JARVIS بالوضع الاساسي
-)
-
-echo [5/5] تثبيت الصوت و GitHub (اختياري)...
-pip install SpeechRecognition pyttsx3
-pip install pyaudio
-if errorlevel 1 (
-    echo [تنبيه] تعذر تثبيت الصوت - الميزة لن تكون متاحة
-)
-pip install PyGithub
-
-echo ============================================
-echo    اكتمل التثبيت! شغل البرنامج عبر run.bat
+echo    اكتمل التثبيت! شغل run.bat الآن
 echo ============================================
 pause

@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-APP_NAME = "J.A.R.V.I.S"
+APP_NAME = "Neura"
 APP_VERSION = "0.1.0"
 
 

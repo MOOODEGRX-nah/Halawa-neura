@@ -28,7 +28,7 @@ class GitHubBridge:
         except Exception:
             return None
 
-    def backup_file(self, file_path, filename, description="JARVIS backup"):
+    def backup_file(self, file_path, filename, description="Neura backup"):
         """يحفظ ملفاً كـ Gist خاص"""
         if not self.available:
             return None

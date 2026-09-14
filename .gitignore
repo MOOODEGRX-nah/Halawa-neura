@@ -18,7 +18,7 @@ logs/
 # البناء
 dist/
 build_tmp/
-JARVIS-Portable/
+Neura-Portable/
 *.zip
 
 # أسرار
@@ -32,3 +32,4 @@ desktop.ini
 # IDE
 .vscode/
 .idea/
+python-embed/

@@ -1,5 +1,5 @@
 """
-واجهة JARVIS الرئيسية — تصميم داكن عصري بأسلوب halawa-hub
+واجهة Neura الرئيسية — تصميم داكن عصري بأسلوب halawa-hub
 """
 import threading
 
@@ -7,7 +7,7 @@ import flet as ft
 
 from config import Config, APP_NAME, APP_VERSION
 from database import JarvisDatabase
-from jarvis_core import JarvisCore
+from neura_core import JarvisCore
 from voice import JarvisVoice
 from vision import JarvisVision
 from github_bridge import GitHubBridge
@@ -41,7 +41,7 @@ def main(page: ft.Page):
 
     # ===== النواة =====
     config = Config()
-    db = JarvisDatabase(config.data_dir / "jarvis_memory.db")
+    db = JarvisDatabase(config.data_dir / "neura_memory.db")
     core = JarvisCore(config, db)
     voice = JarvisVoice(config.get("language", "ar-SA"))
     vision = JarvisVision(config)
@@ -78,7 +78,7 @@ def main(page: ft.Page):
 
     typing_row = ft.Container(
         content=ft.Row([ft.ProgressRing(width=16, height=16, stroke_width=2),
-                        ft.Text("JARVIS يفكر...", color=MUTED, size=13)], spacing=8))
+                        ft.Text("Neura يفكر...", color=MUTED, size=13)], spacing=8))
 
     def show_typing(show=True):
         if show:
@@ -370,7 +370,7 @@ def main(page: ft.Page):
         content=ft.Column([
             ft.Container(padding=ft.padding.only(bottom=20), content=ft.Row([
                 ft.Icon(ft.icons.SMART_TOY, size=28, color=ACCENT),
-                ft.Text("J.A.R.V.I.S", size=20, weight=ft.FontWeight.BOLD, color=ACCENT)])),
+                ft.Text("Neura", size=20, weight=ft.FontWeight.BOLD, color=ACCENT)])),
             nav(ft.icons.CHAT, "المحادثة", "chat"),
             nav(ft.icons.VISIBILITY, "الرؤية", "vision"),
             nav(ft.icons.CHECKLIST, "المهام", "tasks"),

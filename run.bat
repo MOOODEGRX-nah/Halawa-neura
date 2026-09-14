@@ -1,13 +1,13 @@
 @echo off
 chcp 65001 >nul
-title J.A.R.V.I.S
+title Neura
 
-if not exist .venv\Scripts\activate.bat (
-    echo لم يتم التثبيت بعد! شغل install.bat اولا
-    pause
-    exit /b 1
+set PYDIR=%~dp0python-embed
+
+if not exist "%PYDIR%\python.exe" (
+    echo أول تشغيل: جاري تجهيز المتطلبات تلقائياً...
+    call "%~dp0install.bat"
 )
 
-call .venv\Scripts\activate.bat
-python src\jarvis_launcher.py %*
+"%PYDIR%\python.exe" "%~dp0src\neura_launcher.py" %*
 if errorlevel 1 pause

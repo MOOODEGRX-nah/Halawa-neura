@@ -1,5 +1,5 @@
 """
-بناء JARVIS كملف EXE (اختياري)
+بناء Neura كملف EXE (اختياري)
 الطريقة الموصى بها للتوزيع: مجلد البرنامج مع install.bat + run.bat
 """
 import shutil
@@ -19,8 +19,8 @@ def build():
 
     args = [
         sys.executable, "-m", "PyInstaller",
-        str(ROOT / "src" / "jarvis_launcher.py"),
-        "--name", "JARVIS",
+        str(ROOT / "src" / "neura_launcher.py"),
+        "--name", "Neura",
         "--noconfirm",
         "--windowed",
         "--distpath", str(ROOT / "dist"),
@@ -41,11 +41,11 @@ def build():
     subprocess.run(args, cwd=ROOT, check=True)
 
     # تجهيز المجلد المحمول
-    pkg = ROOT / "JARVIS-Portable"
+    pkg = ROOT / "Neura-Portable"
     if pkg.exists():
         shutil.rmtree(pkg)
     pkg.mkdir()
-    shutil.copy(ROOT / "dist" / "JARVIS.exe", pkg / "JARVIS.exe")
+    shutil.copy(ROOT / "dist" / "Neura.exe", pkg / "Neura.exe")
     (pkg / "models").mkdir()
     (pkg / "data").mkdir()
     (pkg / "logs").mkdir()
