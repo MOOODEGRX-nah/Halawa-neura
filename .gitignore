@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.spec
+
+# بيئة افتراضية
+.venv/
+venv/
+
+# النماذج والبيانات (كبيرة وشخصية)
+models/
+data/
+logs/
+*.db
+*.gguf
+*.part
+
+# البناء
+dist/
+build_tmp/
+JARVIS-Portable/
+*.zip
+
+# أسرار
+.env
+
+# نظام التشغيل
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
