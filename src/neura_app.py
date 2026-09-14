@@ -17,12 +17,12 @@ import downloader
 BG = "#0D1117"
 PANEL = "#161B22"
 BORDER = "#30363D"
-ACCENT = "#58A6FF"
+ACCENT = "#F85149"
 GREEN = "#238636"
 RED = "#DA3633"
 TEXT = "#E6EDF3"
 MUTED = "#8B949E"
-USER_BUBBLE = "#1F6FEB"
+USER_BUBBLE = "#DA3633"
 BOT_BUBBLE = "#21262D"
 
 
@@ -369,7 +369,7 @@ def main(page: ft.Page):
         width=210, bgcolor=PANEL, border_radius=10, padding=15,
         content=ft.Column([
             ft.Container(padding=ft.padding.only(bottom=20), content=ft.Row([
-                ft.Icon(ft.icons.SMART_TOY, size=28, color=ACCENT),
+                ft.Image(src="logo.png", width=34, height=34),
                 ft.Text("Neura", size=20, weight=ft.FontWeight.BOLD, color=ACCENT)])),
             nav(ft.icons.CHAT, "المحادثة", "chat"),
             nav(ft.icons.VISIBILITY, "الرؤية", "vision"),
@@ -392,7 +392,7 @@ def main(page: ft.Page):
     title_bar = ft.Container(
         bgcolor=PANEL, border_radius=10, padding=12,
         content=ft.Row([
-            ft.Icon(ft.icons.SMART_TOY, size=26, color=ACCENT),
+            ft.Image(src="logo.png", width=30, height=30),
             ft.Text("المساعد الذكي", size=17, weight=ft.FontWeight.BOLD, color=TEXT),
             ft.Container(expand=True),
             status_text,

@@ -43,7 +43,7 @@ def main():
     try:
         import flet as ft
         from neura_app import main as app_main
-        ft.app(target=app_main)
+        ft.app(target=app_main, assets_dir=str(Path(__file__).resolve().parent.parent / "assets"))
     except ImportError:
         print("مكتبة flet غير مثبتة. شغل install.bat أولاً.")
         input("اضغط Enter للخروج...")
