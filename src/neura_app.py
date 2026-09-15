@@ -285,6 +285,7 @@ def main(page: ft.Page):
             actions=[
                 ft.TextButton("إلغاء", on_click=lambda _: close_dialog()),
                 ft.ElevatedButton("حفظ", bgcolor=GREEN, color="white", on_click=save),
+                ft.ElevatedButton("🔄 تحديث", bgcolor=GREEN, color="white", on_click=lambda _: check_update()),
                 ft.ElevatedButton("⬇️ تحميل", bgcolor=ACCENT, color="white",
                                   on_click=lambda _: open_download()),
             ])
@@ -296,6 +297,23 @@ def main(page: ft.Page):
         if page.dialog:
             page.dialog.open = False
         page.update()
+
+    def check_update():
+        toast("جارٍ فحص التحديثات...")
+        def work():
+            try:
+                from updater import Updater
+                up = Updater()
+                info = up.check()
+                if info is None:
+                    toast("أنت على أحدث إصدار ✓")
+                elif up.apply(info):
+                    toast("✅ تم التحديث! أعد تشغيل البرنامج")
+                else:
+                    toast("❌ فشل التحديث — جرّب لاحقاً")
+            except Exception as ex:
+                toast(f"❌ تعذر فحص التحديث: {ex}")
+        threading.Thread(target=work, daemon=True).start()
 
     # ===== تحميل النماذج =====
     def open_download():
