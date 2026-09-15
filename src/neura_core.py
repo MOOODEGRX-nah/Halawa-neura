@@ -1,3 +1,5 @@
+import os
+os.environ.setdefault("GGML_VULKAN", "1")
 """
 عقل Neura — يعالج الطلبات: نوايا محلية آمنة + نموذج ذكاء للمحادثة
 """
