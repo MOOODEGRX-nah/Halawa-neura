@@ -1,9 +1,7 @@
 """
 Neura Launcher — المشغّل الذكي (يُبنى كـ Neura.exe)
-يفحص المتطلبات تلقائياً ثم يشغّل البرنامج بدون نافذة سوداء.
 """
 import os
-import shutil
 import subprocess
 import sys
 import urllib.request
@@ -19,6 +17,9 @@ PYDIR = BASE / "python-embed"
 PY = PYDIR / "python.exe"
 PY_URL = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
 PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+VULKAN_INDEX = "https://abetlen.github.io/llama-cpp-python/whl/vulkan"
+EXTRA_PACKAGES = ["SpeechRecognition", "pyttsx3", "PyGithub"]
+DEPS_MARK = BASE / ".deps_ok"
 
 
 def log(msg):
@@ -54,29 +55,29 @@ def ensure_python():
 
 
 def ensure_requirements():
-    req = BASE / "requirements.txt"
-    if not req.exists():
+    if DEPS_MARK.exists():
         return
-    log("تثبيت المتطلبات (مع دعم Vulkan)...")
-    subprocess.run(
-        [str(PY), "-m", "pip", "install", "-r", str(req),
-         "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/vulkan",
-         "--no-warn-script-location"],
-        cwd=str(BASE),
-    )
+    req = BASE / "requirements.txt"
+    if req.exists():
+        log("تثبيت المتطلبات الأساسية...")
+        subprocess.run([str(PY), "-m", "pip", "install", "-r", str(req),
+                        "--no-warn-script-location"], cwd=str(BASE))
+    log("تثبيت محرك الذكاء (Vulkan) والصوت وGitHub...")
+    subprocess.run([str(PY), "-m", "pip", "install", *EXTRA_PACKAGES,
+                    "--no-warn-script-location"], cwd=str(BASE))
+    subprocess.run([str(PY), "-m", "pip", "install", "llama-cpp-python",
+                    "--extra-index-url", VULKAN_INDEX,
+                    "--no-warn-script-location"], cwd=str(BASE))
+    DEPS_MARK.write_text("ok", encoding="utf-8")
 
 
 def launch():
     env = os.environ.copy()
     env.setdefault("GGML_VULKAN", "1")
-    # إضافة مجلد src/ إلى PYTHONPATH حتى يجد Python الوحدات الداخلية
     src_dir = str(BASE / "src")
     env["PYTHONPATH"] = src_dir + os.pathsep + env.get("PYTHONPATH", "")
-    subprocess.run(
-        [str(PY), str(BASE / "src" / "neura_app.py")],
-        cwd=str(BASE),
-        env=env,
-    )
+    subprocess.run([str(PY), str(BASE / "src" / "neura_app.py")],
+                   cwd=str(BASE), env=env)
 
 
 def main():

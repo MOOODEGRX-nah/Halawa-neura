@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 APP_NAME = "Neura"
-APP_VERSION = "0.1.3"
+APP_VERSION = "0.2.2"
 
 
 def get_base_path() -> Path:
