@@ -69,6 +69,9 @@ def ensure_requirements():
 def launch():
     env = os.environ.copy()
     env.setdefault("GGML_VULKAN", "1")
+    # إضافة مجلد src/ إلى PYTHONPATH حتى يجد Python الوحدات الداخلية
+    src_dir = str(BASE / "src")
+    env["PYTHONPATH"] = src_dir + os.pathsep + env.get("PYTHONPATH", "")
     subprocess.run(
         [str(PY), str(BASE / "src" / "neura_app.py")],
         cwd=str(BASE),
