@@ -27,7 +27,7 @@ if not exist "%PYDIR%\python.exe" (
 echo [4/4] تثبيت المكتبات...
 "%PYDIR%\python.exe" -m pip install --upgrade pip --no-warn-script-location
 "%PYDIR%\python.exe" -m pip install -r "%~dp0requirements.txt" --no-warn-script-location
-"%PYDIR%\python.exe" -m pip install llama-cpp-python --no-warn-script-location
+"%PYDIR%\python.exe" -m pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/vulkan --no-warn-script-location
 "%PYDIR%\python.exe" -m pip install SpeechRecognition pyttsx3 --no-warn-script-location
 "%PYDIR%\python.exe" -m pip install PyGithub --no-warn-script-location
 

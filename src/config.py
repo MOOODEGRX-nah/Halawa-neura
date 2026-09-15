@@ -93,3 +93,21 @@ class Config:
     def resources(self):
         mode = "gaming" if self.data.get("gaming_mode") else "normal"
         return self.data["resources"][mode]
+
+    def list_available_models(self):
+        """يمسح مجلد models ويعيد كل ملفات .gguf المتاحة مع أحجامها"""
+        result = {"chat": [], "vision": [], "vision_mmproj": []}
+        if not self.models_dir.exists():
+            return result
+        for f in self.models_dir.iterdir():
+            if f.suffix.lower() == ".gguf" and f.stat().st_size > 1_000_000:
+                mb = f.stat().st_size // 1_000_000
+                name = f.name
+                low = name.lower()
+                if "mmproj" in low:
+                    result["vision_mmproj"].append((name, mb))
+                elif any(k in low for k in ("llava", "vision", "moondream")):
+                    result["vision"].append((name, mb))
+                else:
+                    result["chat"].append((name, mb))
+        return result

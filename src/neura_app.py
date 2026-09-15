@@ -234,14 +234,40 @@ def main(page: ft.Page):
         gh_text = ft.Text(f"GitHub: {'متصل (' + gh.whoami() + ')' if gh.available else 'غير متصل (عيّن GITHUB_TOKEN)'}",
                           color=MUTED, size=12)
 
+        models_info = config.list_available_models()
+        current_chat = config.get("models.chat")
+        current_vis = config.get("models.vision")
+
+        def mk_options(items):
+            return [ft.dropdown.Option(n, f"{n} ({mb} MB)") for n, mb in items]
+
+        chat_opts = mk_options(models_info["chat"])
+        if current_chat and not any(n == current_chat for n, _ in models_info["chat"]):
+            chat_opts.insert(0, ft.dropdown.Option(current_chat, f"{current_chat} (غير موجود)"))
+        vis_opts = mk_options(models_info["vision"])
+        if current_vis and not any(n == current_vis for n, _ in models_info["vision"]):
+            vis_opts.insert(0, ft.dropdown.Option(current_vis, f"{current_vis} (غير موجود)"))
+
+        chat_dd = ft.Dropdown(label="نموذج المحادثة", value=current_chat if chat_opts else None,
+                              options=chat_opts, width=320)
+        vis_dd = ft.Dropdown(label="نموذج الرؤية (اختياري)", value=current_vis if vis_opts else None,
+                             options=vis_opts, width=320)
+        models_state = ft.Text(
+            f"📁 {len(models_info['chat'])} نموذج محادثة | {len(models_info['vision'])} نموذج رؤية",
+            color=MUTED, size=11)
+
         def save(_):
             config.set("gaming_mode", gaming_sw.value)
             config.set("voice_enabled", voice_sw.value)
             config.set("language", lang_dd.value)
+            if chat_dd.value:
+                config.set("models.chat", chat_dd.value)
+            if vis_dd.value:
+                config.set("models.vision", vis_dd.value)
             config.save()
             page.dialog.open = False
             update_status_bar()
-            toast("حُفظت الإعدادات ✓ (أعد التشغيل لتطبيق نموذج الذكاء)")
+            toast("حُفظت الإعدادات ✓ (أعد التشغيل لتطبيق التغييرات)")
 
         dlg = ft.AlertDialog(
             modal=True, bgcolor=PANEL,
@@ -249,12 +275,17 @@ def main(page: ft.Page):
             content=ft.Container(width=420, content=ft.Column([
                 gaming_sw, voice_sw,
                 ft.Text("لغة الصوت:", color=TEXT), lang_dd,
-                ft.Divider(color=BORDER), gh_text,
+                ft.Divider(color=BORDER),
+                ft.Text("🤖 نماذج الذكاء", color=ACCENT, weight=ft.FontWeight.BOLD),
+                models_state,
+                chat_dd, vis_dd,
+                ft.Divider(color=BORDER),
+                gh_text,
             ], tight=True, spacing=10)),
             actions=[
                 ft.TextButton("إلغاء", on_click=lambda _: close_dialog()),
                 ft.ElevatedButton("حفظ", bgcolor=GREEN, color="white", on_click=save),
-                ft.ElevatedButton("⬇️ تحميل النموذج", bgcolor=ACCENT, color="white",
+                ft.ElevatedButton("⬇️ تحميل", bgcolor=ACCENT, color="white",
                                   on_click=lambda _: open_download()),
             ])
         page.dialog = dlg
