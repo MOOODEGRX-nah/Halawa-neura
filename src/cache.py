@@ -1,6 +1,6 @@
 """
 نظام Cache: لا تحمّل أي بايت مرتين
-المكان: %LocalAppData%\Neura\cache
+مكان التخزين: LocalAppData ثم Neura ثم cache
 """
 import os
 import urllib.request
