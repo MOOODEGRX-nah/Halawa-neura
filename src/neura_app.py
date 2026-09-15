@@ -268,11 +268,37 @@ def main(page: ft.Page):
 
     # ===== تحميل النماذج =====
     def open_download():
-        bar = ft.ProgressBar(width=340)
+        bar = ft.ProgressBar(width=340, visible=False)
         status = ft.Text("اختر النموذج الذي تريد تحميله", color=MUTED, size=12)
+
+        def model_mb(key):
+            try:
+                f = config.models_dir / downloader.MODELS[key]["filename"]
+                if f.exists() and f.stat().st_size > 1_000_000:
+                    return f.stat().st_size // 1_000_000
+            except Exception:
+                pass
+            return 0
+
+        def chat_label():
+            mb = model_mb("chat")
+            return f"مثبّت ✅ ({mb} MB) — إعادة تحميل" if mb else "تحميل نموذج المحادثة (~4.7GB)"
+
+        def vis_label():
+            mb, mb2 = model_mb("vision"), model_mb("vision_mmproj")
+            return f"مثبّت ✅ ({mb + mb2} MB) — إعادة تحميل" if (mb and mb2) else "تحميل نموذج الرؤية (~4.9GB)"
+
+        chat_btn = ft.ElevatedButton(chat_label(), bgcolor=GREEN, color="white",
+                                     on_click=lambda _: start(["chat"]))
+        vis_btn = ft.ElevatedButton(vis_label(), bgcolor=ACCENT, color="white",
+                                    on_click=lambda _: start(["vision", "vision_mmproj"]))
 
         def start(keys):
             def work():
+                for b in (chat_btn, vis_btn):
+                    b.disabled = True
+                bar.visible = True
+                page.update()
                 for key in keys:
                     status.value = f"⏳ {downloader.MODELS[key]['desc']}"
                     page.update()
@@ -289,29 +315,39 @@ def main(page: ft.Page):
                         status.value = f"❌ فشل التحميل: {ex}"
                         page.update()
                         return
-                status.value = "✅ اكتمل التحميل! أعد تشغيل البرنامج لتحميل النموذج"
+                bar.visible = False
+                status.value = "✅ اكتمل التحميل! أعد تشغيل البرنامج لتفعيل النموذج"
+                chat_btn.label = chat_label()
+                vis_btn.label = vis_label()
+                for b in (chat_btn, vis_btn):
+                    b.disabled = False
                 page.update()
 
             threading.Thread(target=work, daemon=True).start()
+
+        chat_mb, vis_mb = model_mb("chat"), model_mb("vision")
+        state_txt = ft.Text(
+            ("المحادثة: مثبّت ✅" if chat_mb else "المحادثة: غير مثبّت ❌") +
+            (" | الرؤية: مثبّت ✅" if vis_mb else " | الرؤية: غير مثبّت ❌"),
+            color=MUTED, size=12)
 
         dlg = ft.AlertDialog(
             modal=True, bgcolor=PANEL,
             title=ft.Text("⬇️ تحميل نماذج الذكاء", color=TEXT),
             content=ft.Container(width=420, content=ft.Column([
                 ft.Text("نموذج المحادثة: مطلوب للذكاء الكامل", color=TEXT, size=13),
-                ft.ElevatedButton("تحميل نموذج المحادثة (~4.7GB)", bgcolor=GREEN, color="white",
-                                  on_click=lambda _: start(["chat"])),
+                chat_btn,
                 ft.Divider(color=BORDER),
                 ft.Text("نموذج الرؤية: اختياري لميزة تحليل الشاشة", color=TEXT, size=13),
-                ft.ElevatedButton("تحميل نموذج الرؤية (~4.9GB)", bgcolor=ACCENT, color="white",
-                                  on_click=lambda _: start(["vision", "vision_mmproj"])),
+                vis_btn,
                 ft.Divider(color=BORDER),
-                bar, status,
+                state_txt, bar, status,
             ], tight=True, spacing=8)),
             actions=[ft.TextButton("إغلاق", on_click=lambda _: close_dialog())])
         page.dialog = dlg
         dlg.open = True
         page.update()
+
 
     # ===== عن البرنامج =====
     def open_about(e):
