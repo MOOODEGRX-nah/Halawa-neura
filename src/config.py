@@ -27,8 +27,8 @@ DEFAULT_CONFIG = {
         "vision_mmproj": "mmproj-model-f16.gguf"
     },
     "resources": {
-        "normal": {"n_threads": 6, "n_gpu_layers": 33, "n_ctx": 4096},
-        "gaming": {"n_threads": 2, "n_gpu_layers": 20, "n_ctx": 2048}
+        "normal": {"n_threads": 6, "n_gpu_layers": 33, "n_ctx": 4096, "n_batch": 1024},
+        "gaming": {"n_threads": 2, "n_gpu_layers": 20, "n_ctx": 2048, "n_batch": 512}
     },
     "github": {"enabled": False, "repo": ""},
     "trusted_channels": {

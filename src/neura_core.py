@@ -50,6 +50,7 @@ class NeuraCore:
                 n_threads=int(res["n_threads"]),
                 n_gpu_layers=int(res["n_gpu_layers"]),
                 n_ctx=int(res["n_ctx"]),
+                n_batch=int(res.get("n_batch", 1024)),
                 verbose=False,
             )
             self.status = "ready"
