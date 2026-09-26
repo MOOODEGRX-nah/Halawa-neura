@@ -72,6 +72,7 @@ def main(page: ft.Page):
     page.add(card)
 
     monitor.start()
+    state.update_status("ready", "System Online - Dual GPU Active")
     page.run_thread(loop)
 
 
