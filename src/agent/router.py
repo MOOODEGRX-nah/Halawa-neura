@@ -1,17 +1,13 @@
 """
-Neura Intent Router
-يفهم نوايا المستخدم ويختار الأداة المناسبة تلقائياً.
+Neura Intent Router — v2 (مع Browser + SessionVault)
 """
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 import re
 
 
 class IntentRouter:
-    """يحلل النص ويحدد الأداة المناسبة."""
-
     def __init__(self):
         self.patterns = {
             'media_search': [
@@ -20,15 +16,24 @@ class IntentRouter:
                 r'find.*video',
                 r'search.*youtube',
             ],
+            'browser_login': [
+                r'سجل.*دخول',
+                r'login.*site',
+                r'احفظ.*جلسة',
+            ],
+            'browser_open_visible': [
+                r'افتح.*بالمتصفح',
+                r'شاهد.*موقع',
+            ],
             'browser_headlines': [
                 r'عناوين.*موقع',
                 r'اخبار.*موقع',
-                r'ابحث.*موقع',
                 r'headlines',
             ],
             'browser_read': [
                 r'افتح.*موقع',
                 r'اقرا.*موقع',
+                r'ابحث.*موقع',
                 r'browse',
             ],
             'file_move': [
@@ -50,6 +55,10 @@ class IntentRouter:
             'git_commit': [
                 r'كوميت',
                 r'commit',
+            ],
+            'session_list': [
+                r'اعرض.*جلسات',
+                r'list.*sessions',
             ],
         }
 
@@ -75,24 +84,20 @@ class IntentRouter:
             match = re.search(r'(?:موقع|site)\s+(\S+)', text)
             if match:
                 params['url'] = match.group(1)
+        elif intent == 'browser_login':
+            match = re.search(r'(?:في|in)\s+(?:موقع\s+)?(\S+)', text)
+            params['url'] = match.group(1) if match else ''
+            match = re.search(r'باسم\s+(\S+)', text)
+            params['session_name'] = match.group(1) if match else 'default'
         return params
 
 
 if __name__ == '__main__':
-    router = IntentRouter()
+    r = IntentRouter()
     tests = [
-        'ابحث عن فيديوهات RTX 5090 benchmarks',
-        'عناوين موقع bbc.com',
-        'افتح موقع example.com',
+        'سجل دخول في موقع uqu.edu.sa باسم جامعتي',
         'ابحث في موقع uqu.edu.sa عن القبول',
-        'انقل ملف test.txt إلى backup/',
-        'ما هو أفضل كرت شاشة؟',
+        'اعرض الجلسات',
     ]
-    print('Intent Router Demo')
-    print('=' * 60)
-    for text in tests:
-        intent = router.detect_intent(text)
-        params = router.extract_params(text, intent)
-        print(f'النص: {text}')
-        print(f'  النية: {intent} | المعاملات: {params}')
-        print()
+    for t in tests:
+        print(f'{t}  ->  {r.detect_intent(t)} / {r.extract_params(t, r.detect_intent(t))}')

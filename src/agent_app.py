@@ -190,7 +190,13 @@ def main(page: ft.Page):
 
             def do_read():
                 try:
-                    with browser_actions.SafeBrowser(headless=True) as br:
+                    from agent.session_vault import SessionVault as _SV
+                    _dom = url.split('//')[-1].split('/')[0]
+                    _sn, _ss = _SV().get_state_for_domain(_dom)
+                    if _sn:
+                        assistant_body.value = '🔐 جلسة تلقائية: ' + _sn
+                        page.update()
+                    with browser_actions.SafeBrowser(headless=True, session_state=_ss) as br:
                         result = br.read_page(url)
                     if result['ok']:
                         assistant_body.value = '📄 ' + result['title'] + '\n\n' + result['content'][:2000]
@@ -220,7 +226,13 @@ def main(page: ft.Page):
 
             def do_headlines():
                 try:
-                    with browser_actions.SafeBrowser(headless=True) as br:
+                    from agent.session_vault import SessionVault as _SV
+                    _dom = url.split('//')[-1].split('/')[0]
+                    _sn, _ss = _SV().get_state_for_domain(_dom)
+                    if _sn:
+                        assistant_body.value = '🔐 جلسة تلقائية: ' + _sn
+                        page.update()
+                    with browser_actions.SafeBrowser(headless=True, session_state=_ss) as br:
                         result = br.extract_headlines(url)
                     if result['ok']:
                         text = '📰 ' + result['title'] + '\n\n'
@@ -235,6 +247,89 @@ def main(page: ft.Page):
                     page.update()
 
             threading.Thread(target=do_headlines, daemon=True).start()
+            return True
+
+        elif intent == 'browser_login':
+            # تسجيل دخول تفاعلي - متصفح مرئي، Neura لا يرى كلمة المرور
+            from agent.session_vault import SessionVault
+            vault = SessionVault()
+            url = params.get('url', '')
+            session_name = params.get('session_name', 'default')
+            if url and not url.startswith('http'):
+                url = 'https://' + url
+            if not url:
+                return False
+
+            assistant_widget, assistant_header, assistant_body = make_message_widget("assistant")
+            chat_list.controls.append(assistant_widget)
+            assistant_header.value = "Neura [Session]"
+            assistant_body.value = f'🔐 سأفتح متصفحاً لتسجيل الدخول في:\n{url}\n\nSession name: {session_name}\n\nأكمل الدخول بنفسك ثم أغلق النافذة.'
+            page.update()
+
+            def do_login():
+                try:
+                    # متصفح مرئي (headed) - المستخدم يدخل بنفسه
+                    with browser_actions.SafeBrowser(headless=False, session_name=session_name, save_on_exit=True, domain=url.split(chr(47)*2)[-1].split(chr(47))[0]) as br:
+                        result = br.login_interactive(url)
+                    if result['ok']:
+                        assistant_body.value = f'✅ تم حفظ الجلسة الدائمة: {session_name}\n\nالآن يمكنك استخدام "{session_name}" للوصول التلقائي.'
+                    else:
+                        assistant_body.value = f'❌ فشل: {result["error"]}'
+                    page.update()
+                except Exception as e:
+                    assistant_body.value = f'❌ خطأ: {str(e)}'
+                    page.update()
+
+            threading.Thread(target=do_login, daemon=True).start()
+            return True
+
+        elif intent == 'session_list':
+            from agent.session_vault import SessionVault
+            vault = SessionVault()
+            sessions = vault.list_persistent()
+            assistant_widget, assistant_header, assistant_body = make_message_widget("assistant")
+            chat_list.controls.append(assistant_widget)
+            assistant_header.value = "Neura [Sessions]"
+            if sessions:
+                text = f'🔐 لديك {len(sessions)} جلسة دائمة:\n\n'
+                for s in sessions:
+                    text += f'  • {s["name"]} ({s["modified"]})\n'
+                assistant_body.value = text
+            else:
+                assistant_body.value = 'لا توجد جلسات محفوظة.'
+            page.update()
+            return True
+
+        elif intent == 'browser_open_visible':
+            m = re.search(r'(?:موقع|site)\s+(\S+)', user_msg)
+            url = m.group(1) if m else ''
+            if url and not url.startswith('http'):
+                url = 'https://' + url
+            if not url:
+                return False
+
+            from agent.session_vault import SessionVault as _SV2
+            _dom = url.split('//')[-1].split('/')[0]
+            _sn, _ss = _SV2().get_state_for_domain(_dom)
+
+            assistant_widget, assistant_header, assistant_body = make_message_widget("assistant")
+            chat_list.controls.append(assistant_widget)
+            assistant_header.value = "Neura [Browser]"
+            sess_note = f' (بجلسة: {_sn})' if _sn else ''
+            assistant_body.value = f'🖥️ سأفتح نافذة متصفح حقيقية{sess_note}:\n{url}\nأغلق النافذة عند الانتهاء.'
+            page.update()
+
+            def do_open():
+                try:
+                    with browser_actions.SafeBrowser(headless=False, session_state=_ss) as br:
+                        br.open_visible(url)
+                    assistant_body.value = '🖥️ أُغلقت نافذة المتصفح.'
+                    page.update()
+                except Exception as e:
+                    assistant_body.value = f'❌ خطأ: {str(e)}'
+                    page.update()
+
+            threading.Thread(target=do_open, daemon=True).start()
             return True
 
         return False  # لم يتم تنفيذ أداة
