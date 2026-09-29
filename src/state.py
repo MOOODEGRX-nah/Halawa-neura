@@ -18,7 +18,9 @@ class NeuraState:
     active_skills: List[str] = field(default_factory=list)
     monitor_data: Dict[str, Any] = field(default_factory=lambda: {
         "cpu_percent": 0.0, "gpu_percent": 0.0,
-        "ram_used_gb": 0.0, "vram_used_gb": 0.0,
+        "ram_used_gb": 0.0,
+        "ram_percent": 0.0,
+        "ram_total_gb": 0.0, "vram_used_gb": 0.0,
         "tokens_per_sec": 0.0, "active_gpus": []
     })
     error_log: List[Dict[str, Any]] = field(default_factory=list)

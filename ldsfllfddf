@@ -1,0 +1,27 @@
+[1mdiff --git a/src/config.py b/src/config.py[m
+[1mindex 642ef5a..9f1e669 100644[m
+[1m--- a/src/config.py[m
+[1m+++ b/src/config.py[m
+[36m@@ -27,8 +27,8 @@[m [mDEFAULT_CONFIG = {[m
+         "vision_mmproj": "mmproj-model-f16.gguf"[m
+     },[m
+     "resources": {[m
+[31m-        "normal": {"n_threads": 6, "n_gpu_layers": 33, "n_ctx": 4096},[m
+[31m-        "gaming": {"n_threads": 2, "n_gpu_layers": 20, "n_ctx": 2048}[m
+[32m+[m[32m        "normal": {"n_threads": 6, "n_gpu_layers": 33, "n_ctx": 4096, "n_batch": 1024},[m
+[32m+[m[32m        "gaming": {"n_threads": 2, "n_gpu_layers": 20, "n_ctx": 2048, "n_batch": 512}[m
+     },[m
+     "github": {"enabled": False, "repo": ""},[m
+     "trusted_channels": {[m
+[1mdiff --git a/src/neura_core.py b/src/neura_core.py[m
+[1mindex 1efa6db..ef7a0a4 100644[m
+[1m--- a/src/neura_core.py[m
+[1m+++ b/src/neura_core.py[m
+[36m@@ -50,6 +50,7 @@[m [mclass NeuraCore:[m
+                 n_threads=int(res["n_threads"]),[m
+                 n_gpu_layers=int(res["n_gpu_layers"]),[m
+                 n_ctx=int(res["n_ctx"]),[m
+[32m+[m[32m                n_batch=int(res.get("n_batch", 1024)),[m
+                 verbose=False,[m
+             )[m
+             self.status = "ready"[m
