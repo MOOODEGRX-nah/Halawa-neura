@@ -20,10 +20,20 @@ class IntentRouter:
                 r'find.*video',
                 r'search.*youtube',
             ],
+            'browser_headlines': [
+                r'عناوين.*موقع',
+                r'اخبار.*موقع',
+                r'ابحث.*موقع',
+                r'headlines',
+            ],
+            'browser_read': [
+                r'افتح.*موقع',
+                r'اقرا.*موقع',
+                r'browse',
+            ],
             'file_move': [
                 r'انقل.*(ملف|مجلد)',
                 r'move.*file',
-                r'move.*folder',
             ],
             'file_copy': [
                 r'انسخ.*(ملف|مجلد)',
@@ -36,7 +46,6 @@ class IntentRouter:
             'git_push': [
                 r'ارفع.*جيت',
                 r'push.*git',
-                r'git push',
             ],
             'git_commit': [
                 r'كوميت',
@@ -45,55 +54,45 @@ class IntentRouter:
         }
 
     def detect_intent(self, text):
-        """يحدد النية من النص."""
         text_lower = text.lower()
-
         for intent, patterns in self.patterns.items():
             for pattern in patterns:
                 if re.search(pattern, text_lower, re.IGNORECASE):
                     return intent
-
-        return 'chat'  # افتراضي: محادثة عادية
+        return 'chat'
 
     def extract_params(self, text, intent):
-        """يستخرج المعاملات من النص."""
         params = {}
-
         if intent == 'media_search':
-            # استخراج موضوع البحث
             match = re.search(r'عن\s+(.+)', text)
-            if match:
-                params['query'] = match.group(1).strip()
-            else:
-                # fallback: كل النص بعد "ابحث"
-                params['query'] = text
-
+            params['query'] = match.group(1).strip() if match else text
         elif intent in ('file_move', 'file_copy'):
-            # استخراج المصدر والوجهة
             match = re.search(r'(ملف|مجلد)\s+(\S+)\s+(إلى|to)\s+(\S+)', text)
             if match:
                 params['src'] = match.group(2)
                 params['dst'] = match.group(4)
-
+        elif intent in ('browser_read', 'browser_headlines'):
+            match = re.search(r'(?:موقع|site)\s+(\S+)', text)
+            if match:
+                params['url'] = match.group(1)
         return params
 
 
 if __name__ == '__main__':
     router = IntentRouter()
-
     tests = [
         'ابحث عن فيديوهات RTX 5090 benchmarks',
+        'عناوين موقع bbc.com',
+        'افتح موقع example.com',
+        'ابحث في موقع uqu.edu.sa عن القبول',
         'انقل ملف test.txt إلى backup/',
-        'ارفع المشروع لجيت',
         'ما هو أفضل كرت شاشة؟',
     ]
-
     print('Intent Router Demo')
     print('=' * 60)
     for text in tests:
         intent = router.detect_intent(text)
         params = router.extract_params(text, intent)
         print(f'النص: {text}')
-        print(f'  النية: {intent}')
-        print(f'  المعاملات: {params}')
+        print(f'  النية: {intent} | المعاملات: {params}')
         print()
