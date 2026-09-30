@@ -12,6 +12,8 @@ class IntentRouter:
         self.patterns = {
             'media_search': [
                 r'ابحث.*(فيديو|مقطع|يوتيوب)',
+                r'فيديو',
+                r'يوتيوب',
                 r'جيب.*(فيديو|مقطع)',
                 r'find.*video',
                 r'search.*youtube',
