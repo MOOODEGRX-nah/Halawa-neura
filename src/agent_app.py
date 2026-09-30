@@ -14,6 +14,7 @@ from state import get_state
 from monitor import get_monitor
 from neura_core import NeuraCore
 from stt import SpeechToText
+from tts import TextToSpeech
 from agent.router import IntentRouter
 from agent import media_actions, file_actions, git_actions
 from agent import browser_actions
@@ -36,6 +37,10 @@ def main(page: ft.Page):
 
     print('[App] Initializing Intent Router ...')
     router = IntentRouter()
+
+    print('[App] Loading TTS ...')
+    tts = TextToSpeech()
+    tts_enabled = [True]
 
     state.update_status('ready', 'Agent Mode Active')
 
@@ -62,6 +67,15 @@ def main(page: ft.Page):
     )
     send_btn = ft.IconButton(icon="send", icon_color="#42A5F5")
     mic_btn = ft.IconButton(icon="mic", icon_color="#FF5252", icon_size=28)
+    tts_btn = ft.IconButton(icon="volume_up", icon_color="#66BB6A", icon_size=28)
+
+    def toggle_tts(e):
+        tts_enabled[0] = not tts_enabled[0]
+        tts_btn.icon = 'volume_up' if tts_enabled[0] else 'volume_off'
+        tts_btn.icon_color = '#66BB6A' if tts_enabled[0] else '#757575'
+        page.update()
+
+    tts_btn.on_click = toggle_tts
 
     def make_message_widget(role, speed=None):
         color = "#42A5F5" if role == "user" else "#66BB6A"
@@ -350,6 +364,8 @@ def main(page: ft.Page):
                     final_speed = chunk['speed']
                     assistant_header.value = "Neura [%.1f tok/s]" % final_speed
                     page.update()
+                    if tts_enabled[0]:
+                        threading.Thread(target=tts.speak, args=(assistant_body.value,), daemon=True).start()
         except Exception as ex:
             assistant_body.value = "Error: %s" % str(ex)
             page.update()
@@ -472,7 +488,8 @@ def main(page: ft.Page):
             content=ft.Column([
                 chat_list,
                 ft.Divider(),
-                ft.Row([input_field, send_btn, mic_btn], spacing=10),
+                tts_btn,
+        ft.Row([input_field, send_btn, mic_btn], spacing=10),
             ], expand=True),
         ),
         expand=True,
