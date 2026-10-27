@@ -1,69 +1,90 @@
-name: Build Neura Package
-
+name: Linux desktop, tests and release
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+  pull_request:
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  build:
-    runs-on: windows-latest
+  tests:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Install build tools
+          python-version: '3.14'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+        env:
+          NEURA_DATA_DIR: /tmp/neura-ci-data
+  linux-package:
+    if: github.event_name != 'pull_request'
+    needs: tests
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    permissions:
+      contents: write
+    steps:
+      - name: Install Arch build tools
+        run: pacman -Syu --noconfirm --needed git python python-pip python-numpy cmake ninja vulkan-headers vulkan-icd-loader shaderc glslang spirv-tools zstd sudo
+      - uses: actions/checkout@v4
+      - name: Build a pinned Vulkan runtime
+        env:
+          CMAKE_ARGS: '-DGGML_VULKAN=ON -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF'
+          CMAKE_BUILD_PARALLEL_LEVEL: '2'
         run: |
-          python -m pip install --upgrade pip pyinstaller
-          python -m pip install flet SpeechRecognition pyttsx3 PyGithub requests
-
-      - name: Build launcher exe
-        run: pyinstaller --onefile --windowed --icon=assets/neura.ico --name=Neura --distpath dist --workpath build src/launcher.py
-
-      - name: Assemble portable package
-        shell: pwsh
+          python -c 'import sys; assert sys.version_info[:2] == (3,14), "Rebuild the package metadata for the new Python ABI"'
+          python -m venv /tmp/neura-build-env
+          /tmp/neura-build-env/bin/python -m pip install --upgrade pip
+          /tmp/neura-build-env/bin/python -m pip install --target vendor -r requirements-backend.txt
+          /tmp/neura-build-env/bin/python -m pip install --target vendor --no-deps --no-binary=llama-cpp-python -r requirements-inference.txt
+          /tmp/neura-build-env/bin/python -m pip install --target vendor diskcache==5.6.3 Jinja2==3.1.6
+          PYTHONPATH=vendor python -c 'import llama_cpp; print(llama_cpp.__version__)'
+      - name: Build pacman and AUR artifacts as an unprivileged user
         run: |
-          New-Item -ItemType Directory -Force -Path pkg | Out-Null
-          Copy-Item dist/Neura.exe pkg/
-          Copy-Item -Recurse src pkg/src
-          Copy-Item install.bat pkg/ -ErrorAction SilentlyContinue
-          Copy-Item run.bat pkg/ -ErrorAction SilentlyContinue
-          Copy-Item requirements.txt pkg/ -ErrorAction SilentlyContinue
-          Copy-Item README.md pkg/ -ErrorAction SilentlyContinue
-          Copy-Item LICENSE pkg/ -ErrorAction SilentlyContinue
-          Copy-Item -Recurse assets pkg/assets -ErrorAction SilentlyContinue
-          Copy-Item -Recurse tools pkg/tools -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path pkg/models | Out-Null
-          New-Item -ItemType Directory -Force -Path pkg/data | Out-Null
-
-      - name: Create portable zip
-        shell: pwsh
-        run: Compress-Archive -Path pkg/* -DestinationPath "Neura-Portable-${{ github.ref_name }}.zip"
-
-      - name: Create partial update zip
-        run: python tools/make_update_zip.py ${{ github.ref_name }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+          useradd -m builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          sudo -u builder python tools/build_linux_release.py --vendor vendor --output release
+      - uses: actions/upload-artifact@v4
         with:
-          name: Neura-Build-${{ github.ref_name }}
-          path: |
-            Neura-Portable-*.zip
-            Neura-Update-*.zip
-
-      - name: Create release
-        if: startsWith(github.ref, 'refs/tags/')
+          name: neura-linux-${{ github.sha }}
+          path: release/
+      - name: Read version
+        id: version
+        run: echo "tag=v$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      - name: Detect existing published release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          url='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/releases/tags/'+os.environ['TAG']
+          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          try:
+              with urllib.request.urlopen(request) as response: release=json.load(response)
+              exists=not release.get('draft',False)
+          except urllib.error.HTTPError as error:
+              if error.code!=404: raise
+              exists=False
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('exists='+str(exists).lower()+'\n')
+          PY
+      - name: Publish stable Linux release
+        if: steps.existing.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Neura AI ${{ steps.version.outputs.tag }} — Linux Desktop
+          body_path: docs/RELEASE_v0.3.0_AR.md
+          fail_on_unmatched_files: true
           files: |
-            Neura-Portable-*.zip
-            Neura-Update-*.zip
-          generate_release_notes: true
+            release/*.pkg.tar.zst
+            release/neura-ai-*-linux-x86_64.tar.zst
+            release/*-aur.tar.gz
+            release/SHA256SUMS.txt
+            release/install.sh
+            release/install.py

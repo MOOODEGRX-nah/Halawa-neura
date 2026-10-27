@@ -1,0 +1,71 @@
+models:
+  gemma-4-e4b-q4:
+    name: 'Gemma 3 4B IT (local filename: gemma-4-E4B)'
+    file: gemma-4-E4B-Q4_K_M.gguf
+    size_gb: 2.49
+    repo: null
+    sha256: 04a43a22e8d2003deda5acc262f68ec1005fa76c735a9962a8c77042a74a7d19
+    enabled: true
+    size_bytes: 2489894016
+    architecture: gemma3
+    metadata_name: Gemma-3-4B-It
+    identity_note: GGUF metadata identifies gemma3 / Gemma-3-4B-It; upstream provenance
+      unverified
+    license_status: unverified; check original publisher terms before redistribution
+  qwen3.5-9b-q4:
+    name: Qwen3.5 9B Q4_K_M
+    file: Qwen3.5-9B-Q4_K_M.gguf
+    size_gb: 5.681
+    repo: unsloth/Qwen3.5-9B-GGUF
+    sha256: 03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8
+    enabled: true
+    size_bytes: 5680522464
+    architecture: qwen35
+    metadata_name: Qwen3.5-9B
+    license_status: unverified; check original publisher terms before redistribution
+  qwen3.5-9b-claude-distilled-q4:
+    name: Qwen3.5 9B distilled (community model)
+    file: Qwen3.5-9B-Claude-Distilled-Q4_K_M.gguf
+    size_gb: 5.627
+    repo: Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-GGUF
+    sha256: d0ecd80b0e45b0d9e49c8cd1527b7f7d52d8d3bde2c569ab36aac59bb78f53f7
+    enabled: true
+    size_bytes: 5627040640
+    architecture: qwen35
+    metadata_name: Unsloth_Gguf_Yy57D7Hq
+    identity_note: Not an Anthropic Claude model; provenance unverified
+    license_status: unverified; check original publisher terms before redistribution
+    reasoning_end_token: </think>
+  qwen3.8-27b-q4:
+    name: Qwen3.8 27B Q4_K_M
+    file: Qwen3.8-27B-Q4_K_M.gguf
+    size_gb: 15.7
+    repo: Qwen/Qwen3.8-27B-GGUF
+    sha256: pending_verification
+    enabled: false
+    disabled_reason: No local GGUF file; upstream identity unverified
+    license_status: unverified; check original publisher terms before redistribution
+  qwen3-vl-8b-q4:
+    name: Qwen3 VL 8B Q4_K_M
+    file: Qwen3VL-8B-Instruct-Q4_K_M.gguf
+    size_gb: 5.028
+    repo: Qwen/Qwen3-VL-8B-Instruct-GGUF
+    sha256: 67d1659bfe71b89d50b45a4ad1a9e5b997e5bb16ce5da66a6a6167abd569e9e2
+    enabled: true
+    size_bytes: 5027784800
+    architecture: qwen3vl
+    metadata_name: Qwen3Vl 8b Instruct
+    projector: mmproj-Qwen3VL-8B-Instruct-F16.gguf
+    license_status: unverified; check original publisher terms before redistribution
+  qwen2.5-coder-14b-q4:
+    name: Qwen2.5-Coder-14B-Instruct Q4_K_M
+    file: Qwen2.5-Coder-14B-Q4_K_M.gguf
+    size_gb: 8.988
+    repo: Qwen/Qwen2.5-Coder-14B-Instruct-GGUF
+    sha256: 55f1e4c488a212885466cad553033fcd9579fd3f1edf16ac1b998d80cd43dff5
+    enabled: false
+    size_bytes: 8988111072
+    architecture: qwen2
+    metadata_name: Qwen2.5 Coder 14B Instruct
+    disabled_reason: 'Local .aria2 marker: finish and verify download before enabling'
+    license_status: unverified; check original publisher terms before redistribution

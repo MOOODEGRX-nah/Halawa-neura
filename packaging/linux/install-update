@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import sys
+sys.path.insert(0, '/opt/neura-ai/app')
+from src.desktop.install_update import install
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        raise SystemExit('Expected package path and version')
+    try:
+        install(sys.argv[1], sys.argv[2])
+    except Exception as error:
+        print(str(error), file=sys.stderr)
+        raise SystemExit(1)

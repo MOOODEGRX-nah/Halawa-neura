@@ -33,3 +33,12 @@ desktop.ini
 .vscode/
 .idea/
 python-embed/
+
+node_modules/
+.pytest_cache/
+*.aria2
+
+vendor/
+.release-build/
+*.pkg.tar.zst
+*.tar.zst

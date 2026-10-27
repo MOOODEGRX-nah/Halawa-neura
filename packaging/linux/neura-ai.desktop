@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Neura AI
+Name[ar]=نيورا — مساعد الذكاء الاصطناعي
+GenericName=Local AI Assistant
+GenericName[ar]=مساعد ذكاء اصطناعي محلي
+Comment=Chat, images and coding with local models
+Comment[ar]=محادثة وصور وبرمجة باستخدام نماذج محلية
+Exec=neura-ai
+Icon=neura-ai
+Terminal=false
+Categories=Utility;
+StartupNotify=true
+StartupWMClass=org.neura.ai
+Keywords=AI;Chat;Local;Qwen;Gemma;

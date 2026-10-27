@@ -1,0 +1,34 @@
+tiers:
+  fast:
+    name: FAST
+    model_id: gemma-4-e4b-q4
+    role: Gaming mode + Invoice Dispatch
+    residency: on-demand
+  daily:
+    name: DAILY
+    model_id: qwen3.5-9b-q4
+    role: Everyday chat
+    residency: default-resident
+  expert:
+    name: EXPERT
+    model_id: qwen3.5-9b-claude-distilled-q4
+    role: Deep analysis + Planning + Review
+    residency: alone
+  vision:
+    name: VISION
+    model_id: qwen3-vl-8b-q4
+    role: Images
+    residency: swap-in
+hidden_tiers:
+  coder:
+    name: CODER
+    model_id: qwen3.5-9b-claude-distilled-q4
+    role: Code chat; temporary model until Coder download is verified
+    residency: swap-in
+    auto_route: true
+    trigger_patterns:
+    - برمج|كود|code|function|class|def|import
+    - اكتب.*برنامج|write.*program|write.*script
+    - debug|fix.*bug|أصلح.*خطأ
+    - لعبة|game|تطبيق|app
+    - python|javascript|html|css

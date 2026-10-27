@@ -1,0 +1,1 @@
+{"private":true,"scripts":{"build:css":"tailwindcss -c web/tailwind.config.cjs -i web/input.css -o web/styles.css --minify"},"devDependencies":{"tailwindcss":"3.4.17"}}

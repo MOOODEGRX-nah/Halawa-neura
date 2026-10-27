@@ -1,0 +1,19 @@
+# Maintainer: MOOODEGRX-nah
+pkgname=neura-ai-bin
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc='Native local AI desktop with Vulkan inference, images, coding and in-app updates'
+arch=('x86_64')
+url='https://github.com/MOOODEGRX-nah/Halawa-neura'
+license=('MIT' 'BSD-3-Clause' 'BSD-2-Clause' 'Apache-2.0' 'MPL-2.0' 'PSF-2.0')
+depends=('python>=3.14' 'python<3.15' 'pyside6' 'qt6-webengine' 'python-numpy' 'vulkan-icd-loader' 'polkit' 'hicolor-icon-theme' 'gcc-libs' 'glibc')
+optdepends=('vulkan-radeon: AMD GPU acceleration' 'vulkan-intel: Intel GPU acceleration' 'nvidia-utils: NVIDIA Vulkan driver')
+provides=('neura-ai')
+conflicts=('neura-ai')
+options=('!strip' '!debug')
+source=("https://github.com/MOOODEGRX-nah/Halawa-neura/releases/download/v${pkgver}/neura-ai-${pkgver}-linux-x86_64.tar.zst")
+sha256sums=('@SHA256@')
+package() {
+  cp -a --no-preserve=ownership "${srcdir}/opt" "${pkgdir}/opt"
+  cp -a --no-preserve=ownership "${srcdir}/usr" "${pkgdir}/usr"
+}

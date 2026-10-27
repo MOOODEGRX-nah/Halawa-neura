@@ -1,0 +1,2 @@
+# Install with CMAKE_ARGS='-DGGML_VULKAN=ON' on Linux AMD. See README_AR.md.
+llama-cpp-python==0.3.36
