@@ -28,7 +28,7 @@ jobs:
       contents: write
     steps:
       - name: Install Arch build tools
-        run: pacman -Syu --noconfirm --needed git python python-pip python-numpy cmake ninja vulkan-headers vulkan-icd-loader shaderc glslang spirv-tools zstd sudo
+        run: pacman -Syu --noconfirm --needed git python python-pip python-numpy cmake ninja vulkan-headers vulkan-icd-loader shaderc glslang spirv-tools spirv-headers zstd sudo
       - uses: actions/checkout@v4
       - name: Build a pinned Vulkan runtime
         env:

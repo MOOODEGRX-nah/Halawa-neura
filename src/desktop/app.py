@@ -135,7 +135,10 @@ class UpdateDialog(QDialog):
 
     def dismissed(self, result):
         self.cancelled = True
-        if self.download_task and self.download_task.isRunning(): self.download_task.requestInterruption()
+        try:
+            if self.download_task and self.download_task.isRunning(): self.download_task.requestInterruption()
+        except RuntimeError:
+            self.download_task = None
         self.window.update_dialog = None
 
     def checked(self, package):
@@ -162,6 +165,7 @@ class UpdateDialog(QDialog):
                 task.progress.emit(received, total)
             return download_package(self.package, cache_directory(), progress)
         self.download_task = self.window.task(download, self.downloaded, self.error, self.progress_changed)
+        self.download_task.finished.connect(lambda: setattr(self, 'download_task', None))
 
     def progress_changed(self, received, total):
         self.progress.setRange(0, 100); self.progress.setValue(round(received / total * 100))
