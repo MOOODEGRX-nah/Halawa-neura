@@ -5,7 +5,7 @@
   <p><a href="https://github.com/MOOODEGRX-nah/Halawa-neura/releases/latest">تنزيل التطبيق</a> · <a href="docs/INSTALL_AR.md">التثبيت</a> · <a href="docs/ARCHITECTURE_AR.md">كيف تعمل النماذج</a> · <a href="docs/AUR_PUBLISH_AR.md">نشر حزمة AUR</a></p>
 </div>
 
-**نسخة العمل المحلية 0.4.0:** تضيف مساحة المبرمج والمهارات أدناه. لم تُنشر هذه النسخة ولم تُثبّت على النظام ضمن هذه المهمة؛ رابط GitHub أعلاه يعود إلى الإصدار العام الموجود. [دليل مساحة العمل وحدودها](docs/WORKSPACE_V2_GUIDE_AR.md) · [عقد API](docs/WORKSPACE_V2_API.md) · [تدقيق نقطة البداية](docs/WORKSPACE_V2_AUDIT_AR.md).
+**مصدر الإصدار 0.4.0:** يتضمن مساحة المبرمج والمهارات أدناه. تتاح حزم هذا الإصدار في GitHub Releases بعد اكتمال بناء GitHub Actions. [ملاحظات الإصدار وطريقة التحديث](docs/RELEASE_v0.4.0_AR.md) · [دليل مساحة العمل وحدودها](docs/WORKSPACE_V2_GUIDE_AR.md) · [عقد API](docs/WORKSPACE_V2_API.md) · [تدقيق نقطة البداية](docs/WORKSPACE_V2_AUDIT_AR.md).
 
 ## افتحه كتطبيق عادي
 
@@ -132,7 +132,7 @@ python -m venv .venv
 env NEURA_DATA_DIR=/tmp/neura-test-data .venv/bin/python -m pytest -q
 ```
 
-اجتازت مساحة العمل **159 اختبارًا**، مع توليد فعلي ومحادثة ورؤية واختبار الحزمة عبر Qt؛ [نتائج 0.4.0 وحدودها](docs/QA_v0.4.0_AR.md). نتائج 0.3.0 التاريخية في [تقريرها](docs/QA_v0.3.0_AR.md) منفصلة عنها. الاختبارات الافتراضية لا تحتاج أوزانًا أو GPU أو اتصال Telegram. للبناء الحقيقي استخدم `tools/build_linux_release.py` مع شجرة vendor المطابقة للاعتماديات المثبتة في `constraints-tested.txt`. التغيير المحلي لـVERSION لا ينشر إصدارًا؛ هذه المهمة لم تدفع أي تغييرات إلى GitHub. [التفاصيل](docs/INSTALL_AR.md).
+اجتازت مساحة العمل **159 اختبارًا**، مع توليد فعلي ومحادثة ورؤية واختبار الحزمة عبر Qt؛ [نتائج 0.4.0 وحدودها](docs/QA_v0.4.0_AR.md). نتائج 0.3.0 التاريخية في [تقريرها](docs/QA_v0.3.0_AR.md) منفصلة عنها. الاختبارات الافتراضية لا تحتاج أوزانًا أو GPU أو اتصال Telegram. للبناء الحقيقي استخدم `tools/build_linux_release.py` مع شجرة vendor المطابقة للاعتماديات المثبتة في `constraints-tested.txt`. مسار GitHub Actions على main يختبر المصدر ثم يبني الحزم وينشر الإصدار إذا لم يكن منشورًا، مع ملاحظات الإصدار المطابقة لـVERSION. [التفاصيل](docs/INSTALL_AR.md).
 
 ## الترخيص
 

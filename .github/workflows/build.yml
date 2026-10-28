@@ -81,7 +81,11 @@ jobs:
           path: release/
       - name: Read version
         id: version
-        run: echo "tag=v$(cat VERSION)" >> "$GITHUB_OUTPUT"
+        run: |
+          version="$(cat VERSION)"
+          notes="docs/RELEASE_v${version}_AR.md"
+          test -f "$notes"
+          printf 'tag=v%s\nnotes=%s\n' "$version" "$notes" >> "$GITHUB_OUTPUT"
       - name: Detect existing published release
         id: existing
         env:
@@ -107,7 +111,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: Neura AI ${{ steps.version.outputs.tag }} — Linux Desktop
-          body_path: docs/RELEASE_v0.3.0_AR.md
+          body_path: ${{ steps.version.outputs.notes }}
           fail_on_unmatched_files: true
           files: |
             release/*.pkg.tar.zst
