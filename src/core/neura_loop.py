@@ -32,7 +32,7 @@ class NeuraLoop:
     def __init__(self, config_dir=None, models_dir=None, enable_game_mode=False, *, settings=None, backend=None):
         self.settings = settings or Settings()
         self.models_dir = self.settings.models_dir if models_dir is None else Path(models_dir).resolve()
-        self.residency = ResidencyManager(config_dir or self.settings.config_dir, models_dir=self.models_dir)
+        self.residency = ResidencyManager(config_dir or self.settings.config_dir, models_dir=self.models_dir,settings=self.settings)
         self.router = Router(self.residency)
         self.backend = backend or LlamaCppBackend()
         self.current_model_id = None
@@ -113,8 +113,15 @@ class NeuraLoop:
     def _load(self, model_id, tier):
         if self.current_model_id == model_id:
             return
+        released_model = self.current_model_id is not None
         self._unload()
         ok, reason = self.residency.can_load(model_id, self.settings.n_ctx, tier=tier)
+        # AMD counters may lag native buffer destruction briefly. Retain the
+        # same model lock and wait only after releasing our own previous model.
+        release_deadline=time.monotonic()+2
+        while not ok and released_model and self.residency.gpu_required and time.monotonic()<release_deadline:
+            time.sleep(.05)
+            ok, reason=self.residency.can_load(model_id,self.settings.n_ctx,tier=tier)
         if not ok:
             raise InferenceError(reason)
         info = self.residency.get_model_info(model_id)
@@ -122,6 +129,8 @@ class NeuraLoop:
         try:
             self.backend.load(str(self.residency.model_path(model_id)), n_ctx=self.settings.n_ctx,
                               n_gpu_layers=self.settings.n_gpu_layers, n_threads=self.settings.n_threads,
+                              device_name=self.settings.gpu_device,
+                              min_free_gb=self.residency.estimate_vram_usage_gb(model_id,self.settings.n_ctx),
                               n_batch=min(256, self.settings.n_ctx),
                               projector=self.models_dir / info['projector'] if info.get('projector') else None,
                               reasoning_end_token=info.get('reasoning_end_token'))

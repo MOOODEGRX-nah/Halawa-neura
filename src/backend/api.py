@@ -26,6 +26,12 @@ from src.core.vault import ConversationVault
 from src.core.voice_service import VoiceService
 from src.backends.residency import gpu_memory
 from src.tools.safe_actions import SafeActions
+from src.core.project_store import ProjectStore
+from src.core.project_jobs import ProjectJobs, WorkspaceRequest
+from src.core.project_preview import PreviewServer
+from src.backend.project_api import attach_projects
+from src.backend.skills_api import attach_skills
+from src.tools.desktop_skills import DesktopSkills
 
 
 def error_response(message, status, code):
@@ -70,7 +76,7 @@ async def run_worker(request, coordinator, callback):
             task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
 
-def create_app(settings=None, coordinator=None, actions=None, voice=None):
+def create_app(settings=None, coordinator=None, actions=None, voice=None, desktop_adapter=None):
     settings = settings or Settings()
     coordinator = coordinator or NeuraLoop(settings=settings)
     actions = actions or SafeActions()
@@ -78,15 +84,27 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
     token = local_token(settings)
     vault = ConversationVault(settings.data_dir)
     projects = InvoiceOrchestrator(coordinator)
+    project_store = ProjectStore(settings.data_dir)
+    project_jobs = ProjectJobs(project_store, coordinator)
+    preview = PreviewServer(project_store)
+    desktop_skills = DesktopSkills(project_store, desktop_adapter)
     started = time.monotonic()
 
     @asynccontextmanager
     async def lifespan(application):
+        preview.start()
         yield
+        await asyncio.to_thread(project_jobs.shutdown)
+        await asyncio.to_thread(preview.stop)
         await asyncio.to_thread(coordinator.shutdown)
+        project_store.close()
 
     app = FastAPI(title='Neura Local API', version=VERSION, lifespan=lifespan)
     app.state.coordinator, app.state.token = coordinator, token
+    app.state.project_store, app.state.project_jobs, app.state.preview = project_store, project_jobs, preview
+    attach_projects(app, project_store, project_jobs, preview)
+    attach_skills(app,desktop_skills)
+    app.state.desktop_skills=desktop_skills
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', '[::1]'])
 
     @app.middleware('http')
@@ -97,7 +115,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
             return error_response('Open the UI from this API origin', 403, 'origin_denied')
         if request.headers.get('sec-fetch-site') == 'cross-site':
             return error_response('Cross-site requests are disabled', 403, 'origin_denied')
-        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith('/vault')
+        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills'))
         if private:
             supplied = request.headers.get('x-neura-token', '')
             if not secrets.compare_digest(supplied.encode(), token.encode()):
@@ -114,7 +132,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'no-referrer'
         response.headers['Cache-Control'] = 'no-store'
-        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src " + (preview.origin or "'none'")
         return response
 
     @app.exception_handler(InferenceError)
@@ -153,6 +171,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
                 'streaming': True, 'vision': tiers_snapshot().get('vision', {}).get('enabled', False),
                 'vision_validation': 'requires hardware image acceptance test',
                 'vault': True, 'projects': True, 'project_validation': 'static checks only',
+                'workspace': True, 'preview_origin': preview.origin,
                 'tools': actions.capabilities(), 'shell': False, 'email_send': False, **speech}
 
     @app.get('/', response_class=HTMLResponse)
@@ -165,6 +184,18 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
     @app.get('/assets/styles.css')
     async def styles():
         return FileResponse(ROOT / 'web/styles.css', media_type='text/css')
+
+    @app.get('/assets/workspace.js')
+    async def workspace_script():
+        return FileResponse(ROOT / 'web/workspace.js', media_type='text/javascript')
+
+    @app.get('/assets/skills.js')
+    async def skills_script():
+        return FileResponse(ROOT / 'web/skills.js', media_type='text/javascript')
+
+    @app.get('/assets/workspace.css')
+    async def workspace_style():
+        return FileResponse(ROOT / 'web/workspace.css', media_type='text/css')
 
     @app.get('/health')
     async def health():
@@ -186,8 +217,17 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
         except (ImportError, OSError):
             system = {'cpu': None, 'ram_gb': None, 'ram_total_gb': None}
         memory = gpu_memory()
+        chosen=getattr(coordinator.backend,'selected_device',None)
+        if coordinator.current_model_id and chosen and chosen.get('description')=='CPU':
+            memory=None  # Do not attribute another application's GPU usage to CPU inference.
+        if coordinator.current_model_id and chosen and chosen.get('total_bytes') and memory:
+            matches=[device for device in memory.get('devices',[memory])
+                     if abs(device['total_gb']*1e9-chosen['total_bytes'])/chosen['total_bytes']<.1]
+            # Equal-capacity adapters cannot be safely matched by capacity alone.
+            memory=matches[0] if len(matches)==1 else None
         gpu = {'available': memory is not None, 'load': None, 'vram_gb': memory['used_gb'] if memory else None,
                'vram_total_gb': memory['total_gb'] if memory else None, 'temperature': None}
+        gpu['selected_device']=getattr(coordinator.backend,'selected_device',None)
         if memory:
             try:
                 gpu['load'] = int((Path(memory['device']) / 'gpu_busy_percent').read_text())
@@ -295,9 +335,12 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
             'X-Neura-Tier': chosen, 'X-Neura-Model': mid, 'X-Accel-Buffering': 'no'})
 
     @app.post('/projects')
-    async def create_project(req: ProjectRequest, request: Request):
+    async def create_project(req: WorkspaceRequest, request: Request):
+        if req.background:
+            result = await asyncio.to_thread(project_jobs.create, req)
+            return JSONResponse(result, status_code=202)
         result = await run_worker(request, coordinator, lambda cancel, deadline:
-                                  projects.process_request(req, cancel=cancel, deadline=deadline))
+                                  projects.process_request(req.legacy(), cancel=cancel, deadline=deadline))
         return JSONResponse(result, status_code=201 if result['success'] else result.get('http_status', 422))
 
     @app.post('/vault/save')
@@ -335,7 +378,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None):
 
     @app.get('/skills')
     async def skills():
-        return {'skills': actions.capabilities(), 'fail_soft': True}
+        description=await asyncio.to_thread(desktop_skills.describe)
+        return {'skills': actions.capabilities(), 'fail_soft': True,
+                'desktop_skills':description['skills'],'desktop':description['desktop'],'recent_scope':description['recent_scope']}
 
     @app.post('/tool/call')
     async def tool_call(req: ToolRequest):

@@ -100,3 +100,18 @@ def test_metrics_count_real_requests_and_do_not_invent_stream_tokens(system,mess
     system.backend.failure=ValueError('broken')
     with pytest.raises(InferenceError):system.complete(messages)
     assert system.metrics_snapshot()['totals']['errors']==1
+
+
+def test_model_switch_waits_for_measured_vram_release(system,messages,monkeypatch):
+    system.complete(messages,tier='fast')
+    original=system.residency.can_load
+    reads=[]
+    def delayed_release(*args,**kwargs):
+        reads.append(system.residency.current_model_id)
+        if len(reads)==1:return False,'native buffers were just released'
+        return original(*args,**kwargs)
+    monkeypatch.setattr(system.residency,'can_load',delayed_release)
+    system._load('qwen3.5-9b-q4','daily')
+    assert len(reads)>=2 and all(value is None for value in reads)
+    assert system.current_model_id=='qwen3.5-9b-q4'
+    assert system.backend.unloads==1

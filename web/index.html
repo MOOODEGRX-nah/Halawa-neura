@@ -121,7 +121,9 @@
 <nav id="nav" class="nx-nav" aria-label="التنقل">
   <span class="nx-brand">NEURA</span>
   <div class="nx-tabs" role="tablist" aria-label="الصفحات">
-    <button id="tab-chat" type="button" class="nx-tab" role="tab" aria-controls="pg-chat" aria-selected="true"><i data-i="chat" data-z="w-4 h-4"></i><span>المحادثة</span></button>
+    <button id="tab-projects" type="button" class="nx-tab" role="tab" aria-controls="pg-projects" aria-selected="false">المشاريع</button>
+<button id="tab-skills" type="button" class="nx-tab" role="tab" aria-controls="pg-skills" aria-selected="false">المهارات</button>
+<button id="tab-chat" type="button" class="nx-tab" role="tab" aria-controls="pg-chat" aria-selected="true"><i data-i="chat" data-z="w-4 h-4"></i><span>المحادثة</span></button>
     <button id="tab-monitor" type="button" class="nx-tab" role="tab" aria-controls="pg-monitor" aria-selected="false" tabindex="-1"><i data-i="act" data-z="w-4 h-4"></i><span>المراقبة</span></button>
     <button id="tab-about" type="button" class="nx-tab" role="tab" aria-controls="pg-about" aria-selected="false" tabindex="-1"><i data-i="info" data-z="w-4 h-4"></i><span>حول</span></button>
   </div>
@@ -187,6 +189,8 @@
   </div>
 </div>
 </div>
+<section id="pg-projects" role="tabpanel" aria-labelledby="tab-projects" class="nx-page nx-off"></section>
+<section id="pg-skills" role="tabpanel" aria-labelledby="tab-skills" class="nx-page nx-off"></section>
 <section id="pg-monitor" role="tabpanel" aria-labelledby="tab-monitor" class="nx-page nx-off">
   <div class="nx-wrap">
     <div id="mon" class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>NEURA CORE</h3><div id="bars" class="nx-bars"></div></div>
@@ -220,32 +224,33 @@
   <div class="nx-wrap">
     <div class="nx-card">
       <div class="nx-hero"><b>NEURA</b><span class="nx-tag info" id="ab-ver">v0.1.0</span></div>
-      <p class="nx-p">مساعد ذكي محلي بالكامل وعربي أولاً: كل شيء يعمل على جهازك، بلا استدلال سحابي وبلا تتبّع. يوجّه Core كل رسالة بقواعد سريعة (بلا نموذج في الحلقة) إلى أحد أربعة نماذج على llama.cpp (Vulkan).</p>
+      <p class="nx-p">مساعد ذكي محلي بالكامل وعربي أولاً: كل شيء يعمل على جهازك، بلا استدلال سحابي وبلا تتبّع. يوجّه Core كل رسالة بقواعد سريعة (بلا نموذج في الحلقة) إلى أحد النماذج المفعّلة على llama.cpp (Vulkan).</p>
     </div>
     <div class="nx-card">
       <h3 class="nx-h"><i class="nx-dot" style="background:#FFA726"></i>المستويات والتوجيه</h3>
       <div class="nx-scroll" dir="ltr"><table class="nx-table" dir="ltr" id="ab-tiers"></table></div>
       <ul class="nx-list" style="margin-top:10px">
-        <li>صورة أو PDF ← <span class="nx-key">VISION</span> · وضع الألعاب ← <span class="nx-key">FAST</span></li>
+        <li>صورة ← <span class="nx-key">VISION</span> · وضع الألعاب ← <span class="nx-key">FAST</span></li>
         <li>تفكير عميق (<span class="nx-key">Ctrl+Enter</span> أو <span class="nx-key">/think</span> أو كلمات مثل: حلل بعمق، فكر، رياضيات) ← <span class="nx-key">EXPERT</span></li>
         <li>وإلا ← <span class="nx-key">DAILY</span> أو المستوى الذي ثبّتَّه بالأزرار.</li>
       </ul>
     </div>
     <div class="nx-grid">
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>الأوضاع</h3>
-        <ul class="nx-list"><li><b>NORMAL</b> — نموذج واحد على GPU0 (حتى 7 GB) والبقية تُبدَّل عند الطلب.</li><li><b>GAMING</b> — عند تشغيل لعبة من القائمة يبقى FAST فقط (حتى 4.5 GB).</li><li><b>DEEP</b> — EXPERT وحده (حتى 15.7 GB) ويتحرر بعد 10 دقائق خمول.</li></ul></div>
+        <ul class="nx-list"><li><b>NORMAL</b> — نموذج كبير واحد على الجهاز المختار من قياسات الذاكرة أو الإعدادات؛ تُبدَّل النماذج عند الطلب.</li><li><b>GAMING</b> — مراقبة الألعاب اختيارية وليست مفعّلة افتراضيًا في تطبيق سطح المكتب.</li><li><b>DEEP</b> — دور EXPERT للتحليل؛ يشارك دورة التحميل والإلغاء نفسها مع الأدوار الأخرى.</li></ul></div>
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#42A5F5"></i>الاختصارات والأوامر</h3>
         <ul class="nx-list"><li><span class="nx-key">Enter</span> إرسال · <span class="nx-key">Ctrl+Enter</span> تفكير عميق · <span class="nx-key">Esc</span> إيقاف</li><li><span class="nx-key">/run</span> أمر عبر بوابة الأمان</li><li><span class="nx-key">/harvest</span> اسم الملاحظة: تحويل ملاحظة مشروع إلى مقالة معرفة</li><li><span class="nx-key">?style=face</span> نمط البداية · <span class="nx-key">#monitor</span> <span class="nx-key">#about</span> فتح صفحة مباشرة</li></ul></div>
     </div>
     <div class="nx-grid">
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#EF5350"></i>الأمان والخصوصية</h3>
-        <ul class="nx-list"><li>كل المعالجة محلية: لا استدلال سحابي ولا تتبّع.</li><li>الأوامر غير القرائية وكل عملية خطرة تنتظر موافقتك داخل الواجهة.</li><li>الأدوات تعمل فقط من الصفحة التي يقدّمها Core؛ الملف المفتوح من file:// يدردش ولا ينفّذ أدوات.</li><li>الصوت يُفرَّغ محلياً، ولا تُستخدم أصوات المتصفح الشبكية.</li></ul></div>
+        <ul class="nx-list"><li>كل المعالجة محلية: لا استدلال سحابي ولا تتبّع.</li><li>مهارات سطح المكتب تتطلب طلبك الصريح وصلاحية محددة قابلة للإلغاء. تنفيذ الأوامر والتثبيت وإرسال الرسائل غير متاح.</li><li>الأدوات تعمل فقط من الصفحة التي يقدّمها Core؛ ملفات المشاريع تُعاين في إطار معزول؛ لا يملك رمز وصول التطبيق أو جسرًا أصليًا.</li><li>الصوت يُفرَّغ محلياً، ولا تُستخدم أصوات المتصفح الشبكية.</li></ul></div>
     </div>
     <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#B0BEC5"></i>الاتصال والتشخيص</h3><dl class="nx-kv" id="ab-kv"></dl></div>
   </div>
 </section>
 </div>
 
+<link rel="stylesheet" href="/assets/workspace.css">
 <script>
 let st='ready',mode='fast',tts=false,busy=false,abort=false,tps=0,curM='fast',px=0,H=null,tpsHold=0,chatOn=true,SS=null,page='chat';
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -657,7 +662,7 @@ async function slash(q){                                   // /run <cmd>  and  /
   try{if(m[1].toLowerCase()==='run')showTool(await runTool('terminal',{command:m[2].trim()}));
     else{const r=await api('/vault/harvest',{method:'POST',body:JSON.stringify({name:m[2].trim()})}),j=await r.json();
       if(!r.ok)throw new Error((j.error&&j.error.message)||'harvest');bubble('n','Neura [Vault]','#66BB6A','file','تم تحويل «'+j.title+'» إلى مقالة معرفة:\n'+j.article);sc(true)}}
-  catch(e){bad=true;bubble('n','Neura [Error]','#EF5350','warn',e instanceof TypeError?'تعذّر الاتصال بـ Neura Core — شغّل ./start-neura.sh':e.message);sc(true)}
+  catch(e){bad=true;bubble('n','Neura [Error]','#EF5350','warn',e instanceof TypeError?'تعذّر الاتصال بـ Neura Core — اضغط «إعادة الاتصال» في شريط التطبيق':e.message);sc(true)}
   if(bad){setSt('error');await sleep(1700)}setSt('ready');ui(false);return true}
 /* ---- rendering: typewriter queue + fenced code blocks ---- */
 const tw={q:'',el:null,on:false};
@@ -687,6 +692,8 @@ function ui(b){busy=b;swap($('go'),b);tg($('go'),'bg-blue border-blue',!b);tg($(
 function rip(e){const r=document.createElement('span');r.className='pointer-events-none absolute inset-0 rounded-full bg-white/50 animate-ping';e.append(r);setTimeout(()=>r.remove(),700)}
 async function send(q,voice,deep){
   q=(q||'').trim();if(!q||busy||trans)return;
+  if(window.NeuraWorkspace&&await window.NeuraWorkspace.handleChat(q))return;
+  if(window.NeuraSkills&&await window.NeuraSkills.handleChat(q))return;
   if(await slash(q))return;
   ui(true);abort=false;vib(8);
   if(!document.body.classList.contains('has'))setHas(true);
@@ -715,7 +722,7 @@ async function send(q,voice,deep){
         if(j.timings&&j.timings.predicted_per_second)tps=j.timings.predicted_per_second}}
     if(!full)throw new Error('رد فارغ من النموذج');
     await twDrain();
-  }catch(e){ok=false;if(e.name==='AbortError')tw.q='';else err=(e.message==='OFFLINE'||e instanceof TypeError)?'تعذّر الاتصال بـ Neura Core — شغّل ./start-neura.sh':e.message}
+  }catch(e){ok=false;if(e.name==='AbortError')tw.q='';else err=(e.message==='OFFLINE'||e instanceof TypeError)?'تعذّر الاتصال بـ Neura Core — اضغط «إعادة الاتصال» في شريط التطبيق':e.message}
   pendingImage=null;$('image-input').value='';$('image-label').textContent='إرفاق صورة';
   curAC=null;tpsHold=performance.now()+4000;
   if(b){b.dots.remove();b.caret.classList.add('hidden');tg(b.d,'animate-glow',0)}
@@ -779,8 +786,7 @@ const sessionButton=document.createElement('button');sessionButton.type='button'
 sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/sessions'),j=await r.json();if(!r.ok){note(j.error.message);return}const panel=document.createElement('div');panel.className='p-3 border border-ln rounded-xl';for(const item of j.sessions){const row=document.createElement('div'),open=document.createElement('button'),del=document.createElement('button');open.className=del.className=CHIP;open.textContent=item.session+' · '+item.updated_at;del.textContent='حذف';open.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session)),record=await response.json();if(!response.ok){note(record.error.message);return}hist=record.messages;sid=item.session;$('log').innerHTML='';setHas(true);for(const m of hist){if(m.role==='system')continue;const text=typeof m.content==='string'?m.content:m.content.filter(p=>p.type==='text').map(p=>p.text).join('\n');const b=bubble(m.role==='user'?'u':'n',m.role==='user'?'You':'Neura','#42A5F5','spark',text);finalize(b,text)}panel.remove()};del.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session),{method:'DELETE'});if(response.ok)row.remove();else note('تعذّر حذف الجلسة')};row.append(open,del);panel.append(row)}if(!j.sessions.length)panel.textContent='لا جلسات محفوظة';$('log').append(panel);setHas(true)};
 
 
-const projectButton=document.createElement('button');projectButton.type='button';projectButton.className=CHIP;projectButton.textContent='إنشاء ملفات من الطلب';$('sugg').before(projectButton);
-projectButton.onclick=async()=>{const request=$('in').value.trim();if(!request||busy)return;ui(true);const ac=curAC=new AbortController();setHas(true);const progress=act('إنشاء ملفات وفحص البنية…','code',true);try{const response=await api('/projects',{method:'POST',signal:ac.signal,body:JSON.stringify({user_request:request,requirements:[request]})}),record=await response.json();if(!response.ok)throw new Error(record.error&&record.error.message||record.error||'فشل إنشاء الملفات');bubble('n','Neura [Files]','#81C784','code','اجتازت الملفات الفحص الساكن فقط؛ لم تُشغّل.\n'+record.files.join('\n')+'\n'+record.project_dir)}catch(e){if(e.name!=='AbortError')note(e.message)}finally{progress.remove();curAC=null;ui(false);setSt('ready')}};
+const projectButton=document.createElement('button');projectButton.type='button';projectButton.className=CHIP;projectButton.textContent='مساحة المبرمج';$('sugg').before(projectButton);projectButton.onclick=()=>window.NeuraWorkspace&&window.NeuraWorkspace.start($('in').value.trim());
 
 /* ---- suggestions, shortcuts, boot ---- */
 [['spark','مرحباً'],['brain','أثبت أن جذر 2 عدد غير نسبي'],['code','اكتب لي كوداً بسيطاً بلغة Python']].forEach(([ic,tx])=>{
@@ -792,19 +798,19 @@ addEventListener('keydown',e=>{
 });
 async function typeTo(el,t){el.textContent='';for(const ch of t){el.textContent+=ch;await sleep(16)}}
 /* ===================== PAGES: chat / monitor / about ===================== */
-const PAGES=['chat','monitor','about'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
+const PAGES=['chat','monitor','about','projects','skills'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
 const nf=(v,d=1)=>v==null||Number.isNaN(+v)?'—':(+v).toFixed(d),kf=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,'')+'k':String(Math.round(n||0));
 const hx=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function showPage(p,push=true){
-  if(!PAGES.includes(p))p='chat';page=p;chatOn=p==='chat';
+  if(!PAGES.includes(p))p='chat';if(page==='projects'&&p!=='projects'&&window.NeuraWorkspace&&!window.NeuraWorkspace.canLeave())return;page=p;chatOn=p==='chat';
   PAGES.forEach(k=>{$('pg-'+k).classList.toggle('nx-off',k!==p);const t=$('tab-'+k);t.setAttribute('aria-selected',String(k===p));t.tabIndex=k===p?0:-1});
   if(push){try{history.replaceState(null,'','#'+p)}catch(e){}}
   if(p==='monitor')monStart();else monStop();
-  if(p==='about')paintAbout();
+  if(p==='about')paintAbout();if(p==='projects'&&window.NeuraWorkspace)window.NeuraWorkspace.onShow();if(p==='skills'&&window.NeuraSkills)window.NeuraSkills.onShow();
   if(p==='chat')setTimeout(()=>window.dispatchEvent(new Event('resize')),30);        // canvases were hidden: let the orbs re-measure
 }
 PAGES.forEach(k=>{const t=$('tab-'+k);t.onclick=()=>showPage(k);
-  t.onkeydown=e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;const n=PAGES[(PAGES.indexOf(k)+(document.dir==='rtl'?-d:d)+3)%3];showPage(n);$('tab-'+n).focus();e.preventDefault()}});
+  t.onkeydown=e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;const n=PAGES[(PAGES.indexOf(k)+(document.dir==='rtl'?-d:d)+PAGES.length)%PAGES.length];showPage(n);$('tab-'+n).focus();e.preventDefault()}});
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(PAGES.includes(h)&&h!==page)showPage(h,false)});
 $('mtog').onclick=()=>showPage('monitor');
 /* status pill in the nav bar (same colour as the orb); follows the Core's own phase while the Monitor is open */
@@ -836,7 +842,7 @@ function tierTable(el,mg){
 function paintMon(){buildMon();const S=SS,off=!S,mg=S&&S.mgr,ph=off?'error':S.phase,lv=(S&&S.live)||{},last=S&&S.last,tier=S&&S.tier,ti=tier&&mg&&mg.tiers&&mg.tiers[tier];
   [...$('ms-chips').children].forEach(c=>{c.dataset.on=c.dataset.k===ph?ph:''});
   const lab=tier&&TIERS[tier]?TIERS[tier].n+(ti&&ti.label?' · '+ti.label:''):'';let t,n='';
-  if(off)t='Core غير متصل — شغّل ./start-neura.sh';
+  if(off)t='Core غير متصل — اضغط «إعادة الاتصال» في شريط التطبيق';
   else if(ph==='generating'){t='توليد…';n=`${lv.tokens} tokens · ${nf(lv.tps)} tok/s`}
   else if(ph==='reading')t='قراءة الموجّه…';
   else if(ph==='queued')t=mg&&mg.loading?'تحميل النموذج…':'في الانتظار…';
@@ -867,8 +873,10 @@ function paintAbout(){
 {const h=location.hash.slice(1);showPage(PAGES.includes(h)?h:'chat',false)}
 (async()=>{await poll();const i=tinfo(pin);
   for(const m of['NEURA CORE ... '+(H?'OK':'OFFLINE'),'VULKAN · '+((H&&H.gpu0)||'GPU0')+' ... '+(H&&H.gpu0?'OK':'—'),(i&&i.label?i.label+' ... '+(i.up?'LOADED':'READY'):'MODEL ... '+(H?'MISSING':'—'))]){await typeTo($('boot'),m);await sleep(380)}
-  await typeTo($('boot'),H&&H.status==='ready'?'READY TO LOAD':'راجع حالة النظام وشغّل ./start-neura.sh');setSt(H?'happy':'error');await sleep(1500);if(!busy&&(st==='happy'||st==='error'))setSt('ready')})();
+  await typeTo($('boot'),H&&H.status==='ready'?'READY TO LOAD':'راجع حالة النظام واضغط «إعادة الاتصال» في شريط التطبيق');setSt(H?'happy':'error');await sleep(1500);if(!busy&&(st==='happy'||st==='error'))setSt('ready')})();
 
 </script>
+<script src="/assets/workspace.js"></script>
+<script src="/assets/skills.js"></script>
 </body>
 </html>

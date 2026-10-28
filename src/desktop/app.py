@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
+import copy
 
 from PySide6.QtCore import QLockFile, QThread, QTimer, QUrl, Signal, Qt
 from PySide6.QtGui import QAction, QIcon
@@ -15,14 +17,15 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket, QNetworkAccessManager,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMessageBox,
     QProgressBar, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
-    QTextBrowser, QToolBar, QVBoxLayout, QWidget)
-from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
+    QTextBrowser, QToolBar, QVBoxLayout, QWidget, QListWidget)
+from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile, QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from src.runtime import ROOT
-from src.desktop.paths import DesktopSettings, VERSION, cache_directory, config_directory, data_directory
+from src.desktop.paths import DesktopSettings, VERSION, cache_directory, config_directory, data_directory,setup_preview_environment
 from src.desktop.releases import fetch_release, download_package, version_tuple
 from src.desktop.service import BackendService
+from src.desktop.preview_policy import navigation_allowed, request_allowed
 
 
 class Task(QThread):
@@ -42,13 +45,30 @@ class Task(QThread):
 
 
 class LocalPage(QWebEnginePage):
-    def __init__(self, profile, origin, parent):
+    def __init__(self, profile, origin, parent, preview=lambda: None):
         super().__init__(profile, parent)
         self.origin = origin
+        self.preview = preview
+        self.permissionRequested.connect(lambda permission: permission.deny())
 
     def acceptNavigationRequest(self, url, navigation_type, main_frame):
-        parsed = QUrl(self.origin())
-        return url.scheme() == parsed.scheme() and url.host() == parsed.host() and url.port() == parsed.port()
+        return navigation_allowed(url.toString(), self.origin(), self.preview(), main_frame)
+
+    def createWindow(self, window_type):
+        return None
+
+
+class LocalRequests(QWebEngineUrlRequestInterceptor):
+    def __init__(self, application, preview, parent):
+        super().__init__(parent)
+        self.application, self.preview = application, preview
+
+    def interceptRequest(self, info):
+        allowed = request_allowed(info.requestUrl().toString(), info.initiator().toString(),
+            self.application(), self.preview(),
+            info.resourceType() == QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame)
+        if not allowed:
+            info.block(True)
 
 
 class SettingsDialog(QDialog):
@@ -69,13 +89,39 @@ class SettingsDialog(QDialog):
         self.mode = QComboBox(); self.mode.addItems(['GPU — Vulkan', 'CPU'])
         self.mode.setCurrentIndex(0 if settings.values['n_gpu_layers'] == -1 else 1)
         form.addRow('المعالجة', self.mode)
+        self.gpu_device=QComboBox();self.gpu_device.addItem('تلقائي حسب الذاكرة المقاسة','auto')
+        try:
+            from src.backends.devices import probe_devices
+            for device in probe_devices():
+                self.gpu_device.addItem(device['description']+' · '+str(round(device['total_bytes']/1e9,1))+' GB',device['description'])
+        except Exception:
+            pass
+        device_index=self.gpu_device.findData(settings.values['gpu_device'])
+        if device_index<0:
+            self.gpu_device.addItem('جهاز محفوظ غير متاح: '+settings.values['gpu_device'],settings.values['gpu_device'])
+            device_index=self.gpu_device.count()-1
+        self.gpu_device.setCurrentIndex(device_index);form.addRow('الجهاز',self.gpu_device)
         self.context = QSpinBox(); self.context.setRange(512, 32768); self.context.setSingleStep(512)
         self.context.setValue(settings.values['n_ctx']); form.addRow('حجم السياق', self.context)
         self.coder = QCheckBox('استخدام Qwen2.5 Coder بعد اكتمال ملفه والتحقق منه')
         self.coder.setChecked(settings.values['dedicated_coder']); form.addRow(self.coder)
         self.updates = QCheckBox('التحقق من تحديثات GitHub عند فتح التطبيق')
         self.updates.setChecked(settings.values['check_updates']); form.addRow(self.updates)
+        self.brave=QComboBox()
+        from src.desktop.actions import DesktopAdapter
+        for entry in DesktopAdapter(None).catalog().values():
+            if 'brave' in entry['id'].lower(): self.brave.addItem(entry['name'],entry['id'])
+        if not self.brave.count():self.brave.addItem('Brave غير مثبت',settings.values['brave_desktop_id'])
+        index=self.brave.findData(settings.values['brave_desktop_id'])
+        self.brave.setCurrentIndex(max(index,0));form.addRow('Brave للمهارات',self.brave)
         layout.addLayout(form)
+        self.locations=copy.deepcopy(settings.values['approved_locations'])
+        self.locations_list=QListWidget();self.locations_list.setMaximumHeight(90);layout.addWidget(self.locations_list)
+        controls=QHBoxLayout()
+        for label,kind in [('اختيار ملف للعرض','file'),('اختيار مجلد للفتح','folder')]:
+            action=QPushButton(label);action.clicked.connect(lambda checked=False,kind=kind:self.add_location(kind));controls.addWidget(action)
+        revoke=QPushButton('إلغاء المكان المحدد');revoke.clicked.connect(self.remove_location);controls.addWidget(revoke)
+        layout.addLayout(controls);self.show_locations()
         note = QLabel('الأوزان منفصلة عن التطبيق. اختر المجلد الذي يحتوي ملفات GGUF وملف mmproj للصور. لا تُنقل ملفاتك ولا تُنزّل نماذج تلقائيًا.')
         note.setWordWrap(True); layout.addWidget(note)
         self.table = QTableWidget(0, 2); self.table.setHorizontalHeaderLabels(['الملف', 'الحالة'])
@@ -88,6 +134,20 @@ class SettingsDialog(QDialog):
         chosen = QFileDialog.getExistingDirectory(self, 'مجلد النماذج', self.folder.text())
         if chosen:
             self.folder.setText(chosen); self.refresh_files()
+
+    def show_locations(self):
+        self.locations_list.clear()
+        for key,value in self.locations.items():self.locations_list.addItem(value['kind']+' · '+value['path'])
+
+    def add_location(self,kind):
+        if len(self.locations)>=24:return
+        chosen=QFileDialog.getExistingDirectory(self,'اختيار مجلد') if kind=='folder' else QFileDialog.getOpenFileName(self,'اختيار ملف للعرض')[0]
+        if chosen:
+            self.locations['l_'+uuid.uuid4().hex]={'path':str(Path(chosen).resolve()),'kind':kind};self.show_locations()
+
+    def remove_location(self):
+        row=self.locations_list.currentRow()
+        if row>=0:self.locations.pop(list(self.locations)[row]);self.show_locations()
 
     def refresh_files(self):
         import yaml
@@ -112,7 +172,8 @@ class SettingsDialog(QDialog):
             if not path.is_file() or Path(str(path) + '.aria2').exists():
                 QMessageBox.warning(self, 'Coder', 'أكمل تنزيل Qwen Coder أولًا.'); return
         self.settings.values.update(models_dir=self.folder.text(), n_gpu_layers=-1 if self.mode.currentIndex() == 0 else 0,
-                                    n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked())
+                                    n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(),
+                                    brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData())
         try: self.settings.save()
         except Exception as error:
             QMessageBox.warning(self, 'الإعدادات', str(error)); return
@@ -196,7 +257,8 @@ class MainWindow(QMainWindow):
         self.settings = settings; self.service = BackendService(settings)
         self.smoke_check = smoke_check; self.update_dialog = None
         self.tasks = set(); self.closing = False; self.stopping = False; self.loaded = False
-        self.setWindowTitle('Neura AI'); self.resize(1200, 850)
+        self.close_checked=False;self.checking_close=False
+        self.setWindowTitle('Neura AI — معاينة' if os.environ.get('NEURA_PREVIEW') else 'Neura AI'); self.resize(1200, 850)
         self.setWindowIcon(QIcon(str(ROOT / 'assets/logo.png')))
         toolbar = QToolBar(); toolbar.setMovable(False); self.addToolBar(toolbar)
         toolbar.addWidget(QLabel('  Neura AI · ' + VERSION + '  '))
@@ -211,8 +273,12 @@ class MainWindow(QMainWindow):
         self.status.setTextFormat(Qt.PlainText)
         box.addStretch(); box.addWidget(title); box.addWidget(self.status); box.addStretch()
         self.stack.addWidget(splash)
+        self.preview_origin = None
         self.profile = QWebEngineProfile(self)
-        self.view = QWebEngineView(); self.page = LocalPage(self.profile, lambda: self.service.url, self.view)
+        self.interceptor = LocalRequests(lambda: self.service.url, lambda: self.preview_origin, self.profile)
+        self.profile.setUrlRequestInterceptor(self.interceptor)
+        self.profile.downloadRequested.connect(self.save_export)
+        self.view = QWebEngineView(); self.page = LocalPage(self.profile, lambda: self.service.url, self.view, lambda: self.preview_origin)
         self.view.setPage(self.page); self.stack.addWidget(self.view)
         self.view.loadFinished.connect(self.page_loaded)
         self.network = QNetworkAccessManager(self); self.network.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
@@ -260,6 +326,7 @@ class MainWindow(QMainWindow):
             try:
                 payload = json.loads(bytes(reply.readAll()))
                 if payload.get('instance_id') != self.service.instance: return
+                self.preview_origin = payload.get('capabilities', {}).get('preview_origin')
                 if not self.loaded:
                     self.loaded = True; self.timer.stop(); self.view.setUrl(QUrl(self.service.url + '/'))
                     if not self.smoke_check and self.settings.values['check_updates']:
@@ -282,9 +349,44 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, 'اختيار النماذج', 'اختر مجلد ملفات GGUF من الإعدادات لبدء المحادثة. الأوزان منفصلة عن تثبيت التطبيق.')
         self.settings_dialog()
 
+    def save_export(self, download):
+        url = download.url().toString()
+        if not (url.startswith('blob:' + self.service.url + '/') or url.startswith(self.service.url + '/projects/')):
+            download.cancel(); return
+        target, _ = QFileDialog.getSaveFileName(self, 'حفظ نسخة المشروع', 'neura-project.zip', 'ZIP (*.zip)')
+        if not target:
+            download.cancel(); return
+        destination = Path(target)
+        download.setDownloadDirectory(str(destination.parent))
+        download.setDownloadFileName(destination.name)
+        download.accept()
+
     def restart(self):
         if self.closing: return
+        if self.loaded:
+            self.review_dirty('إعادة الاتصال',self._restart_backend)
+        else:self._restart_backend()
+
+    def review_dirty(self,title,continuation):
+        if self.checking_close:return
+        self.checking_close=True
+        finished=[False]
+        def received(dirty,timeout=False):
+            if finished[0]:return
+            finished[0]=True;self.checking_close=False
+            warning='تعذر قراءة حالة المحرر؛ قد توجد تغييرات غير محفوظة.' if timeout else 'توجد تغييرات في محرر المشروع لم تُحفظ.'
+            if dirty and QMessageBox.question(self,title,warning+'\nمتابعة وترك هذه التغييرات؟')!=QMessageBox.Yes:return
+            continuation()
+        self.page.runJavaScript('Boolean(window.NeuraWorkspace && window.NeuraWorkspace.dirty)',lambda dirty:received(bool(dirty)))
+        QTimer.singleShot(1200,lambda:received(True,True))
+
+    def _restart_backend(self):
+        if self.closing:return
         self.timer.stop(); self.stack.setCurrentIndex(0); self.status.setText('جارٍ إعادة الفتح…')
+        old=self.page
+        self.page=LocalPage(self.profile,lambda:self.service.url,self.view,lambda:self.preview_origin)
+        self.view.setPage(self.page);old.deleteLater()
+        self.preview_origin=None
         self.task(lambda _: self.service.stop(), lambda _: self.begin_backend())
 
     def settings_dialog(self):
@@ -304,15 +406,22 @@ class MainWindow(QMainWindow):
         self.task(lambda _: fetch_release(), checked, lambda _: None)
 
     def closeEvent(self, event):
+        if self.loaded and not self.close_checked and not self.smoke_check:
+            event.ignore()
+            def reviewed():
+                self.close_checked=True;self.close()
+            self.review_dirty('إغلاق Neura',reviewed)
+            return
         self.closing = True; self.timer.stop()
         for task in self.tasks: task.requestInterruption()
         if not self.stopping:
             self.stopping = True
+            self.view.setPage(QWebEnginePage(self.view));self.page.deleteLater();self.page=None
             self.stack.setCurrentIndex(0); self.status.setText('جارٍ إغلاق Neura…')
             self.task(lambda _: self.service.stop(), lambda _: None, lambda _: None)
         if self.tasks:
             event.ignore(); QTimer.singleShot(200, self.close); return
-        self.view.setPage(QWebEnginePage(self.view)); self.page.deleteLater()
+        if self.page:self.view.setPage(QWebEnginePage(self.view));self.page.deleteLater();self.page=None
         event.accept()
 
 
@@ -320,7 +429,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--smoke-check', help=argparse.SUPPRESS)
     parser.add_argument('--wait-for-lock', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--preview',action='store_true',help='Open a separate local review profile')
     args = parser.parse_args()
+    if args.preview:setup_preview_environment()
     app = QApplication(['neura-ai']); app.setApplicationName('Neura AI'); app.setOrganizationName('Neura'); app.setDesktopFileName('neura-ai')
     app.setStyle('Fusion'); app.setStyleSheet('QWidget{background:#101418;color:#eceff1} QPushButton,QToolButton{padding:8px} QLineEdit,QSpinBox,QComboBox{padding:6px;background:#1b232a} QTableWidget{background:#161b20} QToolBar{spacing:8px;padding:5px}')
     data_directory().mkdir(parents=True, exist_ok=True, mode=0o700)
