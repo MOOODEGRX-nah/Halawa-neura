@@ -37,6 +37,17 @@ def test_health_and_stats_are_truthful(system):
     run(system,check)
 
 
+def test_cpu_inference_does_not_claim_unrelated_gpu_usage(system,monkeypatch):
+    monkeypatch.setattr('src.backend.api.gpu_memory',lambda:{'device':'/unknown','used_gb':14,'total_gb':16,'free_gb':2})
+    system.current_model_id='gemma-4-e4b-q4'
+    system.backend.selected_device={'description':'CPU'}
+    async def check(client,app):
+        gpu=(await client.get('/stats')).json()['gpu']
+        assert gpu['selected_device']['description']=='CPU'
+        assert gpu['vram_gb'] is None and gpu['load'] is None
+    run(system,check)
+
+
 def test_chat_history_parameters_and_tier(system,messages):
     async def check(client,app):
         response=await client.post('/v1/chat/completions',json={'messages':messages,'neura':{'tier':'fast'},'temperature':.3,'max_tokens':123,'top_p':.8})

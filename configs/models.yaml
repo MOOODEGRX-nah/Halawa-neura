@@ -61,11 +61,11 @@ models:
     name: Qwen2.5-Coder-14B-Instruct Q4_K_M
     file: Qwen2.5-Coder-14B-Q4_K_M.gguf
     size_gb: 8.988
-    repo: Qwen/Qwen2.5-Coder-14B-Instruct-GGUF
-    sha256: 55f1e4c488a212885466cad553033fcd9579fd3f1edf16ac1b998d80cd43dff5
+    repo: bartowski/Qwen2.5-Coder-14B-Instruct-GGUF
+    sha256: 2946d28c9e1bb2bcae6d42e8678863a31775df6f740315c7d7e6d6b6411f5937
     enabled: false
     size_bytes: 8988111072
     architecture: qwen2
     metadata_name: Qwen2.5 Coder 14B Instruct
-    disabled_reason: 'Local .aria2 marker: finish and verify download before enabling'
+    disabled_reason: 'Optional dedicated coder: complete and verify the file, then enable in desktop settings'
     license_status: unverified; check original publisher terms before redistribution

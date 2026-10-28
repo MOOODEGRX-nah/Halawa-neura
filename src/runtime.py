@@ -13,7 +13,7 @@ def model_directory() -> Path:
     configured = os.environ.get("NEURA_MODELS_DIR")
     if configured:
         return Path(configured).expanduser().resolve()
-    candidates = [data_directory() / "models", ROOT.parent / "neura AI/Neura_Package/models",
+    candidates = [data_directory() / "models", ROOT.parent / 'models', Path('/opt/neura-ai/models'), ROOT.parent / "neura AI/Neura_Package/models",
                   Path.home() / "Downloads/ai/neura AI/Neura_Package/models"]
     return next((p for p in candidates if p.is_dir()), candidates[0]).resolve()
 
@@ -24,6 +24,7 @@ class Settings:
     data_dir: Path = field(default_factory=lambda: data_directory())
     n_ctx: int = field(default_factory=lambda: int(os.environ.get("NEURA_N_CTX", "4096")))
     n_gpu_layers: int = field(default_factory=lambda: int(os.environ.get("NEURA_N_GPU_LAYERS", "-1")))
+    gpu_device: str = field(default_factory=lambda: os.environ.get('NEURA_GPU_DEVICE','auto'))
     n_threads: int = field(default_factory=lambda: int(os.environ.get("NEURA_N_THREADS", str(min(os.cpu_count() or 4, 8)))))
     timeout_s: float = field(default_factory=lambda: float(os.environ.get("NEURA_TIMEOUT_S", "180")))
     token: str = field(default_factory=lambda: os.environ.get("NEURA_TOKEN", ""))

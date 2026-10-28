@@ -7,12 +7,18 @@ class LlamaCppBackend:
         self.model_path = None
         self.handler = None
 
-    def load(self, model_path, n_gpu_layers=-1, n_ctx=4096, projector=None, reasoning_end_token=None, **kwargs):
+    def load(self, model_path, n_gpu_layers=-1, n_ctx=4096, projector=None, reasoning_end_token=None,
+             device_name='auto', min_free_gb=0, **kwargs):
         if self.model is not None:
             raise RuntimeError('Unload the previous model first')
         from llama_cpp import Llama, StoppingCriteriaList, llama_supports_gpu_offload
         if n_gpu_layers != 0 and not llama_supports_gpu_offload():
             raise RuntimeError("GPU offload unavailable; set NEURA_N_GPU_LAYERS=0 for explicit CPU inference")
+        selected=None
+        if n_gpu_layers!=0:
+            from src.backends.devices import probe_devices,select_device
+            selected=select_device(probe_devices(),device_name,min_free_gb)
+        self.selected_device={k:v for k,v in selected.items() if k!='_pointer'} if selected else {'description':'CPU'}
         class CancellableLlama(Llama):
             neura_criteria = None
             def generate(self, *args, stopping_criteria=None, **kwargs):
@@ -22,10 +28,26 @@ class LlamaCppBackend:
         try:
             if projector:
                 from llama_cpp.llama_chat_format import MTMDChatHandler
-                handler = MTMDChatHandler(clip_model_path=str(projector), verbose=False, use_gpu=n_gpu_layers != 0)
+                class SelectedMTMD(MTMDChatHandler):
+                    def _init_mtmd_context(self, llama_model):
+                        if self.mtmd_ctx is not None:return
+                        params=self._mtmd_cpp.mtmd_context_params_default()
+                        params.use_gpu=selected is not None
+                        params.device=selected['_pointer'] if selected else None
+                        params.print_timings=False
+                        params.n_threads=llama_model.n_threads
+                        params.flash_attn_type=llama_model.context_params.flash_attn_type
+                        self.mtmd_ctx=self._mtmd_cpp.mtmd_init_from_file(self.clip_model_path.encode(),llama_model.model,params)
+                        if not self.mtmd_ctx:raise ValueError('تعذر تحميل معالج الصورة على الجهاز المختار')
+                        def cleanup():
+                            if self.mtmd_ctx:
+                                self._mtmd_cpp.mtmd_free(self.mtmd_ctx);self.mtmd_ctx=None
+                        llama_model._stack.callback(cleanup)
+                        if not self._mtmd_cpp.mtmd_support_vision(self.mtmd_ctx):raise ValueError('معالج الصورة لا يدعم الرؤية')
+                handler = SelectedMTMD(clip_model_path=str(projector), verbose=False, use_gpu=n_gpu_layers != 0)
                 kwargs['chat_handler'] = handler
             model = CancellableLlama(model_path=str(model_path), n_gpu_layers=n_gpu_layers,
-                          n_ctx=n_ctx, verbose=False, split_mode=0, main_gpu=0, **kwargs)
+                          n_ctx=n_ctx, verbose=False, split_mode=0, main_gpu=selected['gpu_index'] if selected else 0, **kwargs)
             if not projector and not model.metadata.get('tokenizer.chat_template'):
                 model.close()
                 raise ValueError('GGUF has no chat template; configure a verified handler first')
@@ -83,6 +105,7 @@ class LlamaCppBackend:
 
     def health_check(self):
         return {'status': 'loaded' if self.model else 'unloaded', 'model_path': self.model_path,
+                'selected_device':getattr(self,'selected_device',None),
                 'backend': 'llama-cpp-python',
                 'chat_template': 'mtmd' if self.handler else 'gguf' if self.model else None}
 

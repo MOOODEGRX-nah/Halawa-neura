@@ -63,7 +63,8 @@ class BackendService:
                 'NEURA_DATA_DIR': str(data_directory()), 'NEURA_REGISTRY_DIR': str(config),
                 'NEURA_MODELS_DIR': str(folder), 'NEURA_INSTANCE_ID': self.instance,
                 'NEURA_N_CTX': str(self.settings.values['n_ctx']),
-                'NEURA_N_GPU_LAYERS': str(self.settings.values['n_gpu_layers'])}
+                'NEURA_N_GPU_LAYERS': str(self.settings.values['n_gpu_layers']),
+                'NEURA_GPU_DEVICE': self.settings.values.get('gpu_device','auto')}
 
     def start(self):
         if self.process is not None and self.process.poll() is None:

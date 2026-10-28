@@ -22,3 +22,9 @@ starlette==1.10.0
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 uvicorn==0.54.0
+
+# Workspace syntax validation; parses sources without evaluating them.
+tree-sitter==0.26.0
+tree-sitter-javascript==0.25.0
+tinycss2==1.5.1
+webencodings==0.6.1
