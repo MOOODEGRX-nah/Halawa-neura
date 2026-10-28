@@ -19,9 +19,37 @@ jobs:
       - run: python -m pytest -q
         env:
           NEURA_DATA_DIR: /tmp/neura-ci-data
-  linux-package:
+  release_plan:
     if: github.event_name != 'pull_request'
     needs: tests
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.release.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check whether this application version needs a release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PYCODE'
+          import json, os, re, urllib.request, urllib.error
+          from pathlib import Path
+          version=Path('VERSION').read_text().strip()
+          if not re.fullmatch(r'\d+\.\d+\.\d+',version): raise ValueError('Invalid VERSION')
+          url='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/releases/tags/v'+version
+          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          try:
+              with urllib.request.urlopen(request,timeout=20) as response: release=json.load(response)
+              build=bool(release.get('draft',False))
+          except urllib.error.HTTPError as error:
+              if error.code!=404: raise
+              build=True
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('build='+str(build).lower()+'\n')
+          PYCODE
+  linux-package:
+    if: github.event_name != 'pull_request' && needs.release_plan.outputs.build == 'true'
+    needs: [tests, release_plan]
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     permissions:

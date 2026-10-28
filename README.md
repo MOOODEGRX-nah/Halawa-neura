@@ -21,7 +21,7 @@
 curl -fsSL https://raw.githubusercontent.com/MOOODEGRX-nah/Halawa-neura/main/packaging/linux/install.sh | bash
 ```
 
-المثبت ينزّل حزمة `neura-ai-bin` من [الإصدارات الرسمية لهذا المستودع](https://github.com/MOOODEGRX-nah/Halawa-neura/releases/latest)، ويتحقق من بصمتها، ثم يعرض معاملة التثبيت عبر pacman. ويمكن تنزيل ملف `.pkg.tar.zst` مباشرة من صفحة الإصدارات وتثبيته بمدير الحزم.
+المثبت يقرأ تأكيد pacman من الطرفية مباشرةً حتى عند تشغيله عبر `curl | bash`، ويحتفظ بالحزمة الموثقة لإعادة المحاولة في `~/.cache/neura-ai/updates/`. ينزّل حزمة `neura-ai-bin` من [الإصدارات الرسمية لهذا المستودع](https://github.com/MOOODEGRX-nah/Halawa-neura/releases/latest)، ويتحقق من بصمتها، ثم يعرض معاملة التثبيت عبر pacman. ويمكن تنزيل ملف `.pkg.tar.zst` مباشرة من صفحة الإصدارات وتثبيته بمدير الحزم.
 
 ### الأمر القصير عبر AUR
 
@@ -123,7 +123,7 @@ python -m venv .venv
 NEURA_DATA_DIR=/tmp/neura-test-data .venv/bin/python -m pytest -q
 ```
 
-اجتازت النسخة المحلية 94 اختبارًا، مع اختبار فتح النافذة وتوليد رد من runtime المعبأ. [تفاصيل التحقق وحدوده](docs/QA_v0.3.0_AR.md). الاختبارات الافتراضية لا تحتاج أوزانًا أو GPU أو اتصال Telegram. [GitHub Actions](https://github.com/MOOODEGRX-nah/Halawa-neura/actions) يختبر الشيفرة ويبني حزمة Arch ومحرك Vulkan وينشر إصدارًا عند رفع نسخة جديدة في `VERSION`. يتضمن الإصدار حزمة pacman، وأرشيف runtime، وبصمات SHA256، وحزمة إعداد AUR. [التفاصيل](docs/INSTALL_AR.md).
+اجتازت النسخة المحلية 101 اختبارًا، مع اختبار فتح النافذة وتوليد رد من runtime المعبأ. [تفاصيل التحقق وحدوده](docs/QA_v0.3.0_AR.md). الاختبارات الافتراضية لا تحتاج أوزانًا أو GPU أو اتصال Telegram. [GitHub Actions](https://github.com/MOOODEGRX-nah/Halawa-neura/actions) يختبر الشيفرة ويبني حزمة Arch ومحرك Vulkan وينشر إصدارًا عند رفع نسخة جديدة في `VERSION`. يتضمن الإصدار حزمة pacman، وأرشيف runtime، وبصمات SHA256، وحزمة إعداد AUR. [التفاصيل](docs/INSTALL_AR.md).
 
 ## الترخيص
 
