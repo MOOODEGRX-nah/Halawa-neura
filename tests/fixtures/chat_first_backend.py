@@ -1,5 +1,5 @@
 """QA dependency injection only. This file is never included in the app package."""
-import argparse,os,time,json
+import argparse,os,time,json,asyncio
 from pathlib import Path
 import uvicorn
 from src.runtime import Settings
@@ -35,6 +35,15 @@ class Desktop:
  def open_file(self,args):self.calls.append(['file',args]);return {'status':'launched','message':'طلب عرض ملف QA'}
  def open_folder(self,args):self.calls.append(['folder',args]);return {'status':'launched','message':'طلب فتح مجلد QA'}
 settings=Settings();backend=Backend();desktop=Desktop();loop=NeuraLoop(settings=settings,backend=backend);app=create_app(settings,loop,desktop_adapter=desktop)
+save_requests=0
+@app.middleware('http')
+async def save_delay(request,call_next):
+ global save_requests
+ saving=request.method=='PUT' and request.url.path.endswith('/file')
+ if saving:save_requests+=1
+ response=await call_next(request)
+ if saving:await asyncio.sleep(float(os.environ.get('NEURA_QA_SAVE_DELAY_S','0')))
+ return response
 @app.get('/qa/state')
-async def state():return {'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
+async def state():return {'save_requests':save_requests,'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
 uvicorn.run(app,host='127.0.0.1',port=args.port,log_level='warning',proxy_headers=False)
