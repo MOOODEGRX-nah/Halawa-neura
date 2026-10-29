@@ -59,6 +59,11 @@ def metadata_intent(text):
         re.search(r'^(?:لماذا|why).*(?:انش|صنع|created|built)',q))
 
 
+def workspace_intent(text):
+    q=command_text(text)
+    return bool(re.match(r'^(?:(?:عدل|تعدل|حرر|تحرر|edit|modify|update)\s+(?:لي\s+)?(?:(?:هذا|هاذه|هذه)\s+)?(?:المشروع|مشروع|موقع|الموقع|the project|this project|project)\b|(?:افتح|تفتح|open)\s+(?:لي\s+)?(?:مشروع|المشروع|project)\b)',q))
+
+
 class ChatDispatcher:
     def __init__(self,store,skills,jobs):
         self.store,self.skills,self.jobs=store,skills,jobs
@@ -151,10 +156,36 @@ class ChatDispatcher:
         if len(matches)==1:return self._skill(matches[0][1],matches[0][2])
         return self._choice(matches or candidates,message)
 
+    def _workspace(self,args):
+        project=self.store.get(args['project_id'])
+        return {'kind':'workspace','project_id':project['project_id'],'display_name':project['display_name'],
+                'edit_request':args.get('edit_request',''),
+                'message':'فُتحت مساحة المشروع. راجع الملف المناسب وطلب التعديل قبل توليده.' if args.get('edit_request') else 'فُتحت مساحة المشروع المحفوظ.'}
+
+    def _selected(self,name,args):
+        return self._workspace(args) if name=='workspace' else self._skill(name,args)
+
+    def _open_workspace(self,text,active_project_id):
+        q=command_text(text)
+        edit=bool(re.match(r'^(?:عدل|تعدل|حرر|تحرر|edit|modify|update)\b',q))
+        target=re.sub(r'^(?:عدل|تعدل|حرر|تحرر|edit|modify|update|افتح|تفتح|open)\s+(?:لي\s+)?','',q)
+        if re.match(r'^(?:(?:هذا|هذه)\s+)?(?:المشروع|the project|this project)(?:\s+(?:الحالي|current))?(?:$|\s+(?:و|ب|ل|اجعل|غير|change|with))',target) and active_project_id:
+            return self._workspace({'project_id':active_project_id,'edit_request':text if edit else ''})
+        target=re.sub(r'^(?:مشروع|المشروع|موقع|الموقع|project)\s*','',target)
+        candidates=[]
+        for project in self.store.list():
+            title=re.sub(r'^(?:موقع|مشروع|المشروع)\s+','',normalize(project['display_name']))
+            candidates.append((project['display_name'],'workspace',{'project_id':project['project_id'],'edit_request':text if edit else ''},key(title)))
+        matches=[c for c in candidates if c[3] and (key(target)==c[3] or key(target).startswith(c[3]+' '))]
+        if not candidates:return {'kind':'action','result':{'status':'error','message':'لا توجد مشاريع محفوظة بعد. اكتب طلب إنشاء المشروع في المحادثة أولًا.'}}
+        if len(matches)==1:return self._workspace(matches[0][2])
+        return self._choice([c[:3] for c in matches or candidates],'أي مشروع محفوظ تقصد؟ اختره لفتح مساحة المبرمج.')
+
     def resolve(self,text,active_project_id=None):
         q=command_text(text)
         if not q:return {'kind':'chat'}
         if project_intent(text):return {'kind':'project_intent'}
+        if workspace_intent(text):return self._open_workspace(text,active_project_id)
         q=re.sub(r'\s+(?:من فضلك|لو سمحت|please)$','',q)
         if re.fullmatch(r'(?:اعرض|افتح|ما هي|list|show)\s+(?:اخر التطبيقات|التطبيقات الاخيرة|البرامج الاخيرة|recent apps|recent applications)',q):
             return self._skill('list_recent_applications',{})
@@ -216,7 +247,7 @@ class ChatDispatcher:
         q=command_text(text)
         action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي)\b',q))
         metadata=bool(active_project_id and metadata_intent(text))
-        if not action and not project_intent(text) and not metadata:return {'kind':'chat'}
+        if not action and not project_intent(text) and not workspace_intent(text) and not metadata:return {'kind':'chat'}
         def operation():
             if metadata:
                 answer=self.store.answer(active_project_id,text)
@@ -242,4 +273,4 @@ class ChatDispatcher:
             option=next((o for o in json.loads(row['options']) if o['id']==choice_id),None)
             if not option:raise ProjectError('الاختيار لا ينتمي إلى هذا الطلب')
             self.store.db.execute("UPDATE chat_requests SET state='running',selected=? WHERE id=?",(choice_id,request_id));self.store.db.commit()
-        return self._finish(request_id,lambda:self._skill(option['name'],option['args']))
+        return self._finish(request_id,lambda:self._selected(option['name'],option['args']))

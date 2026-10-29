@@ -14,6 +14,11 @@
         remember(q,'أُنشئ المشروع «'+data.project.display_name+'». الملفات والتقدم في مساحة المبرمج.',context);
         return true;
       }
+      if(data.kind==='workspace'){
+        const opened=await window.NeuraWorkspace.openForEdit(data.project_id,data.edit_request);
+        if(opened){remember(q,data.message,context);if(context.card)context.card.t.replaceChildren(document.createTextNode(data.message));else{setHas(true);bubble('u','You','#42A5F5','code',q);bubble('n','Neura [المشروع]','#81C784','code',data.message);}}
+        return true;
+      }
       if(!context.card){setHas(true);bubble('u','You','#42A5F5','spark',q);context.card=bubble('n',data.kind==='metadata'?'Neura [المشروع]':data.kind==='clarification'?'Neura [تحديد الهدف]':'Neura [إجراء]','#81C784','shield','');}
       const result=data.result||{},message=data.message||result.message||'تعذر تأكيد نتيجة الطلب.';
       const box=context.card.t;box.replaceChildren(document.createTextNode(message));

@@ -121,8 +121,6 @@
 <nav id="nav" class="nx-nav" aria-label="التنقل">
   <span class="nx-brand">NEURA</span>
   <div class="nx-tabs" role="tablist" aria-label="الصفحات">
-    <button id="tab-projects" type="button" class="nx-tab" role="tab" aria-controls="pg-projects" aria-selected="false">المشاريع</button>
-<button id="tab-skills" type="button" class="nx-tab" role="tab" aria-controls="pg-skills" aria-selected="false">المهارات</button>
 <button id="tab-chat" type="button" class="nx-tab" role="tab" aria-controls="pg-chat" aria-selected="true"><i data-i="chat" data-z="w-4 h-4"></i><span>المحادثة</span></button>
     <button id="tab-monitor" type="button" class="nx-tab" role="tab" aria-controls="pg-monitor" aria-selected="false" tabindex="-1"><i data-i="act" data-z="w-4 h-4"></i><span>المراقبة</span></button>
     <button id="tab-about" type="button" class="nx-tab" role="tab" aria-controls="pg-about" aria-selected="false" tabindex="-1"><i data-i="info" data-z="w-4 h-4"></i><span>حول</span></button>
@@ -189,8 +187,7 @@
   </div>
 </div>
 </div>
-<section id="pg-projects" role="tabpanel" aria-labelledby="tab-projects" class="nx-page nx-off"></section>
-<section id="pg-skills" role="tabpanel" aria-labelledby="tab-skills" class="nx-page nx-off"></section>
+<section id="pg-workspace" role="region" aria-label="مساحة المبرمج" class="nx-page nx-off"></section>
 <section id="pg-monitor" role="tabpanel" aria-labelledby="tab-monitor" class="nx-page nx-off">
   <div class="nx-wrap">
     <div id="mon" class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>NEURA CORE</h3><div id="bars" class="nx-bars"></div></div>
@@ -793,7 +790,7 @@ const sessionButton=document.createElement('button');sessionButton.id='saved-ses
 sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/sessions'),j=await r.json();if(!r.ok){note(j.error.message);return}const panel=document.createElement('div');panel.className='p-3 border border-ln rounded-xl';for(const item of j.sessions){const row=document.createElement('div'),open=document.createElement('button'),del=document.createElement('button');open.className=del.className=CHIP;open.textContent=item.session+' · '+item.updated_at;del.textContent='حذف';open.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session)),record=await response.json();if(!response.ok){note(record.error.message);return}hist=record.messages;sid=item.session;$('log').innerHTML='';setHas(true);for(const m of hist){if(m.role==='system')continue;const text=typeof m.content==='string'?m.content:m.content.filter(p=>p.type==='text').map(p=>p.text).join('\n');const b=bubble(m.role==='user'?'u':'n',m.role==='user'?'You':'Neura','#42A5F5','spark',text);finalize(b,text)}panel.remove()};del.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session),{method:'DELETE'});if(response.ok)row.remove();else note('تعذّر حذف الجلسة')};row.append(open,del);panel.append(row)}if(!j.sessions.length)panel.textContent='لا جلسات محفوظة';$('log').append(panel);setHas(true)};
 
 
-const projectButton=document.createElement('button');projectButton.id='coding-workspace';projectButton.type='button';projectButton.className=CHIP;projectButton.textContent='مساحة المبرمج';chatToolbar.append(projectButton);projectButton.onclick=()=>window.NeuraWorkspace&&window.NeuraWorkspace.start($('in').value.trim());
+const projectButton=document.createElement('button');projectButton.id='coding-workspace';projectButton.type='button';projectButton.className=CHIP;projectButton.classList.add('chat-folder');projectButton.setAttribute('aria-label','المشاريع المحفوظة');projectButton.setAttribute('title','المشاريع المحفوظة');projectButton.setAttribute('aria-haspopup','dialog');projectButton.setAttribute('aria-controls','ws-projects');projectButton.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z"/></svg>';chatToolbar.append(projectButton);projectButton.onclick=()=>window.NeuraWorkspace?.openDrawer();
 
 /* ---- suggestions, shortcuts, boot ---- */
 [['spark','مرحباً'],['brain','أثبت أن جذر 2 عدد غير نسبي'],['code','اكتب لي كوداً بسيطاً بلغة Python']].forEach(([ic,tx])=>{
@@ -805,20 +802,20 @@ addEventListener('keydown',e=>{
 });
 async function typeTo(el,t){el.textContent='';for(const ch of t){el.textContent+=ch;await sleep(16)}}
 /* ===================== PAGES: chat / monitor / about ===================== */
-const PAGES=['chat','monitor','about','projects','skills'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
+const PAGES=['chat','monitor','about'],VIEWS=[...PAGES,'workspace'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
 const nf=(v,d=1)=>v==null||Number.isNaN(+v)?'—':(+v).toFixed(d),kf=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,'')+'k':String(Math.round(n||0));
 const hx=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function showPage(p,push=true){
-  if(!PAGES.includes(p))p='chat';if(page==='projects'&&p!=='projects'&&window.NeuraWorkspace&&!window.NeuraWorkspace.canLeave())return;page=p;chatOn=p==='chat';
-  PAGES.forEach(k=>{$('pg-'+k).classList.toggle('nx-off',k!==p);const t=$('tab-'+k);t.setAttribute('aria-selected',String(k===p));t.tabIndex=k===p?0:-1});
+  if(!VIEWS.includes(p)||p==='workspace'&&!window.NeuraWorkspace?.projectId)p='chat';page=p;chatOn=p==='chat';
+  VIEWS.forEach(k=>$('pg-'+k).classList.toggle('nx-off',k!==p));PAGES.forEach(k=>{const t=$('tab-'+k),selected=k===(p==='workspace'?'chat':p);t.setAttribute('aria-selected',String(selected));t.tabIndex=selected?0:-1});
   if(push){try{history.replaceState(null,'','#'+p)}catch(e){}}
   if(p==='monitor')monStart();else monStop();
-  if(p==='about')paintAbout();if(p==='projects'&&window.NeuraWorkspace)window.NeuraWorkspace.onShow();if(p==='skills'&&window.NeuraSkills)window.NeuraSkills.onShow();
+  if(p==='about')paintAbout();
   if(p==='chat')setTimeout(()=>window.dispatchEvent(new Event('resize')),30);        // canvases were hidden: let the orbs re-measure
 }
 PAGES.forEach(k=>{const t=$('tab-'+k);t.onclick=()=>showPage(k);
   t.onkeydown=e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;const n=PAGES[(PAGES.indexOf(k)+(document.dir==='rtl'?-d:d)+PAGES.length)%PAGES.length];showPage(n);$('tab-'+n).focus();e.preventDefault()}});
-window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(PAGES.includes(h)&&h!==page)showPage(h,false)});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h!==page)showPage(VIEWS.includes(h)?h:'chat',!VIEWS.includes(h))});
 $('mtog').onclick=()=>showPage('monitor');
 /* status pill in the nav bar (same colour as the orb); follows the Core's own phase while the Monitor is open */
 function nxPill(){const p=$('nxpt');let t;const mp=page==='monitor'&&SS&&SS.phase!=='idle'?SS.phase:'';
@@ -877,7 +874,7 @@ function paintAbout(){
   const served=/^https?:/.test(location.protocol),kv=[['Core',CORE+(H?'  ●  متصل':'  ○  غير متصل')],['الصفحة',served?'يقدّمها Core (الأدوات متاحة)':'ملف محلي file:// (دردشة فقط)'],['الأدوات (بوابة الأمان)','بحث ومسودة فقط؛ تنفيذ الأوامر معطّل'],
     ['حالة الجهاز',H?H.state+(H.game&&H.game!=='manual'?' · '+H.game:''):'—'],['بطاقة الاستدلال',H&&H.gpu0||'لم تُكتشف بعد'],['الاستدلال','llama-cpp-python · عملية واحدة'],['ميزانية VRAM',H?H.budget_gb+' GB':'—'],['ترخيص الشيفرة','MIT؛ النماذج لها تراخيص مستقلة']];
   $('ab-kv').innerHTML=kv.map(([a,b])=>`<dt>${hx(a)}</dt><dd>${hx(b)}</dd>`).join('')}
-{const h=location.hash.slice(1);showPage(PAGES.includes(h)?h:'chat',false)}
+{const h=location.hash.slice(1);showPage(PAGES.includes(h)?h:'chat',false);if(!PAGES.includes(h)&&h)history.replaceState(null,'','#chat')}
 (async()=>{await poll();const i=tinfo(pin);
   for(const m of['NEURA CORE ... '+(H?'OK':'OFFLINE'),'VULKAN · '+((H&&H.gpu0)||'GPU0')+' ... '+(H&&H.gpu0?'OK':'—'),(i&&i.label?i.label+' ... '+(i.up?'LOADED':'READY'):'MODEL ... '+(H?'MISSING':'—'))]){await typeTo($('boot'),m);await sleep(380)}
   await typeTo($('boot'),H&&H.status==='ready'?'READY TO LOAD':'راجع حالة النظام واضغط «إعادة الاتصال» في شريط التطبيق');setSt(H?'happy':'error');await sleep(1500);if(!busy&&(st==='happy'||st==='error'))setSt('ready')})();

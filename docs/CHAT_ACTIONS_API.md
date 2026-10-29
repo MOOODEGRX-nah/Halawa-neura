@@ -1,4 +1,4 @@
-# Chat actions and project entry points (0.4.1)
+# Chat actions and project entry points (0.4.2)
 
 All routes require the existing app token and same-origin policy, including reads.
 Only newly submitted user text is sent here. Assistant output, restored history,
@@ -45,3 +45,7 @@ The client cannot submit `source`, skill names, arguments or grants to chat disp
 Project creation uses ProjectJobs/Invoice/NeuraLoop, with the same events, queue,
 model lock, cancellation, validation, revision guards, metadata and isolated preview.
 The UI opens the returned project/job without submitting another create request.
+
+## Saved workspace routing (0.4.2)
+
+Explicit requests such as `عدل هذا المشروع` and `افتح مشروع السيرة الذاتية` return `kind: workspace`, `project_id`, `display_name`, `edit_request` and `message`. They read the existing project without creating another job or executing a desktop action. The UI opens that workspace, preserves its active editor and prepares an edit request for source review. Ambiguous projects use the same server-bound opaque choices. Ordinary explanations stay chat. No existing skill/project endpoints were removed.

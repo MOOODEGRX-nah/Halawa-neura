@@ -10,6 +10,7 @@ import sys
 import time
 import uuid
 import copy
+import urllib.request
 
 from PySide6.QtCore import QLockFile, QThread, QTimer, QUrl, Signal, Qt
 from PySide6.QtGui import QAction, QIcon
@@ -17,7 +18,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket, QNetworkAccessManager,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMessageBox,
     QProgressBar, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
-    QTextBrowser, QToolBar, QVBoxLayout, QWidget, QListWidget)
+    QTextBrowser, QToolBar, QVBoxLayout, QWidget, QListWidget, QScrollArea, QGroupBox)
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile, QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
@@ -75,9 +76,13 @@ class SettingsDialog(QDialog):
     def __init__(self, settings, parent):
         super().__init__(parent)
         self.settings = settings
+        self.skill_url = parent.service.url
         self.setWindowTitle('إعدادات Neura')
         self.resize(760, 470)
-        layout = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        scroll = QScrollArea(); scroll.setWidgetResizable(True)
+        content = QWidget(); layout = QVBoxLayout(content)
+        scroll.setWidget(content); outer.addWidget(scroll)
         form = QFormLayout()
         row = QHBoxLayout()
         self.folder = QLineEdit(settings.values['models_dir'])
@@ -122,13 +127,71 @@ class SettingsDialog(QDialog):
             action=QPushButton(label);action.clicked.connect(lambda checked=False,kind=kind:self.add_location(kind));controls.addWidget(action)
         revoke=QPushButton('إلغاء المكان المحدد');revoke.clicked.connect(self.remove_location);controls.addWidget(revoke)
         layout.addLayout(controls);self.show_locations()
+        permissions = QGroupBox('الأذونات والمهارات'); permissions.setObjectName('skill-permissions')
+        permission_layout = QVBoxLayout(permissions)
+        info = QLabel('نفّذ الأفعال من المحادثة. غيّر الإتاحة هنا ثم احفظ؛ أما إلغاء الصلاحية المتذكّرة فيطبق فورًا.')
+        info.setWordWrap(True); permission_layout.addWidget(info)
+        from src.tools.desktop_skills import DEFINITIONS
+        self.skill_checks = {}; self.skill_statuses = {}
+        for name, (_, description, _) in DEFINITIONS.items():
+            enabled = QCheckBox(description); enabled.setObjectName('skill-' + name)
+            enabled.setChecked(name not in settings.values['disabled_skills'])
+            status = QLabel('جارٍ التحقق من الحالة الحالية…'); status.setWordWrap(True); status.setTextFormat(Qt.PlainText)
+            self.skill_checks[name] = enabled; self.skill_statuses[name] = status
+            permission_layout.addWidget(enabled); permission_layout.addWidget(status)
+        self.skill_message = QLabel(); self.skill_message.setTextFormat(Qt.PlainText); self.skill_message.setWordWrap(True); self.skill_message.setObjectName('skill-message')
+        permission_layout.addWidget(self.skill_message)
+        self.grants = QListWidget(); self.grants.setObjectName('skill-grants'); self.grants.setMaximumHeight(100)
+        permission_layout.addWidget(QLabel('الصلاحيات المتذكّرة للأفعال المحددة (حتى 24 ساعة)'))
+        permission_layout.addWidget(self.grants)
+        grant_actions = QHBoxLayout()
+        refresh = QPushButton('تحديث الحالة والصلاحيات'); refresh.clicked.connect(self.refresh_skills); grant_actions.addWidget(refresh)
+        self.revoke_grant = QPushButton('إلغاء الصلاحية المحددة'); self.revoke_grant.setObjectName('revoke-skill-grant')
+        self.revoke_grant.clicked.connect(self.revoke_skill_grant); grant_actions.addWidget(self.revoke_grant)
+        permission_layout.addLayout(grant_actions); layout.addWidget(permissions)
         note = QLabel('الأوزان منفصلة عن التطبيق. اختر المجلد الذي يحتوي ملفات GGUF وملف mmproj للصور. لا تُنقل ملفاتك ولا تُنزّل نماذج تلقائيًا.')
         note.setWordWrap(True); layout.addWidget(note)
         self.table = QTableWidget(0, 2); self.table.setHorizontalHeaderLabels(['الملف', 'الحالة'])
         self.table.horizontalHeader().setStretchLastSection(True); layout.addWidget(self.table)
         self.refresh_files()
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(self.save); buttons.rejected.connect(self.reject); layout.addWidget(buttons)
+        buttons.accepted.connect(self.save); buttons.rejected.connect(self.reject); outer.addWidget(buttons)
+        QTimer.singleShot(0, self.refresh_skills)
+
+    def skill_request(self, path, body=None):
+        # Native Settings talks to the same authenticated backend, never a second registry.
+        token = (data_directory() / '.api-token').read_text().strip()
+        request = urllib.request.Request(self.skill_url + path,
+            data=None if body is None else json.dumps(body).encode(),
+            headers={'X-Neura-Token': token, 'Content-Type': 'application/json'})
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=3) as response:
+            return json.load(response)
+
+    def refresh_skills(self):
+        def loaded(data):
+            if not self.isVisible(): return
+            catalog, grants = data
+            for skill in catalog['desktop_skills']:
+                self.skill_statuses[skill['name']].setText('الحالة الحالية: ' + ('متاحة' if skill['available'] else skill['unavailable_reason']))
+            self.grants.clear()
+            for grant in grants['grants']:
+                self.grants.addItem(grant['label'] + ' · ' + grant['name'])
+                self.grants.item(self.grants.count()-1).setData(Qt.UserRole, grant['id'])
+            self.skill_message.setText('لا توجد صلاحيات متذكّرة.' if not grants['grants'] else '')
+        self.parent().task(lambda _: (self.skill_request('/skills'), self.skill_request('/skills/grants')),
+            loaded, lambda error: self.skill_message.setText('تعذر قراءة حالة المهارات: ' + error))
+
+    def revoke_skill_grant(self):
+        item = self.grants.currentItem()
+        if not item: return
+        permission_id = item.data(Qt.UserRole)
+        self.revoke_grant.setEnabled(False)
+        def finished(_):
+            self.revoke_grant.setEnabled(True); self.refresh_skills()
+        def failed(error):
+            self.revoke_grant.setEnabled(True); self.skill_message.setText('تعذر إلغاء الصلاحية: ' + error)
+        self.parent().task(lambda _: self.skill_request('/skills/revoke', {'permission_id': permission_id}), finished, failed)
 
     def choose_folder(self):
         chosen = QFileDialog.getExistingDirectory(self, 'مجلد النماذج', self.folder.text())
@@ -173,7 +236,8 @@ class SettingsDialog(QDialog):
                 QMessageBox.warning(self, 'Coder', 'أكمل تنزيل Qwen Coder أولًا.'); return
         self.settings.values.update(models_dir=self.folder.text(), n_gpu_layers=-1 if self.mode.currentIndex() == 0 else 0,
                                     n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(),
-                                    brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData())
+                                    brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData(),
+                                    disabled_skills=[name for name, check in self.skill_checks.items() if not check.isChecked()])
         try: self.settings.save()
         except Exception as error:
             QMessageBox.warning(self, 'الإعدادات', str(error)); return
@@ -390,8 +454,12 @@ class MainWindow(QMainWindow):
         self.task(lambda _: self.service.stop(), lambda _: self.begin_backend())
 
     def settings_dialog(self):
+        model_keys = ('models_dir', 'n_gpu_layers', 'n_ctx', 'dedicated_coder', 'gpu_device')
+        before = {key:self.settings.values[key] for key in model_keys}
         dialog = SettingsDialog(self.settings, self)
-        if dialog.exec() == QDialog.Accepted: self.restart()
+        if dialog.exec() == QDialog.Accepted:
+            if any(self.settings.values[key] != before[key] for key in model_keys): self.restart()
+            else: self.statusBar().showMessage('حُفظت الإعدادات والأذونات دون إعادة تشغيل المحرك.', 6000)
 
     def updates(self):
         if self.update_dialog:
