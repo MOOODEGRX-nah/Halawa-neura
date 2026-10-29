@@ -251,6 +251,8 @@
 </div>
 
 <link rel="stylesheet" href="/assets/workspace.css">
+<script src="/assets/markdown-it.min.js"></script>
+<script src="/assets/markdown.js"></script>
 <script>
 let st='ready',mode='fast',tts=false,busy=false,abort=false,tps=0,curM='fast',px=0,H=null,tpsHold=0,chatOn=true,SS=null,page='chat';
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -593,7 +595,7 @@ function bubble(kind,label,color,icon,txt,typing){
   d.querySelector('bdi').textContent=label;const t=d.querySelector('.t');t.textContent=txt||'';
   if(!u){const c=document.createElement('button');c.type='button';c.className='absolute -bottom-3 end-3 grid h-6 w-6 place-items-center rounded-full border border-ln bg-cn text-tx2 opacity-0 transition-all duration-200 hover:text-tx focus-visible:opacity-100 group-hover/m:opacity-100 [@media(hover:none)]:opacity-70';c.setAttribute('aria-label','نسخ الرد');c.innerHTML=I('copy','','w-3.5 h-3.5');
     c.onclick=async()=>{try{await navigator.clipboard.writeText(t.textContent)}catch(e){}c.innerHTML=I('check','text-green','w-3.5 h-3.5');setTimeout(()=>c.innerHTML=I('copy','','w-3.5 h-3.5'),1500)};d.append(c)}
-  $('log').appendChild(d);return{d,t,dots:d.querySelector('.dots'),caret:d.querySelector('.caret')};
+  $('log').appendChild(d);return{d,t,kind,dots:d.querySelector('.dots'),caret:d.querySelector('.caret')};
 }
 function act(txt,ic,spin){const d=document.createElement('div');
   d.className='flex max-w-full items-center gap-2 self-center rounded-full border border-dashed border-[#37474f] bg-pan/80 px-3.5 py-1.5 text-center text-[12.5px] text-tx2 animate-pop-in';
@@ -675,9 +677,12 @@ function codeBlock(code,lang){
   d.querySelector('span').textContent=lang||'code';d.querySelector('pre').innerHTML=hl(code);const b=d.querySelector('button');
   b.onclick=async()=>{try{await navigator.clipboard.writeText(code)}catch(e){}b.innerHTML=I('check','text-green','w-3.5 h-3.5')+'<span>copied</span>';setTimeout(()=>b.innerHTML=I('copy','','w-3.5 h-3.5')+'<span>copy</span>',1500)};
   return d}
-function finalize(b,full){if(!/```/.test(full))return;const parts=full.split(/```([\w+-]*)\n?([\s\S]*?)```/);
-  b.t.textContent='';b.t.classList.add('block');
-  for(let i=0;i<parts.length;i+=3){if(parts[i])b.t.append(document.createTextNode(parts[i]));if(i+2<parts.length)b.t.append(codeBlock(parts[i+2].replace(/\n$/,''),parts[i+1]))}sc()}
+function finalize(b,full){
+  if(b.kind==='u')return;
+  b.t.classList.add('neura-md');
+  if(!window.NeuraMarkdown){b.t.textContent=full;return;}
+  b.t.replaceChildren(window.NeuraMarkdown.render(full,{codeBlock,onLink:url=>window.NeuraSkills.perform('open_website',{destination:url},{chat:true}).catch(e=>note(e.message))}));sc();
+}
 /* ---- voice out: Kokoro via Core if available, else a LOCAL OS voice (never network voices: they would leak the text) ---- */
 async function speak(s){
   if(!tts)return;s=s.replace(/```[\s\S]*?```/g,' ').trim();if(!s)return;const lg=/[\u0600-\u06FF]/.test(s)?'ar':'en';
@@ -692,8 +697,9 @@ function ui(b){busy=b;swap($('go'),b);tg($('go'),'bg-blue border-blue',!b);tg($(
 function rip(e){const r=document.createElement('span');r.className='pointer-events-none absolute inset-0 rounded-full bg-white/50 animate-ping';e.append(r);setTimeout(()=>r.remove(),700)}
 async function send(q,voice,deep){
   q=(q||'').trim();if(!q||busy||trans)return;
-  if(window.NeuraWorkspace&&await window.NeuraWorkspace.handleChat(q))return;
-  if(window.NeuraSkills&&await window.NeuraSkills.handleChat(q))return;
+  ui(true);abort=false;setSt('thinking');
+  if(!pendingImage&&!window.NeuraChat){note('تعذر تحميل مسار المحادثة؛ أعد الاتصال من شريط التطبيق.');setSt('error');ui(false);return;}
+  if(!pendingImage&&await window.NeuraChat.handleChat(q)){setSt('ready');ui(false);return;}
   if(await slash(q))return;
   ui(true);abort=false;vib(8);
   if(!document.body.classList.contains('has'))setHas(true);
@@ -780,13 +786,14 @@ $('mic').onclick=()=>{
   micStart();
 };
 
-const attachment=document.createElement('label');attachment.className=CHIP;attachment.innerHTML='<span id="image-label">إرفاق صورة</span><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>';$('sugg').before(attachment);
+const chatToolbar=document.createElement('div');chatToolbar.id='chat-actions';chatToolbar.className='chat-toolbar';chatToolbar.setAttribute('role','toolbar');chatToolbar.setAttribute('aria-label','إجراءات المحادثة');$('ctl').before(chatToolbar);
+const attachment=document.createElement('label');attachment.tabIndex=0;attachment.setAttribute('role','button');attachment.setAttribute('aria-label','إرفاق صورة');attachment.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image-input').click();}};attachment.className=CHIP;attachment.innerHTML='<span id="image-label">إرفاق صورة</span><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>';chatToolbar.append(attachment);
 $('image-input').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>8000000){note('الحد الأقصى للصورة 8 MB');return}pendingImage=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});$('image-label').textContent='صورة مرفقة · '+f.name;note('سيستخدم الطلب التالي نموذج VISION')};
-const sessionButton=document.createElement('button');sessionButton.type='button';sessionButton.className=CHIP;sessionButton.textContent='الجلسات المحفوظة';$('sugg').before(sessionButton);
+const sessionButton=document.createElement('button');sessionButton.id='saved-sessions';sessionButton.type='button';sessionButton.className=CHIP;sessionButton.textContent='الجلسات المحفوظة';chatToolbar.append(sessionButton);
 sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/sessions'),j=await r.json();if(!r.ok){note(j.error.message);return}const panel=document.createElement('div');panel.className='p-3 border border-ln rounded-xl';for(const item of j.sessions){const row=document.createElement('div'),open=document.createElement('button'),del=document.createElement('button');open.className=del.className=CHIP;open.textContent=item.session+' · '+item.updated_at;del.textContent='حذف';open.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session)),record=await response.json();if(!response.ok){note(record.error.message);return}hist=record.messages;sid=item.session;$('log').innerHTML='';setHas(true);for(const m of hist){if(m.role==='system')continue;const text=typeof m.content==='string'?m.content:m.content.filter(p=>p.type==='text').map(p=>p.text).join('\n');const b=bubble(m.role==='user'?'u':'n',m.role==='user'?'You':'Neura','#42A5F5','spark',text);finalize(b,text)}panel.remove()};del.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session),{method:'DELETE'});if(response.ok)row.remove();else note('تعذّر حذف الجلسة')};row.append(open,del);panel.append(row)}if(!j.sessions.length)panel.textContent='لا جلسات محفوظة';$('log').append(panel);setHas(true)};
 
 
-const projectButton=document.createElement('button');projectButton.type='button';projectButton.className=CHIP;projectButton.textContent='مساحة المبرمج';$('sugg').before(projectButton);projectButton.onclick=()=>window.NeuraWorkspace&&window.NeuraWorkspace.start($('in').value.trim());
+const projectButton=document.createElement('button');projectButton.id='coding-workspace';projectButton.type='button';projectButton.className=CHIP;projectButton.textContent='مساحة المبرمج';chatToolbar.append(projectButton);projectButton.onclick=()=>window.NeuraWorkspace&&window.NeuraWorkspace.start($('in').value.trim());
 
 /* ---- suggestions, shortcuts, boot ---- */
 [['spark','مرحباً'],['brain','أثبت أن جذر 2 عدد غير نسبي'],['code','اكتب لي كوداً بسيطاً بلغة Python']].forEach(([ic,tx])=>{
@@ -878,5 +885,6 @@ function paintAbout(){
 </script>
 <script src="/assets/workspace.js"></script>
 <script src="/assets/skills.js"></script>
+<script src="/assets/chat.js"></script>
 </body>
 </html>

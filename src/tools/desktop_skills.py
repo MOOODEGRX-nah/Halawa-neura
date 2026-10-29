@@ -87,15 +87,17 @@ class DesktopSkills:
 
     def describe(self):
         status=self.adapter.status()
+        disabled=getattr(self.adapter,'configuration',lambda:{})().get('disabled_skills',[])
         result=[]
         for name,(schema,description,permissions) in DEFINITIONS.items():
             available=True if name=='list_recent_applications' else status['desktop_available'] and (status['brave_available'] if name in ('open_website','search_web','search_youtube') else True)
             if name=='open_file':available=available and status.get('text_viewer_available',True)
             if name=='open_folder':available=available and status.get('folder_viewer_available',True)
+            if name in disabled:available=False
             result.append({'name':name,'description':description,'input_schema':schema.model_json_schema(),
                 'output_schema':{'type':'object','required':['status','message'],'properties':{'status':{'type':'string'},'message':{'type':'string'}}},
                 'permissions':permissions,'timeout_s':8,'available':bool(available),
-                'unavailable_reason':'' if available else status['reason'] or ('محرر النصوص الموثوق غير متاح.' if name=='open_file' else 'مدير الملفات الموثوق غير متاح.' if name=='open_folder' else 'Brave غير متاح.')})
+                'unavailable_reason':'' if available else 'هذه المهارة معطلة في إعدادات Neura.' if name in disabled else status['reason'] or ('محرر النصوص الموثوق غير متاح.' if name=='open_file' else 'مدير الملفات الموثوق غير متاح.' if name=='open_folder' else 'Brave غير متاح.')})
         return {'skills':result,'desktop':status,'recent_scope':'التطبيقات التي فتحها Neura فقط؛ ليست كل أنشطة KDE.'}
 
     def validate(self,name,args):
@@ -127,6 +129,8 @@ class DesktopSkills:
 
     def authorize(self,name,args,remember=False):
         args=self.validate(name,args)
+        if name in getattr(self.adapter,'configuration',lambda:{})().get('disabled_skills',[]):
+            raise PermissionDenied('هذه المهارة معطلة في إعدادات Neura.')
         scope=self.scope(name,args)
         grant='g_'+uuid.uuid4().hex
         with self.store.lock:
@@ -149,6 +153,8 @@ class DesktopSkills:
 
     def execute(self,name,args,permission_id):
         args=self.validate(name,args)
+        if name in getattr(self.adapter,'configuration',lambda:{})().get('disabled_skills',[]):
+            raise PermissionDenied('هذه المهارة معطلة في إعدادات Neura.')
         with self.store.lock:
             row=self.store.db.execute('SELECT * FROM skill_grants WHERE id=?',(permission_id,)).fetchone()
             if not row or row['revoked'] or row['expires']<time.time() or row['scope']!=self.scope(name,args):

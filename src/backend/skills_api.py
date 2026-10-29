@@ -15,6 +15,7 @@ class Authorize(SkillCall):
 
 class Execute(SkillCall):
     permission_id:str=Field(pattern=r'^g_[a-f0-9]{32}$')
+    request_id:str|None=Field(default=None,pattern=r'^r_[0-9]{13}_[a-f0-9]{32}$')
 
 
 class Permission(BaseModel):
@@ -22,7 +23,7 @@ class Permission(BaseModel):
     permission_id:str=Field(pattern=r'^g_[a-f0-9]{32}$')
 
 
-def attach_skills(app,registry):
+def attach_skills(app,registry,dispatcher=None):
     async def invoke(function,*args):
         try:return await asyncio.to_thread(function,*args)
         except ValidationError as exc:raise HTTPException(422,'مدخلات المهارة غير صالحة') from exc
@@ -33,6 +34,8 @@ def attach_skills(app,registry):
 
     @app.post('/skills/execute')
     async def execute(req:Execute):
+        if req.request_id and dispatcher:
+            return await invoke(dispatcher.manual,req.name,req.args,req.permission_id,req.request_id)
         return await invoke(registry.execute,req.name,req.args,req.permission_id)
 
     @app.post('/skills/revoke')

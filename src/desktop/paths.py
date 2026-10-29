@@ -59,7 +59,7 @@ class DesktopSettings:
         self.path = Path(path or config_directory() / 'settings.json')
         self.values = {'models_dir': str(model_directory()), 'check_updates': True,
                        'dedicated_coder': False, 'n_gpu_layers': -1, 'n_ctx': 4096,
-                       'brave_desktop_id':'brave-browser.desktop', 'approved_locations':{}, 'gpu_device':'auto'}
+                       'brave_desktop_id':'brave-browser.desktop', 'approved_locations':{}, 'gpu_device':'auto','disabled_skills':[]}
         try:
             saved = json.loads(self.path.read_text(encoding='utf-8'))
             if not isinstance(saved, dict):
@@ -70,6 +70,9 @@ class DesktopSettings:
         self.validate()
 
     def validate(self):
+        disabled=self.values['disabled_skills']
+        if not isinstance(disabled,list) or any(name not in ('open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications') for name in disabled):
+            raise ValueError('قائمة المهارات المعطلة غير صالحة')
         if type(self.values['n_ctx']) is not int or not 512 <= self.values['n_ctx'] <= 32768:
             raise ValueError('Invalid context length')
         if type(self.values['n_gpu_layers']) is not int or self.values['n_gpu_layers'] not in (-1, 0):

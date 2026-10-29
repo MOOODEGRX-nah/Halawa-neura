@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* One toolbar owns its content-sized controls, aligned with the composer. */
+.chat-toolbar{position:relative;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:calc(100% - 16px);max-width:none;align-self:center;margin:0 auto 8px;direction:rtl}
+.chat-toolbar>button,.chat-toolbar>label{flex:0 1 auto;align-self:center;width:auto;max-width:100%;min-height:36px;justify-content:center;cursor:pointer;overflow-wrap:anywhere}
+.chat-toolbar>button:focus-visible,.chat-toolbar>label:focus-visible,.chat-action-choice:focus-visible,.neura-md a:focus-visible{outline:2px solid #42a5f5;outline-offset:3px}
+.chat-action-choice{display:inline-flex;max-width:100%;margin:7px 0 0 7px;padding:5px 12px;border:1px solid #455a64;border-radius:9px;background:#18252d;color:#b3e5fc;cursor:pointer;white-space:normal}
+.neura-md{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.9}
+.neura-md p{margin:.5em 0}.neura-md p:first-child{margin-top:0}.neura-md p:last-child{margin-bottom:0}
+.neura-md ul,.neura-md ol{padding-inline-start:1.5em;margin:.5em 0}.neura-md ul{list-style:disc}.neura-md ol{list-style:decimal}.neura-md li{margin:.15em 0}
+.neura-md strong{font-weight:750}.neura-md em{font-style:italic}.neura-md a{color:#81d4fa;text-decoration:underline;cursor:pointer}
+.neura-md :not(pre)>code{font-family:ui-monospace,monospace;direction:ltr;unicode-bidi:isolate;background:#0b1220;padding:2px 5px;border-radius:5px;white-space:pre-wrap}
+.neura-md pre{direction:ltr;text-align:left;white-space:pre;overflow:auto}.neura-md h1,.neura-md h2,.neura-md h3,.neura-md h4{font-weight:700;margin:.7em 0 .3em;line-height:1.6}.neura-md h1{font-size:1.35em}.neura-md h2{font-size:1.2em}.neura-md blockquote{border-inline-start:3px solid #455a64;padding-inline-start:12px;color:#b0bec5}.neura-md table{display:block;overflow:auto}.neura-md th,.neura-md td{border:1px solid #455a64;padding:5px 9px}
+@media(max-width:420px){.chat-toolbar{gap:6px;width:calc(100% - 16px)}.chat-toolbar>button,.chat-toolbar>label{font-size:12px;padding:6px 9px}}
+
+@media(min-width:640px){.chat-toolbar{width:calc(100% - 24px)}}
+@media(min-width:1024px){.chat-toolbar{width:min(880px,calc(100% - 28px))}}

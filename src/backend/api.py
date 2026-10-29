@@ -32,6 +32,8 @@ from src.core.project_preview import PreviewServer
 from src.backend.project_api import attach_projects
 from src.backend.skills_api import attach_skills
 from src.tools.desktop_skills import DesktopSkills
+from src.core.chat_dispatch import ChatDispatcher
+from src.backend.chat_api import attach_chat
 
 
 def error_response(message, status, code):
@@ -88,6 +90,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     project_jobs = ProjectJobs(project_store, coordinator)
     preview = PreviewServer(project_store)
     desktop_skills = DesktopSkills(project_store, desktop_adapter)
+    chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs)
     started = time.monotonic()
 
     @asynccontextmanager
@@ -103,7 +106,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     app.state.coordinator, app.state.token = coordinator, token
     app.state.project_store, app.state.project_jobs, app.state.preview = project_store, project_jobs, preview
     attach_projects(app, project_store, project_jobs, preview)
-    attach_skills(app,desktop_skills)
+    attach_skills(app,desktop_skills,chat_dispatcher)
+    attach_chat(app,chat_dispatcher)
+    app.state.chat_dispatcher=chat_dispatcher
     app.state.desktop_skills=desktop_skills
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', '[::1]'])
 
@@ -115,7 +120,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
             return error_response('Open the UI from this API origin', 403, 'origin_denied')
         if request.headers.get('sec-fetch-site') == 'cross-site':
             return error_response('Cross-site requests are disabled', 403, 'origin_denied')
-        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills'))
+        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills','/chat'))
         if private:
             supplied = request.headers.get('x-neura-token', '')
             if not secrets.compare_digest(supplied.encode(), token.encode()):
@@ -196,6 +201,12 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     @app.get('/assets/workspace.css')
     async def workspace_style():
         return FileResponse(ROOT / 'web/workspace.css', media_type='text/css')
+
+    @app.get('/assets/{asset_name}')
+    async def chat_assets(asset_name:str):
+        sources={'chat.js':'chat.js','markdown.js':'markdown.js','markdown-it.min.js':'vendor/markdown-it.min.js'}
+        if asset_name not in sources:raise HTTPException(404,'Asset not found')
+        return FileResponse(ROOT/'web'/sources[asset_name],media_type='text/javascript')
 
     @app.get('/health')
     async def health():

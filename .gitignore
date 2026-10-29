@@ -39,6 +39,8 @@ node_modules/
 *.aria2
 
 vendor/
+!web/vendor/
+!web/vendor/**
 .release-build/
 *.pkg.tar.zst
 *.tar.zst

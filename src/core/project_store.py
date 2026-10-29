@@ -372,7 +372,7 @@ class ProjectStore:
             return {'answer': 'تغيرت ملفات المشروع خارج التطبيق؛ راجعها ثم حدّث الفهرس.', 'source': 'metadata', 'model_called': False, 'stale': True}
         if re.search(r'لغة|لغات|language', question, re.I):
             answer = 'اللغات الموجودة: ' + (', '.join(meta['languages']) or 'لم تُحفظ ملفات بعد')
-        elif re.search(r'ما (?:هو|هذا|هي).*المشروع|ماهذا المشروع|غرض|purpose|what is (?:this|the) project|which project|لماذا.*(?:أنش|انش|صُنع)|why.*(?:created|built)', question, re.I):
+        elif re.search(r'ما (?:هو|هذا|هي).*المشروع|ماهذا المشروع|غرض|هدف|purpose|what is (?:this|the) project|which project|لماذا.*(?:أنش|انش|صُنع)|why.*(?:created|built)', question, re.I):
             answer = meta['display_name'] + '\nالغرض المطلوب: ' + meta['purpose'] + '\nالمعاينة: ' + ('متاحة' if meta['preview']['supported'] else 'غير متاحة')
         else:
             return {'answer': 'هذا السؤال يحتاج فحص ملفات فعلية؛ اختر الملفات ذات الصلة أولًا.',
