@@ -46,6 +46,11 @@ class JobSnapshot(BaseModel):
     error:str|None
     created_at:str
     updated_at:str
+    invoice:dict[str,Any]|None=None
+    invoice_provenance:Literal['recorded','unavailable_legacy']='unavailable_legacy'
+    stage_results:list[dict[str,Any]]=Field(default_factory=list)
+    saved_files:list[dict[str,Any]]=Field(default_factory=list)
+    validation:dict[str,Any]|None=None
 
 
 class JobEvent(BaseModel):

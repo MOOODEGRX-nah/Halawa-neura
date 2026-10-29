@@ -99,7 +99,7 @@ class InvoiceParser:
         if verdict_match:
             invoice.verdict = verdict_match.group(1).upper()
         else:
-            invoice.verdict = "APPROVED" if invoice.grade in ("A", "B") else "NEEDS_FIX"
+            invoice.verdict = "NEEDS_FIX"
 
         issues_section = re.search(
             r"ISSUES_FOUND:\s*\n([\s\S]*?)(?=\n[A-Z_]+:|$)", response, re.I

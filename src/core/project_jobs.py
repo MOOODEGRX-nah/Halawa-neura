@@ -42,6 +42,7 @@ class ProjectJobs:
         with store.lock:
             store.db.execute('CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,project_id TEXT,state TEXT,request TEXT,draft TEXT,seq INTEGER,cancel INTEGER,error TEXT,created TEXT,updated TEXT)')
             store.db.execute('CREATE TABLE IF NOT EXISTS project_events(job_id TEXT,seq INTEGER,payload TEXT,PRIMARY KEY(job_id,seq))')
+            store.db.execute('CREATE TABLE IF NOT EXISTS job_contracts(job_id TEXT PRIMARY KEY,invoice TEXT NOT NULL,stages TEXT NOT NULL,result TEXT NOT NULL)')
             interrupted = store.db.execute("SELECT id FROM jobs WHERE state NOT IN ('completed','failed','cancelled')").fetchall()
             store.db.commit()
         for row in interrupted:
@@ -59,15 +60,41 @@ class ProjectJobs:
     def get(self, job_id):
         with self.store.lock:
             row = self._row(job_id)
+            contract=self.store.db.execute('SELECT * FROM job_contracts WHERE job_id=?',(job_id,)).fetchone()
+            result=json.loads(contract['result']) if contract else {}
             return {'job_id': row['id'], 'project_id': row['project_id'], 'state': row['state'],
                     'last_seq': row['seq'], 'cancellation_requested': bool(row['cancel']),
                     'draft_files': json.loads(row['draft']), 'error': row['error'],
-                    'created_at': row['created'], 'updated_at': row['updated']}
+                    'created_at': row['created'], 'updated_at': row['updated'],
+                    'invoice':json.loads(contract['invoice']) if contract else None,
+                    'invoice_provenance':'recorded' if contract else 'unavailable_legacy',
+                    'stage_results':json.loads(contract['stages']) if contract else [],
+                    'saved_files':result.get('saved_files',[]),'validation':result.get('validation')}
+
+    def _stage_result(self, job_id, stage, result):
+        with self.store.lock:
+            row=self.store.db.execute('SELECT stages FROM job_contracts WHERE job_id=?',(job_id,)).fetchone()
+            if not row:return
+            stages=json.loads(row['stages'])
+            for entry in reversed(stages):
+                if entry['stage']==stage:
+                    entry['result']=result;break
+            self.store.db.execute('UPDATE job_contracts SET stages=? WHERE job_id=?',(json.dumps(stages,ensure_ascii=False),job_id))
+            self.store.db.commit()
 
     def _state(self, job_id, state, *, error=None):
         with self.store.lock:
             row = self._row(job_id)
             self.store.db.execute('UPDATE jobs SET state=?,error=?,updated=? WHERE id=?', (state, error, now(), job_id))
+            contract=self.store.db.execute('SELECT stages FROM job_contracts WHERE job_id=?',(job_id,)).fetchone()
+            if contract:
+                stages=json.loads(contract['stages']);stamp=now()
+                if stages and stages[-1]['status']=='running' and stages[-1]['stage']!=state:
+                    stages[-1].update(status=state if state in ('failed','cancelled') else 'completed',completed_at=stamp)
+                    if error:stages[-1]['error']=error
+                if state not in TERMINAL and (not stages or stages[-1]['stage']!=state):
+                    stages.append({'stage':state,'status':'running','started_at':stamp})
+                self.store.db.execute('UPDATE job_contracts SET stages=? WHERE job_id=?',(json.dumps(stages,ensure_ascii=False),job_id))
             self.store.db.commit()
             self.store.set_generation(row['project_id'], state)
 
@@ -119,6 +146,9 @@ class ProjectJobs:
             job_id = 'j_' + uuid.uuid4().hex
             self.store.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?)',
                 (job_id, project['project_id'], 'queued', request.model_dump_json(), '{}', 0, 0, None, now(), now()))
+            invoice=self.invoice.make_invoice(request.legacy(),project_id=project['project_id'],task_id=job_id)
+            self.store.db.execute('INSERT INTO job_contracts VALUES(?,?,?,?)',(job_id,invoice.model_dump_json(),
+                json.dumps([{'stage':'queued','status':'running','started_at':now()}]),'{}'))
             self.store.db.commit()
             self.cancel_flags[job_id] = threading.Event()
             self._emit(job_id, 'job_started', {'state': 'queued'})
@@ -174,13 +204,18 @@ class ProjectJobs:
                     context += '\nFILE ' + path + '\n' + actual['content']
                 if len(context) > 60_000:
                     raise ProjectError('الملفات المختارة تتجاوز حد السياق؛ اختر ملفات أقل')
-            with closing(self.invoice.stream_files(request.legacy(), context=context, cancel=cancel, deadline=deadline)) as stream:
+            actual_invoice=self.invoice.make_invoice(request.legacy(),project_id=project_id,task_id=job_id,context=context)
+            with self.store.lock:
+                self.store.db.execute('UPDATE job_contracts SET invoice=? WHERE job_id=?',(actual_invoice.model_dump_json(),job_id));self.store.db.commit()
+            with closing(self.invoice.stream_files(request.legacy(), context=context, project_id=project_id,task_id=job_id,cancel=cancel, deadline=deadline)) as stream:
                 for item in stream:
                     if item['kind'] == 'stage':
                         self._state(job_id, item['stage'])
                         self._emit(job_id, 'stage_changed', {'stage': item['stage']})
                     elif item['kind'] == 'delta':
                         parser.feed(item['text'])
+                    elif item['kind'] in ('stage_result','finished'):
+                        self._stage_result(job_id,item.get('stage','generating'),{key:value for key,value in item.items() if key not in ('kind','stage')})
             generated = parser.finish()
             self.coordinator._check(cancel, deadline)
             self._state(job_id, 'validating')
@@ -202,6 +237,11 @@ class ProjectJobs:
                     raise ProjectError('رموز Python المطلوبة مفقودة')
             self.coordinator._check(cancel, deadline)
             project = self.store.commit(project_id, files, expected)
+            saved=[{'project_id':project_id,'path':path,'revision':project['project_revision'],
+                    'sha256':next(file['sha256'] for file in project['files'] if file['path']==path)} for path in generated]
+            with self.store.lock:
+                self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',
+                    (json.dumps({'saved_files':saved,'validation':project['validation']},ensure_ascii=False),job_id));self.store.db.commit()
             self._emit(job_id, 'validation_result', project['validation'])
             for path in generated:
                 self._emit(job_id, 'file_saved', {'path': path, 'revision': project['project_revision']})

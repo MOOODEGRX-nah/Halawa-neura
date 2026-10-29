@@ -4,8 +4,9 @@ import json
 import re
 import time
 import uuid
+from typing import Literal
 from urllib.parse import urlencode, urlsplit
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from src.core.project_files import ProjectError
 from src.core.project_store import now
 from src.desktop.actions import DesktopAdapter
@@ -41,6 +42,15 @@ class Location(Arguments):
 
 class Empty(Arguments):
     pass
+
+
+class SkillResult(BaseModel):
+    model_config=ConfigDict(extra='forbid',strict=True)
+    status:Literal['launched','listed','error','unavailable','unknown']
+    message:str=Field(min_length=1,max_length=10000)
+    application_id:str|None=Field(default=None,pattern=r'^[A-Za-z0-9_.-]+\.desktop$',max_length=160)
+    application_name:str|None=Field(default=None,max_length=500)
+    applications:list[dict]|None=Field(default=None,max_length=100)
 
 
 NAMES = {'youtube':'https://www.youtube.com/','يوتيوب':'https://www.youtube.com/',
@@ -95,7 +105,7 @@ class DesktopSkills:
             if name=='open_folder':available=available and status.get('folder_viewer_available',True)
             if name in disabled:available=False
             result.append({'name':name,'description':description,'input_schema':schema.model_json_schema(),
-                'output_schema':{'type':'object','required':['status','message'],'properties':{'status':{'type':'string'},'message':{'type':'string'}}},
+                'output_schema':SkillResult.model_json_schema(),
                 'permissions':permissions,'timeout_s':8,'available':bool(available),
                 'unavailable_reason':'' if available else 'هذه المهارة معطلة في إعدادات Neura.' if name in disabled else status['reason'] or ('محرر النصوص الموثوق غير متاح.' if name=='open_file' else 'مدير الملفات الموثوق غير متاح.' if name=='open_folder' else 'Brave غير متاح.')})
         return {'skills':result,'desktop':status,'recent_scope':'التطبيقات التي فتحها Neura فقط؛ ليست كل أنشطة KDE.'}
@@ -170,7 +180,11 @@ class DesktopSkills:
             elif name=='open_folder':result=self.adapter.open_folder(args)
             elif name=='open_application':result=self.adapter.launch(args['application_id'])
             else:result={'status':'listed','message':'هذه التطبيقات فتحها Neura فقط. اختر تطبيقًا قبل فتحه.','applications':self.recent()}
-            if name in ('search_web','search_youtube'):
+            try:
+                result=SkillResult.model_validate(result).model_dump(exclude_none=True)
+            except ValidationError:
+                result={'status':'unknown','message':'تعذر التحقق من نتيجة المهارة؛ قد يكون سطح المكتب استقبل الطلب. راجعه قبل طلب تنفيذ جديد.'}
+            if name in ('search_web','search_youtube') and result['status']=='launched':
                 result['message']='أُرسل طلب فتح نتائج البحث في Brave؛ لم تُقرأ النتائج أو تُشاهد الفيديوهات.'
             return result
         finally:
