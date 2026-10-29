@@ -12,7 +12,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from src.core.project_files import SafeTree, ProjectError, Conflict, bounded_files, safe_path, MAX_FILE
-from src.core.project_validation import inspect_files, LANGUAGES
+from src.core.project_validation import inspect_files, source_observations, LANGUAGES
 
 
 class InvalidIndex(ProjectError):
@@ -161,18 +161,36 @@ class ProjectStore:
             if freshness:
                 try:
                     with SafeTree(self.directory(project_id)) as tree:
-                        actual = tree.inventory()
+                        actual = tree.inventory();source={}
                         indexed = {x['path']: x for x in meta['files']}
                         changed = set(actual) != set(indexed)
                         for path, entry in actual.items():
                             old = indexed.get(path)
-                            if old and (entry['size'], entry['mtime_ns']) != (old['size'], old['mtime_ns']):
-                                if hashlib.sha256(tree.read(path)).hexdigest() != old['sha256']:
+                            # stats are not content identity: editors can preserve
+                            # size/mtime. Projects are bounded, so hash every file
+                            # at a freshness boundary instead of caching by stats.
+                            if old:
+                                data=tree.read(path)
+                                source[path]=data
+                                if hashlib.sha256(data).hexdigest() != old['sha256']:
                                     changed = True
+                        if tree.inventory()!=actual:changed=True
                         meta['source_freshness'] = 'stale' if changed else 'current'
+                        if not changed and meta['project_revision'] and 'features' not in meta:
+                            from src.core.project_files import BINARY_ASSETS
+                            files={path:data if Path(path).suffix.lower() in BINARY_ASSETS else data.decode('utf-8') for path,data in source.items()}
+                            facts=source_observations(files,meta['preview'])
+                            canonical=self._canonical(project_id);canonical.update(facts)
+                            self.db.execute('UPDATE projects SET metadata=? WHERE id=?',(json.dumps(canonical,ensure_ascii=False),project_id));self.db.commit()
+                            meta.update(facts)
+                            self._derived(project_id,canonical)
                 except ProjectError as exc:
                     meta['source_freshness'] = 'unsafe'
                     meta['freshness_error'] = str(exc)
+            else:
+                # Catalog/event reads deliberately skip disk IO. They must not
+                # advertise a cached summary as verified current.
+                meta['source_freshness']=None
             meta['summary'] = self.summary(meta)
             return meta
 
@@ -185,7 +203,9 @@ class ProjectStore:
                  'Entry point: ' + str(meta['entry_point']),
                  'Preview available: ' + str(meta['preview']['supported']),
                  'Static checks: ' + meta['validation']['static_checks'] + '; behavioral tests: not_run',
-                 'Source freshness: ' + meta.get('source_freshness', 'current')]
+                 'Source freshness: ' + (meta.get('source_freshness') or 'not_checked')]
+        lines.append('Observed source features (not behavioral claims): '+'; '.join(meta.get('features',[])[:6])[:600])
+        lines.append('Known limitations: '+'; '.join(meta.get('limitations',[])[:3])[:500])
         for entry in meta['files'][:12]:
             if re.search(r'secret|credential|token|password|private',entry['path'],re.I):continue
             item = entry['path'] + ' — ' + entry['role']
@@ -245,7 +265,7 @@ class ProjectStore:
             if old['project_revision'] != expected_revision or old['source_freshness'] != 'current':
                 raise Conflict('تغير المشروع؛ أعد تحميل الملفات أو راجع التغييرات الخارجية أولًا')
             # Recheck actual source hashes at a write boundary, including edits that
-            # preserved file size/mtime. Metadata questions do not perform this scan.
+            # preserved file size/mtime or changed after the metadata scan.
             with SafeTree(self.directory(project_id)) as checked:
                 if any(hashlib.sha256(checked.read(item['path'])).hexdigest() != item['sha256'] for item in old['files']):
                     raise Conflict('تغير محتوى ملف خارج التطبيق؛ راجع الفهرس أولًا')
@@ -253,6 +273,7 @@ class ProjectStore:
             revision = expected_revision + 1
             meta.update(project_revision=revision, summary_revision=revision, languages=languages,
                         preview=preview, validation=validation, entry_point=preview['entry_point'], updated_at=now())
+            meta.update(source_observations(files,preview))
             meta['type'] = 'static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'
             with SafeTree(self.directory(project_id)) as tree:
                 tree.write(f'.neura/revisions/{revision}.json', snapshot_json(files), internal=True)
@@ -356,6 +377,7 @@ class ProjectStore:
                 except ProjectError:pass
             meta.update(project_revision=revision,summary_revision=revision,languages=languages,
                 preview=preview,validation=validation,entry_point=preview['entry_point'],updated_at=now(),index_valid=True)
+            meta.update(source_observations(files,preview))
             meta.pop('source_freshness',None);meta.pop('summary',None)
             meta['type']='static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'
             meta['files']=[{'path':p,'role':LANGUAGES.get(Path(p).suffix.lower(),'Asset')+' source',**info,'sha256':digest(files[p])} for p,info in inventory.items()]

@@ -612,7 +612,8 @@ function hl(c){return esc(c).replace(/(#.*$)|("(?:[^"\\\n]|\\.)*")|\b(def|return
 const meta=n=>(document.querySelector('meta[name='+n+']')||{}).content||'';
 const CORE=location.origin,TOKEN=meta('neura-token');
 const TIERS={coder:{n:'💻 CODER',c:'#81C784',ic:'code'},fast:{n:'⚡ FAST',c:'#FB923C',ic:'zap'},daily:{n:'💬 DAILY',c:'#22D3EE',ic:'spark'},expert:{n:'🧠 EXPERT',c:'#A78BFA',ic:'brain'},vision:{n:'👁️ VISION',c:'#F472B6',ic:'mon'}};
-let pin=null,prePin=null,shown='daily',hist=[],sid=Date.now().toString(36),curAC=null,gaming=false,ttsAudio=null,pc=false;
+const newSessionId=()=>'s_'+crypto.randomUUID().replaceAll('-','');
+let pin=null,prePin=null,shown='daily',hist=[],sid=newSessionId(),curAC=null,gaming=false,ttsAudio=null,pc=false;
 let pendingImage=null;
 const seen=new Set(),srvTTS={ar:true,en:true};
 const api=(p,o={})=>fetch(CORE+p,{...o,headers:{'Content-Type':'application/json','X-Neura-Token':TOKEN,...(o.headers||{})}});
@@ -749,7 +750,7 @@ function setMode(m){mode=m;const d=m==='deep';swap($('mode'),d);
   setTip($('mode'),d?'التحليل العميق — اضغط للوضع السريع':'الوضع السريع — اضغط للتحليل العميق');$('deep').disabled=busy;vib(10)}
 $('mode').onclick=()=>setTier(pin==='expert'?'daily':'expert');
 $('tts').onclick=()=>{tts=!tts;swap($('tts'),tts);$('tts').setAttribute('aria-pressed',tts);tg($('tts'),'border-green/40 text-green/70',!tts);tg($('tts'),'border-green bg-green/15 text-green shadow-[0_0_14px_rgba(102,187,106,.4)]',tts);setTip($('tts'),tts?'إيقاف الصوت':'تفعيل الصوت');if(!tts&&window.speechSynthesis)speechSynthesis.cancel()};
-$('clr').onclick=()=>{$('log').innerHTML='';hist=[];sid=Date.now().toString(36);setHas(false)};
+$('clr').onclick=()=>{$('log').innerHTML='';hist=[];sid=newSessionId();setHas(false)};
 $('lk').disabled=true;setTip($('lk'),'جلسات المواقع الخارجية غير متاحة');
 /* ---- microphone ---- */
 $('wv').innerHTML=[0,.12,.24,.36,.48,.6,.72].map(x=>`<i class="block h-full w-[3px] origin-center animate-eq rounded-full bg-red" style="animation-delay:${x}s"></i>`).join('');

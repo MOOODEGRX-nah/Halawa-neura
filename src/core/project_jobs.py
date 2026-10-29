@@ -190,6 +190,8 @@ class ProjectJobs:
                 acquired = self.coordinator.lock.acquire(timeout=.1)
             row = self._row(job_id)
             request = WorkspaceRequest.model_validate_json(row['request'])
+            parser=FileStream(lambda kind,data:self._emit(job_id,kind,data,drafts=parser.files),
+                              expected_files=request.required_files,filename_hints=request.filename_hints or request.context_files)
             project_id = row['project_id']
             project = self.store.get(project_id)
             expected = request.expected_revision if request.project_id else 0
@@ -215,7 +217,9 @@ class ProjectJobs:
                     elif item['kind'] == 'delta':
                         parser.feed(item['text'])
                     elif item['kind'] in ('stage_result','finished'):
-                        self._stage_result(job_id,item.get('stage','generating'),{key:value for key,value in item.items() if key not in ('kind','stage')})
+                        result={key:value for key,value in item.items() if key not in ('kind','stage')}
+                        if item['kind']=='finished':result['filename_resolutions']=parser.resolutions
+                        self._stage_result(job_id,item.get('stage','generating'),result)
             generated = parser.finish()
             self.coordinator._check(cancel, deadline)
             self._state(job_id, 'validating')

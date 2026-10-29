@@ -53,7 +53,8 @@ def test_chat_history_parameters_and_tier(system,messages):
         response=await client.post('/v1/chat/completions',json={'messages':messages,'neura':{'tier':'fast'},'temperature':.3,'max_tokens':123,'top_p':.8})
         assert response.status_code==200,response.text
         result=response.json();assert result['model']=='gemma-4-e4b-q4'
-        assert system.backend.calls[-1]['messages']==messages
+        assert system.backend.calls[-1]['messages'][1:]==messages
+        assert 'dispatcher' in system.backend.calls[-1]['messages'][0]['content']
         assert system.backend.calls[-1]['max_tokens']==123
         assert result['usage']['total_tokens']==8
     run(system,check)
@@ -186,7 +187,7 @@ def test_image_data_reaches_same_coordinator(system):
         response=await client.post('/v1/chat/completions',json={'messages':[{'role':'user','content':content}]})
         assert response.status_code==200,response.text
         assert response.json()['tier']=='vision'
-        assert system.backend.calls[-1]['messages'][0]['content']==content
+        assert system.backend.calls[-1]['messages'][-1]['content']==content
         assert system.backend.loads[-1][1]['projector'].name.startswith('mmproj')
         content[1]['image_url']['url']='http://127.0.0.1/private'
         assert (await client.post('/v1/chat/completions',json={'messages':[{'role':'user','content':content}]})).status_code==422
@@ -197,11 +198,16 @@ def test_health_responsive_during_generation(system,messages):
     async def check(client,app):
         system.backend.release=threading.Event()
         task=asyncio.create_task(client.post('/v1/chat/completions',json={'messages':messages}))
-        while not system.backend.entered.is_set():await asyncio.sleep(.005)
-        health=await asyncio.wait_for(client.get('/health'),timeout=.5)
-        assert health.status_code==200
-        system.backend.release.set()
-        assert (await task).status_code==200
+        async def started():
+            while not system.backend.entered.is_set():
+                if task.done():raise AssertionError('generation failed before entering the fake backend: '+(await task).text)
+                await asyncio.sleep(.005)
+        try:
+            await asyncio.wait_for(started(),timeout=2)
+            health=await asyncio.wait_for(client.get('/health'),timeout=.5)
+            assert health.status_code==200
+        finally:system.backend.release.set()
+        assert (await asyncio.wait_for(task,timeout=2)).status_code==200
     run(system,check)
 
 

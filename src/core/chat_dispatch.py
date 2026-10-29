@@ -7,21 +7,16 @@ import hashlib
 import json
 import re
 import time
-import unicodedata
 import uuid
 from pydantic import ValidationError
 from src.core.project_files import ProjectError,Conflict
 from src.core.project_jobs import WorkspaceRequest
 from src.tools.desktop_skills import website_url
+from src.core.application_targets import (normalize, key, alias_for, resolve_application,
+                                          mentioned_aliases, mentioned_applications, TargetContext)
 
 REQUEST_ID=re.compile(r'^r_([0-9]{13})_[a-f0-9]{32}$')
 DAY=86400
-
-
-def normalize(text):
-    text=unicodedata.normalize('NFKC',text).casefold()
-    text=re.sub(r'[\u064b-\u065f\u0670\u0640]','',text)
-    return re.sub(r'\s+',' ',text.translate(str.maketrans('أإآٱ','اااا'))).strip(' \t\r\n؟?!.،,')
 
 
 def command_text(text):
@@ -44,11 +39,11 @@ def command_text(text):
 
 def project_intent(text):
     q=command_text(text)
-    return bool(re.match(r'^(?:انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:موقع|برنامج|تطبيق|صفحة|مشروع|website|web ?app|application|project|program|landing page)\b',q))
+    return bool(re.match(r'^(?:برمج|تبرمج|انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:موقع|برنامج|تطبيق|صفحة|مشروع|website|web ?app|application|project|program|landing page)\b',q))
 
 
-def key(text):
-    return ' '.join(w[2:] if w.startswith('ال') and len(w)>3 else w for w in normalize(text).replace('_',' ').replace('-',' ').split())
+def active_edit_intent(text):
+    return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',command_text(text)))
 
 
 def metadata_intent(text):
@@ -67,8 +62,10 @@ def workspace_intent(text):
 class ChatDispatcher:
     def __init__(self,store,skills,jobs):
         self.store,self.skills,self.jobs=store,skills,jobs
+        self.targets=TargetContext(store)
         with store.lock:
             store.db.execute('CREATE TABLE IF NOT EXISTS chat_requests(id TEXT PRIMARY KEY,fingerprint TEXT,state TEXT,response TEXT,options TEXT,selected TEXT,created REAL)')
+            store.db.execute('CREATE TABLE IF NOT EXISTS chat_request_sessions(request_id TEXT PRIMARY KEY,session_id TEXT)')
             interrupted={'kind':'action','result':{'status':'unknown','message':'توقف التطبيق أثناء إرسال الطلب؛ راجع سطح المكتب والمشاريع قبل طلب تنفيذ جديد. لم تُعد المحاولة تلقائيًا.'}}
             store.db.execute("UPDATE chat_requests SET state='done',response=? WHERE state='running'",(json.dumps(interrupted,ensure_ascii=False),))
             store.db.commit()
@@ -84,28 +81,40 @@ class ChatDispatcher:
     def fingerprint(payload):
         return hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
 
-    def get(self,request_id):
+    def _session(self,request_id,session_id):
+        self.targets.validate(session_id)
+        row=self.store.db.execute('SELECT session_id FROM chat_request_sessions WHERE request_id=?',(request_id,)).fetchone()
+        if row and row['session_id']!=session_id:
+            error=ProjectError('هذا الطلب يخص محادثة أخرى؛ أرسل طلبًا صريحًا في المحادثة الحالية.');error.status=403;raise error
+
+    def get(self,request_id,session_id=None):
         self._id(request_id)
         with self.store.lock:
+            self._session(request_id,session_id)
             row=self.store.db.execute('SELECT * FROM chat_requests WHERE id=?',(request_id,)).fetchone()
             if not row:
                 error=ProjectError('الطلب غير موجود');error.status=404;raise error
             if row['state']=='running':return {'kind':'pending','request_id':request_id,'message':'جارٍ تنفيذ الطلب نفسه؛ لم يبدأ تنفيذ إضافي.'}
             return json.loads(row['response'])
 
-    def _run(self,request_id,payload,operation):
+    def _run(self,request_id,payload,operation,session_id=None):
         self._id(request_id)
+        self.targets.validate(session_id)
         fingerprint=self.fingerprint(payload)
         with self.store.lock:
             row=self.store.db.execute('SELECT * FROM chat_requests WHERE id=?',(request_id,)).fetchone()
             if row:
+                self._session(request_id,session_id)
                 if row['fingerprint']!=fingerprint:raise Conflict('معرّف إعادة المحاولة مرتبط بطلب مختلف؛ لم يُنفذ شيء.')
-                return self.get(request_id)
+                return self.get(request_id,session_id)
             self._id(request_id,fresh=True)
             self.store.db.execute('DELETE FROM chat_requests WHERE created<?',(time.time()-2*DAY,))
+            self.store.db.execute('DELETE FROM chat_request_sessions WHERE request_id NOT IN(SELECT id FROM chat_requests)')
             if self.store.db.execute('SELECT COUNT(*) FROM chat_requests').fetchone()[0]>=4096:
                 error=ProjectError('سجل الطلبات ممتلئ مؤقتًا؛ انتظر قبل طلب تنفيذ جديد.');error.status=429;raise error
             self.store.db.execute('INSERT INTO chat_requests VALUES(?,?,?,?,?,?,?)',(request_id,fingerprint,'running',None,'[]',None,time.time()))
+            if session_id is not None:
+                self.store.db.execute('INSERT INTO chat_request_sessions VALUES(?,?)',(request_id,session_id))
             self.store.db.commit()
         return self._finish(request_id,operation)
 
@@ -137,13 +146,18 @@ class ChatDispatcher:
             return {'kind':'action','skill':name,'result':{'status':'unavailable','message':capability['unavailable_reason']}}
         if permission_id is None:permission_id=self.skills.authorize(name,args)['permission_id']
         result=self.skills.execute(name,args,permission_id)
+        if name=='open_application' and result['status']=='launched':
+            app=next((a for a in self.skills.adapter.status().get('applications',[]) if a['id']==args['application_id']),None)
+            if app:
+                result['application_name']=app['name'][:200]
+                result['message']='أرسلت طلب فتح '+result['application_name']+'. قبول الطلب لا يثبت ظهور النافذة.'
         if name=='list_recent_applications':
             names={a['id']:a['name'] for a in self.skills.adapter.status().get('applications',[])}
             result['applications']=[{**a,'display_name':names.get(a['application_id'],'تطبيق سابق')} for a in result.get('applications',[])]
         return {'kind':'action','skill':name,'result':result}
 
-    def manual(self,name,args,permission_id,request_id):
-        return self._run(request_id,['manual',name,args],lambda:self._skill(name,args,permission_id))
+    def manual(self,name,args,permission_id,request_id,session_id=None):
+        return self._run(request_id,['manual',name,args,session_id],lambda:self._skill(name,args,permission_id),session_id)
 
     @staticmethod
     def _choice(candidates,message):
@@ -154,7 +168,44 @@ class ChatDispatcher:
         exact=[c for c in candidates if key(c[0])==key(target)]
         matches=exact or [c for c in candidates if key(target) and key(target) in key(c[0])]
         if len(matches)==1:return self._skill(matches[0][1],matches[0][2])
-        return self._choice(matches or candidates,message)
+        if not matches:
+            if not target.strip() and candidates:return self._choice(candidates,message)
+            return {'kind':'action','result':{'status':'unavailable','message':'لم أتعرف على الهدف «'+target[:160]+'» أو أنه غير متاح ضمن الأماكن والتطبيقات المعتمدة. اكتب اسمه المثبت بدقة أو اختر مكانًا من الإعدادات.'}}
+        return self._choice(matches,message)
+
+    def _applications(self,matches,target,session_id):
+        self.targets.set(session_id,matches,target)
+        if not matches:
+            alias=alias_for(target)
+            name=alias['name'] if alias else target[:160]
+            return {'kind':'action','result':{'status':'unavailable','message':'لم أتعرف على تطبيق مثبت ومعتمد باسم «'+name+'». اكتب اسم التطبيق كما يظهر في قائمة التطبيقات أو تأكد من تثبيته؛ لم أفتح شيئًا.'}}
+        if len(matches)==1:return self._skill('open_application',{'application_id':matches[0]['id']})
+        return self._choice([(a['name'],'open_application',{'application_id':a['id']}) for a in matches],
+                            'وجدت أكثر من تطبيق مطابق؛ أي واحد تقصد؟')
+
+    def _followup(self,session_id):
+        apps=self.skills.adapter.status().get('applications',[])
+        matches=self.targets.get(session_id,apps)
+        if not matches:
+            return {'kind':'action','result':{'status':'unavailable','message':'أي تطبيق تقصد؟ اكتب مثلًا «افتح ديسكورد». لا يوجد هدف وحيد حديث في هذه المحادثة.'}}
+        return self._applications(matches,'التطبيق السابق',session_id)
+
+    def _edit_current(self,text,project_id,dirty):
+        project=self.store.get(project_id)
+        if dirty:
+            result=self._workspace({'project_id':project_id,'edit_request':text})
+            result['message']='احفظ تعديلات المحرر أو راجعها أولًا؛ احتُفظ بطلب التعديل دون بدء توليد أو استبدال نصك.'
+            return result
+        if project['generation_status'] not in ('idle','completed','failed','cancelled'):
+            raise Conflict('توجد مهمة نشطة لهذا المشروع؛ أوقفها أو انتظر اكتمالها قبل التعديل.')
+        css=bool(re.search(r'لون|خلفية|خط|background|colou?r|font',normalize(text)))
+        extensions=('.html','.htm','.css') if css else ('.html','.htm','.css','.js','.py','.json')
+        paths=[f['path'] for f in project['files'] if f['path'].lower().endswith(extensions)]
+        if not paths or len(paths)>8:
+            raise ProjectError('اختر ملفات المصدر ذات الصلة من مساحة المبرمج؛ لم يبدأ توليد مشروع جديد.')
+        created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],background=True,
+            project_id=project_id,expected_revision=project['project_revision'],context_files=paths,max_tokens=4096))
+        return {'kind':'project','operation':'edit',**created}
 
     def _workspace(self,args):
         project=self.store.get(args['project_id'])
@@ -181,9 +232,11 @@ class ChatDispatcher:
         if len(matches)==1:return self._workspace(matches[0][2])
         return self._choice([c[:3] for c in matches or candidates],'أي مشروع محفوظ تقصد؟ اختره لفتح مساحة المبرمج.')
 
-    def resolve(self,text,active_project_id=None):
+    def resolve(self,text,active_project_id=None,session_id=None):
         q=command_text(text)
         if not q:return {'kind':'chat'}
+        if re.fullmatch(r'(?:هذا (?:هو|هوا) افتحه|افتحه|نعم افتح هذا التطبيق|open it)',q):
+            return self._followup(session_id)
         if project_intent(text):return {'kind':'project_intent'}
         if workspace_intent(text):return self._open_workspace(text,active_project_id)
         q=re.sub(r'\s+(?:من فضلك|لو سمحت|please)$','',q)
@@ -204,17 +257,15 @@ class ChatDispatcher:
             candidates=[(p['display_name'],'open_folder',{'project_id':p['project_id']}) for p in self.store.list()]
             return self._targets(candidates,title,'أي مشروع تقصد؟ اختر مجلد المشروع المطلوب هنا.')
         status=self.skills.adapter.status()
+        configuration=getattr(self.skills.adapter,'configuration',lambda:{})()
+        explicit_app=bool(re.match(r'^(?:تطبيق|برنامج|application|app)\s+',target))
         explicit_site=bool(re.match(r'^(?:موقع|website|site)\s+',target))
         target=re.sub(r'^(?:موقع|متصفح|تطبيق|برنامج|website|site|browser|application|app)\s+','',target)
         aliases={'يوتيوب':'https://www.youtube.com/','يوتوب':'https://www.youtube.com/','اليوتيوب':'https://www.youtube.com/','اليوتوب':'https://www.youtube.com/','يو تيوب':'https://www.youtube.com/','youtube':'https://www.youtube.com/','you tube':'https://www.youtube.com/',
                  'جيت هب':'https://github.com/','جيتهاب':'https://github.com/','github':'https://github.com/'}
-        if target in aliases:return self._skill('open_website',{'destination':aliases[target]})
-        if target in ('brave','برايف','بريف','براڤ'):
-            if explicit_site:return self._skill('open_website',{'destination':'https://search.brave.com/'})
-            config=getattr(self.skills.adapter,'configuration',lambda:{})()
-            app_id=config.get('brave_desktop_id','brave-browser.desktop')
-            if not status['brave_available']:return {'kind':'action','result':{'status':'unavailable','message':'Brave غير مثبت أو لم يُضبط. اختر تطبيق Brave من إعدادات Neura.'}}
-            return self._skill('open_application',{'application_id':app_id})
+        if target in aliases and not explicit_app:return self._skill('open_website',{'destination':aliases[target]})
+        if alias_for(target) and alias_for(target)['name']=='Brave' and explicit_site:
+            return self._skill('open_website',{'destination':'https://search.brave.com/'})
         if explicit_site or re.match(r'^[a-z][a-z0-9+.-]*:',target) or re.match(r'^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/|$)',target):
             # Preserve URL path/query case; normalization is only for intent words.
             raw=re.search(r'https?://\S+',text,re.I)
@@ -225,13 +276,9 @@ class ChatDispatcher:
         name=re.sub(r'^(?:ملف|مجلد)\s+','',target)
         candidates=[(p['name'],'open_'+p['kind'],{'selection_id':p['id']}) for p in status.get('locations',[]) if kind is None or p['kind']==kind]
         if kind:return self._targets(candidates,name,'أي ملف أو مجلد مختار تقصد؟ اختره هنا، أو أضف مكانًا من إعدادات Neura.')
-        aliases={'كيت':'org.kde.kate.desktop','kate':'org.kde.kate.desktop','دولفين':'org.kde.dolphin.desktop','مدير الملفات':'org.kde.dolphin.desktop','الحاسبة':'org.kde.kcalc.desktop','الالة الحاسبة':'org.kde.kcalc.desktop','kcalc':'org.kde.kcalc.desktop'}
-        apps=[(a['name'],'open_application',{'application_id':a['id']}) for a in status.get('applications',[])]
-        alias=aliases.get(target)
-        if alias:
-            found=next((a for a in apps if a[2]['application_id']==alias),None)
-            if found:return self._skill(found[1],found[2])
-        return self._targets(candidates+apps,target,'الاسم غير محدد أو له أكثر من مطابقة. أي هدف تقصد؟')
+        apps=resolve_application(target,status.get('applications',[]),configuration)
+        if explicit_app or apps or alias_for(target):return self._applications(apps,target,session_id)
+        return self._targets(candidates,target,'أي مكان مختار تقصد؟')
 
     @staticmethod
     def _original_query(original,normalized):
@@ -244,35 +291,72 @@ class ChatDispatcher:
             if normalize(suffix)==normalized:return suffix
         return normalized
 
-    def dispatch(self,text,request_id,active_project_id=None):
+    def dispatch(self,text,request_id,active_project_id=None,session_id=None,workspace_dirty=False):
         # Unrecognized ordinary chat never creates a ledger entry or loads a model.
         q=command_text(text)
+        self.targets.validate(session_id)
+        followup=bool(re.fullmatch(r'(?:هذا (?:هو|هوا) افتحه|افتحه|نعم افتح هذا التطبيق|open it)',q))
+        knowledge=bool(re.match(r'^(?:هل (?:تعرف|تعلم)|ما (?:اسم|هو|هي)|what is|do you know)\b',q))
         action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي)\b',q))
         metadata=bool(active_project_id and metadata_intent(text))
-        if not action and not project_intent(text) and not workspace_intent(text) and not metadata:return {'kind':'chat'}
+        edit=bool(active_project_id and active_edit_intent(text))
+        if not action and not project_intent(text) and not workspace_intent(text) and not metadata and not followup and not knowledge and not edit:
+            self.targets.set(session_id,[])
+            return {'kind':'chat'}
         def operation():
+            if not followup:self.targets.set(session_id,[])
             if metadata:
                 answer=self.store.answer(active_project_id,text)
                 return {'kind':'metadata','message':answer['answer']+'\n— من فهرس المشروع، دون استدعاء نموذج.','project_id':active_project_id,'model_called':False,'source':answer['source']}
-            result=self.resolve(text,active_project_id)
+            if edit:return self._edit_current(text,active_project_id,workspace_dirty)
+            if knowledge and not metadata:
+                apps=self.skills.adapter.status().get('applications',[])
+                config=getattr(self.skills.adapter,'configuration',lambda:{})()
+                matches=mentioned_applications(text,apps,config)
+                aliases=mentioned_aliases(text)
+                if len(aliases)>1 and len(matches)<2:
+                    return {'kind':'knowledge','message':'ذكرت أكثر من تطبيق؛ حدد الاسم المقصود قبل طلب فتحه. لم أفتح شيئًا.'}
+                self.targets.set(session_id,matches,text)
+                if len(matches)==1:
+                    app=matches[0]
+                    canonical=next((alias for alias in aliases if any(candidate['id']==app['id'] for candidate in resolve_application(alias['aliases'][0],apps,config))),None)
+                    name=canonical['name'] if canonical else app['name']
+                    return {'kind':'knowledge','message':'اسم التطبيق '+name+'. لم أفتحه؛ يمكنك طلب «افتحه» صراحةً في هذه المحادثة.','application_id':app['id']}
+                return {'kind':'chat'}
+            result=self.resolve(text,active_project_id,session_id)
             if result['kind']=='project_intent':
-                title='موقع السيرة الذاتية' if 'سيرة' in q else re.sub(r'^\S+\s+(?:لي\s+)?','',text.strip())[:70]
-                created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,background=True,max_tokens=4096))
+                if workspace_dirty:
+                    return {'kind':'action','result':{'status':'error','message':'احفظ تعديلات المشروع المفتوح أو راجعها قبل إنشاء مشروع آخر؛ لم يبدأ توليد جديد.'}}
+                title='موقع السيرة الذاتية' if 'سيرة' in q or ('موقع' in q and 'cv' in q) else re.sub(r'^\S+\s+(?:لي\s+)?','',text.strip())[:70]
+                hints=[]
+                # Advisory defaults for an unnamed entry point. Explicit filenames
+                # remain the user's requirement and are never silently renamed.
+                if not re.search(r'\.(?:html?|py)\b',q):
+                    if re.search(r'موقع|صفحة|website|web ?app',q):hints=['index.html']
+                    elif re.search(r'\bpython\b',q):hints=['main.py']
+                created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,
+                    filename_hints=hints,background=True,max_tokens=4096))
                 return {'kind':'project',**created}
             return result
-        return self._run(request_id,['chat',text,active_project_id],operation)
+        return self._run(request_id,['chat',text,active_project_id,session_id,workspace_dirty],operation,session_id)
 
-    def choose(self,request_id,choice_id):
+    def choose(self,request_id,choice_id,session_id=None):
         self._id(request_id)
         with self.store.lock:
+            self._session(request_id,session_id)
             row=self.store.db.execute('SELECT * FROM chat_requests WHERE id=?',(request_id,)).fetchone()
             if not row:raise ProjectError('طلب الاختيار غير موجود')
             if row['selected']:
                 if row['selected']!=choice_id:raise Conflict('تم اختيار هدف لهذا الطلب بالفعل؛ لم يُفتح هدف إضافي.')
-                return self.get(request_id)
+                return self.get(request_id,session_id)
             if row['state']!='choice':raise ProjectError('هذا الطلب لا ينتظر اختيارًا')
             self._id(request_id,fresh=True)
             option=next((o for o in json.loads(row['options']) if o['id']==choice_id),None)
             if not option:raise ProjectError('الاختيار لا ينتمي إلى هذا الطلب')
             self.store.db.execute("UPDATE chat_requests SET state='running',selected=? WHERE id=?",(choice_id,request_id));self.store.db.commit()
-        return self._finish(request_id,lambda:self._selected(option['name'],option['args']))
+        def selected():
+            if option['name']=='open_application':
+                apps=[a for a in self.skills.adapter.status().get('applications',[]) if a['id']==option['args']['application_id']]
+                self.targets.set(session_id,apps,option['label'])
+            return self._selected(option['name'],option['args'])
+        return self._finish(request_id,selected)

@@ -46,7 +46,9 @@ class DesktopAdapter:
                         continue
                     if not entry.get('Exec') and entry.get('DBusActivatable','false') != 'true':
                         continue
-                    apps[path.name] = {'id':path.name, 'name':entry.get('Name[ar]',entry.get('Name',path.stem)), 'entry':str(path)}
+                    localized = [value[:200] for name,value in entry.items() if name=='name' or name.startswith('name[')]
+                    apps[path.name] = {'id':path.name, 'name':entry.get('Name[ar]',entry.get('Name',path.stem))[:200],
+                                       'names':list(dict.fromkeys(localized))[:24], 'entry':str(path)}
                 except (OSError, KeyError, configparser.Error):
                     continue
         return apps
@@ -60,7 +62,7 @@ class DesktopAdapter:
                 'text_viewer_available':any(key in catalog for key in ('org.kde.kate.desktop','org.gnome.TextEditor.desktop','org.gnome.gedit.desktop')),
                 'folder_viewer_available':any(key in catalog for key in ('org.kde.dolphin.desktop','org.gnome.Nautilus.desktop')),
                 'reason': '' if session and gio else 'جلسة سطح المكتب أو GIO غير متاحة.',
-                'applications': [{'id':a['id'],'name':a['name']} for a in list(catalog.values())[:500]],
+                'applications': [{'id':a['id'],'name':a['name'],'names':a.get('names',[])} for a in list(catalog.values())[:500]],
                 'locations': [{'id':key,'name':Path(value['path']).name,'kind':value['kind']}
                               for key,value in self.configuration().get('approved_locations',{}).items()]}
 
@@ -80,7 +82,7 @@ class DesktopAdapter:
         if result.returncode:
             raise DesktopUnavailable('لم يقبل سطح المكتب طلب الفتح. تحقق من التطبيق والجلسة.')
         return {'status':'launched','application_id':app_id,'application_name':entry['name'],
-                'message':'أُرسل طلب الفتح إلى سطح المكتب؛ لا يثبت ذلك اكتمال تحميل الصفحة أو التطبيق.'}
+                'message':'أرسلت طلب فتح '+entry['name']+'. قبول الطلب لا يثبت ظهور النافذة أو اكتمال تحميل الصفحة.'}
 
     def browser(self, url):
         app_id = self.configuration().get('brave_desktop_id','brave-browser.desktop')

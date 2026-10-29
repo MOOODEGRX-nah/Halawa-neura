@@ -15,6 +15,9 @@ class Backend:
  def health_check(self):return {'status':'loaded' if self.model else 'unloaded'}
  def generate(self,*,messages,stream=False,**options):
   self.calls+=1;text=WEB if 'complete named files' in messages[0]['content'] else MARKDOWN
+  if 'complete named files' in messages[0]['content']:
+   invoice=json.loads(messages[1]['content'].split('\nOptional implementation plan:')[0])
+   if invoice.get('context_summary'):text='```css style.css\nbody{background:blue;color:white;font-family:sans-serif}\n```'
   if not stream:return {'choices':[{'message':{'content':text},'finish_reason':'stop'}]}
   def chunks():
    for offset in range(0,len(text),13):
@@ -29,7 +32,7 @@ class Desktop:
  def configuration(self):
   from src.desktop.paths import DesktopSettings
   return DesktopSettings().values
- def status(self):return {'desktop_available':True,'brave_available':True,'reason':'','text_viewer_available':True,'folder_viewer_available':True,'locations':[],'applications':[{'id':'brave-browser.desktop','name':'Brave'},{'id':'calc.desktop','name':'الحاسبة'}]}
+ def status(self):return {'desktop_available':True,'brave_available':True,'reason':'','text_viewer_available':True,'folder_viewer_available':True,'locations':[],'applications':[{'id':'brave-browser.desktop','name':'Brave'},{'id':'calc.desktop','name':'الحاسبة'},{'id':'discord.desktop','name':'Discord'},{'id':'cmake.desktop','name':'CMake'}]}
  def browser(self,url):self.calls.append(['browser',url]);return {'status':'launched','message':'أُرسل طلب الفتح في اختبار Qt؛ لا ادعاء تحميل الصفحة.','application_id':'brave-browser.desktop'}
  def launch(self,application_id,uris=()):self.calls.append(['app',application_id]);return {'status':'launched','message':'طلب فتح تطبيق QA','application_id':application_id}
  def open_file(self,args):self.calls.append(['file',args]);return {'status':'launched','message':'طلب عرض ملف QA'}

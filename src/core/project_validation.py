@@ -23,8 +23,10 @@ class References(HTMLParser):
         self.inline=[]
         self.pending=None
         self.build_required=False
+        self.tags={}
 
     def handle_starttag(self, tag, attrs):
+        self.tags[tag]=self.tags.get(tag,0)+1
         attrs = dict(attrs)
         for name,value in attrs.items():
             if value and name.startswith('on'):self.inline.append(('javascript',value,False))
@@ -51,6 +53,35 @@ class References(HTMLParser):
     def close(self):
         super().close()
         if self.pending:raise ValueError('Unclosed script/style element')
+
+
+def source_observations(files, preview):
+    """Bounded facts from saved source, never a claim of behavioral correctness."""
+    features=[];counts={};scripts=False;styles=False
+    for path,text in files.items():
+        if not isinstance(text,str):continue
+        suffix=PurePosixPath(path).suffix.lower()
+        if suffix in ('.html','.htm'):
+            parsed=References();parsed.feed(text);parsed.close()
+            for tag,count in parsed.tags.items():counts[tag]=counts.get(tag,0)+count
+            scripts|=any(kind=='javascript' for kind,_,_ in parsed.inline)
+            styles|=any(kind=='css' for kind,_,_ in parsed.inline)
+        elif suffix=='.js':scripts=True
+        elif suffix=='.css':styles=True
+        elif suffix=='.py':
+            symbols=[node.name[:80] for node in ast.walk(ast.parse(text)) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef))]
+            if symbols:features.append('Python definitions: '+', '.join(symbols[:5]))
+    if any(PurePosixPath(path).suffix.lower() in ('.html','.htm') for path in files):features.insert(0,'HTML interface source')
+    for tag,label in [('button','Buttons'),('form','Forms'),('img','Images'),('a','Links')]:
+        if counts.get(tag):features.append(label+': '+str(counts[tag])+' (static observation)')
+    if styles:features.append('CSS styling source')
+    if scripts:features.append('JavaScript source; behavior not verified')
+    limitations=['Behavioral program tests not run; Python/build/dependency installation not executed']
+    if not preview['supported']:limitations.append(preview.get('reason') or 'No supported static web preview')
+    else:limitations.append('Preview blocks network, storage, forms, privileged APIs and external services')
+    if preview.get('external_resources'):limitations.append('External resources blocked: '+str(len(preview['external_resources'])))
+    return {'features':features[:12],'features_provenance':'static_source_observations',
+            'limitations':limitations,'entry_point':preview['entry_point'] or ('main.py' if 'main.py' in files else None)}
 
 
 def inspect_files(files):

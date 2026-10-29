@@ -16,6 +16,7 @@ class Authorize(SkillCall):
 class Execute(SkillCall):
     permission_id:str=Field(pattern=r'^g_[a-f0-9]{32}$')
     request_id:str|None=Field(default=None,pattern=r'^r_[0-9]{13}_[a-f0-9]{32}$')
+    session_id:str|None=Field(default=None,pattern=r'^[A-Za-z0-9_-]{1,80}$')
 
 
 class Permission(BaseModel):
@@ -35,7 +36,7 @@ def attach_skills(app,registry,dispatcher=None):
     @app.post('/skills/execute')
     async def execute(req:Execute):
         if req.request_id and dispatcher:
-            return await invoke(dispatcher.manual,req.name,req.args,req.permission_id,req.request_id)
+            return await invoke(dispatcher.manual,req.name,req.args,req.permission_id,req.request_id,req.session_id)
         return await invoke(registry.execute,req.name,req.args,req.permission_id)
 
     @app.post('/skills/revoke')

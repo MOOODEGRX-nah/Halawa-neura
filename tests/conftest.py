@@ -70,7 +70,10 @@ class FakeBackend:
 
 
 @pytest.fixture
-def system(tmp_path):
+def system(tmp_path,monkeypatch):
+    # Fake inference must not depend on another application's live VRAM usage.
+    # Tests exercising memory policy explicitly supply their own sensor samples.
+    monkeypatch.setattr('src.backends.residency.gpu_memory',lambda:None)
     models = tmp_path / 'models'; models.mkdir()
     config = tmp_path / 'configs'; config.mkdir()
     registry = yaml.safe_load((ROOT / 'configs/models.yaml').read_text())

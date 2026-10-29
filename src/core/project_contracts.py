@@ -29,6 +29,9 @@ class ProjectMetadata(BaseModel):
     generation_status:str
     summary:str=''
     source_freshness:Literal['current','stale','unsafe','invalid']|None=None
+    features:list[str]=Field(default_factory=list)
+    features_provenance:str|None=None
+    limitations:list[str]=Field(default_factory=list)
 
 
 class DraftFile(BaseModel):
