@@ -1,0 +1,1863 @@
+{
+  "schema_version": 1,
+  "source_plan": "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md",
+  "source_sha256": "e8458e9cc2e5a4aec12421f516782ba9a882dc44a464da4470ff575257362439",
+  "first_delivery_ids": [
+    "N061",
+    "N062",
+    "N063",
+    "N064",
+    "N065",
+    "N066",
+    "N067",
+    "N068",
+    "N069",
+    "N070",
+    "N071",
+    "N072",
+    "N073",
+    "N098",
+    "N041",
+    "N042",
+    "N043",
+    "N044",
+    "N045",
+    "N049",
+    "N050",
+    "N052",
+    "N051",
+    "N053",
+    "N054",
+    "N055",
+    "N056",
+    "N057",
+    "N060",
+    "N058",
+    "N059"
+  ],
+  "active": [
+    {
+      "id": "N061",
+      "phase": "P1",
+      "title": "Remove Projects and Skills tabs",
+      "approach": "Remove both permanent navigation entries and their redundant manual forms.\nPreserve the backend functionality, saved projects, and coding workspace.\nRepair references to removed views.",
+      "acceptance": "Both tabs disappear without broken navigation or lost functionality.",
+      "status": "accepted",
+      "code_paths": [
+        "web/index.html",
+        "web/workspace.js",
+        "web/skills.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects.",
+          "environment": "packaged Qt fixture",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Workspace remains an internal view, not a permanent tab.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects."
+    },
+    {
+      "id": "N062",
+      "phase": "P1",
+      "title": "Repair composer actions",
+      "approach": "Group attachment, saved-session, and project-folder actions into one compact\ntoolbar aligned with the composer. Preserve existing IDs and handlers.\nRebuild bundled CSS when necessary.",
+      "acceptance": "No full-window horizontal action bars remain. All actions still work.",
+      "status": "accepted",
+      "code_paths": [
+        "web/index.html",
+        "web/input.css",
+        "web/styles.css"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+          "environment": "packaged Qt fixture and actual FileReader",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+          "environment": "packaged Qt fixture and actual FileReader",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/web-assets-build.txt",
+          "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+          "environment": "packaged Qt fixture and actual FileReader",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "File-picker choice is simulated by test subclass; selected file is packaged public logo.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation."
+    },
+    {
+      "id": "N063",
+      "phase": "P1",
+      "title": "Correct Markdown rendering",
+      "approach": "Support paragraphs, lists, emphasis, links, inline code, and fenced code.\nEscape code and sanitize rendered content. Handle unfinished streaming markup.\nNever execute generated HTML in the privileged chat view.",
+      "acceptance": "Completed Markdown renders correctly and malicious content remains harmless.",
+      "status": "accepted",
+      "code_paths": [
+        "web/markdown.js",
+        "web/vendor/markdown-it.min.js",
+        "web/index.html"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
+          "environment": "packaged Qt fixture and renderer unit tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
+          "environment": "packaged Qt fixture and renderer unit tests",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Streaming remains escaped text until completion; images/raw HTML are not rendered as assistant HTML.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM."
+    },
+    {
+      "id": "N064",
+      "phase": "P1",
+      "title": "Finish responsive RTL layout and accessibility",
+      "approach": "Fix clipped controls and inappropriate minimum widths.\nKeep Arabic controls RTL and source code LTR.\nSupport keyboard navigation, visible focus, and narrow-window Code/Preview tabs.",
+      "acceptance": "The supported desktop window sizes have usable, unclipped controls.",
+      "status": "accepted",
+      "code_paths": [
+        "web/index.html",
+        "web/workspace.css",
+        "web/input.css"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
+          "environment": "packaged Qt offscreen",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
+          "environment": "packaged Qt offscreen",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Not an exhaustive screen-reader or every-compositor certification.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200."
+    },
+    {
+      "id": "N065",
+      "phase": "P1",
+      "title": "Unify the skill registry",
+      "approach": "Register supported skills with validated input/output schemas, availability,\npermissions, and appropriate timeouts.\nUse one dispatcher for chat and any necessary settings controls.",
+      "acceptance": "Unknown, disabled, or malformed skill calls fail clearly and safely.",
+      "status": "accepted",
+      "code_paths": [
+        "src/tools/desktop_skills.py",
+        "src/core/chat_dispatch.py",
+        "src/backend/skills_api.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/n-contract-before.xml",
+          "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+          "environment": "backend fixture tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/n-contract-after.xml",
+          "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+          "environment": "backend fixture tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+          "environment": "backend fixture tests",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Seven static desktop skills; legacy research endpoints stay compatible and separate; no self-authored skills.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "implemented_and_verified",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome."
+    },
+    {
+      "id": "N066",
+      "phase": "P1",
+      "title": "Execute skills from Arabic conversation",
+      "approach": "Connect clear action requests to the dispatcher before a generic conversational\nreply can conceal the requested action.\n\nSupport:\n- \"افتح يوتيوب\"\n- \"افتح لي موقع يوتيوب\"\n- \"هل يمكنك ان تفتح لي موقع youtube\"\n- \"افتح Brave\"\n- \"افتح مجلد مشروع السيرة الذاتية\"\n\nDistinguish action requests from explanation, negation, quotations, and code.\nAsk only when the intended action or target is ambiguous.",
+      "acceptance": "The exact YouTube request invokes the real website skill.\n\"لا تفتح يوتيوب\" and quoted examples cause no launch.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "web/chat.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
+          "environment": "actual GIO/Brave and backend fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
+          "environment": "actual GIO/Brave and backend fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Conservative supported phrases; ambiguous targets require selection.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch."
+    },
+    {
+      "id": "N067",
+      "phase": "P1",
+      "title": "Open websites in Brave",
+      "approach": "Validate HTTP/HTTPS destinations and common configured website names.\nLaunch Brave through a trusted adapter using structured arguments.\nReport missing Brave and real launch failures.",
+      "acceptance": "A real supported desktop test opens YouTube.\nDo not claim the remote page loaded merely because launch succeeded.",
+      "status": "accepted",
+      "code_paths": [
+        "src/desktop/actions.py",
+        "src/tools/desktop_skills.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
+          "environment": "actual desktop and failure fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
+          "environment": "actual desktop and failure fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Launch acceptance does not prove page loading or reading.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested."
+    },
+    {
+      "id": "N068",
+      "phase": "P1",
+      "title": "Separate browser search from retrieved research",
+      "approach": "Implement encoded search-result URLs for Brave.\nKeep server-side source retrieval, when available, as a distinct capability.",
+      "acceptance": "Arabic searches open correct results.\nOpening a results page is not reported as reading or verifying it.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "src/tools/desktop_skills.py",
+        "src/tools/safe_actions.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
+          "environment": "actual Brave plus URL tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
+          "environment": "actual Brave plus URL tests",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Server retrieval is separate; this result does not establish research retrieval.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read."
+    },
+    {
+      "id": "N069",
+      "phase": "P1",
+      "title": "Search YouTube",
+      "approach": "Encode the user's query and open the corresponding YouTube results URL through\nthe website adapter.",
+      "acceptance": "Arabic and mixed-language queries produce the correct search URL.\nEmpty or invalid requests receive useful errors.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "src/tools/desktop_skills.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected.",
+          "environment": "actual Brave and schema fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected.",
+          "environment": "actual Brave and schema fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "No transcript/video understanding claim.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected."
+    },
+    {
+      "id": "N070",
+      "phase": "P1",
+      "title": "Open approved files and folders",
+      "approach": "Resolve selected files, project IDs, or matches inside approved roots.\nAsk about ambiguous matches and validate paths.\nSeparate document viewing from executable launching.",
+      "acceptance": "An approved target opens.\nMissing files, ambiguity, traversal, and executable bypass attempts are handled.",
+      "status": "accepted",
+      "code_paths": [
+        "src/desktop/actions.py",
+        "src/tools/desktop_skills.py",
+        "src/core/project_files.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
+          "environment": "actual GIO/Kate/Dolphin and security fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
+          "environment": "actual GIO/Kate/Dolphin and security fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Only selected places and project roots; code is viewed via immutable copy, never executed.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected."
+    },
+    {
+      "id": "N071",
+      "phase": "P1",
+      "title": "Open installed applications",
+      "approach": "Use trusted installed desktop entries or a reviewed application catalog.\nHandle desktop entry semantics correctly.\nDo not construct arbitrary shell commands from model text.",
+      "acceptance": "A supported installed application launches.\nUnknown apps and injected arguments cannot trigger arbitrary commands.",
+      "status": "accepted",
+      "code_paths": [
+        "src/desktop/actions.py",
+        "src/core/chat_dispatch.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
+          "environment": "actual GIO and catalog fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
+          "environment": "actual GIO and catalog fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Catalog launch request accepted, not a guarantee every external app finishes startup.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail."
+    },
+    {
+      "id": "N072",
+      "phase": "P1",
+      "title": "Record recent applications",
+      "approach": "Persist a bounded history of applications launched through Neura.\nLabel that scope honestly.\nResolve the intended list before an ambiguous batch launch.",
+      "acceptance": "The history survives restart and contains actual Neura launches.\nDo not claim access to the complete KDE or Brave history.",
+      "status": "accepted",
+      "code_paths": [
+        "src/tools/desktop_skills.py",
+        "web/chat.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
+          "environment": "actual persisted launches plus bounded-history fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
+          "environment": "actual persisted launches plus bounded-history fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Scope is Neura-only, not all KDE or Brave activity.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10."
+    },
+    {
+      "id": "N073",
+      "phase": "P1",
+      "title": "Permissions and duplicate-action prevention",
+      "approach": "Enforce scoped permissions server-side with revocation and expiry where used.\nClear supported low-risk user requests should not trigger repetitive dialogs.\nDeduplicate retried or reconnected requests.",
+      "acceptance": "Retries do not launch twice.\nForged input and model-generated text cannot grant permissions.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "src/tools/desktop_skills.py",
+        "src/desktop/app.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-desktop.json",
+          "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+          "environment": "actual desktop plus API/Qt fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+          "environment": "actual desktop plus API/Qt fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+          "environment": "actual desktop plus API/Qt fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Uncertain interrupted launches are not rerun; no OS-level exactly-once guarantee.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions."
+    },
+    {
+      "id": "N098",
+      "phase": "P1",
+      "title": "Protect local APIs and resist injected instructions",
+      "approach": "Inspect authentication, Host/Origin handling, state-changing requests, and native\nbridges. Protect privileged operations server-side.\nTreat project files and retrieved pages as data.",
+      "acceptance": "A preview or third-party page cannot launch tools or change private app data.\nInjection fixtures cannot bypass permissions.",
+      "status": "accepted",
+      "code_paths": [
+        "src/backend/api.py",
+        "src/backend/chat_api.py",
+        "src/desktop/preview_policy.py",
+        "src/desktop/app.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/browser-isolation.json",
+          "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/browser-full-isolation.json",
+          "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/browser-backend-state.json",
+          "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Controlled adversarial fixtures, not a claim of universal security certification.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state."
+    },
+    {
+      "id": "N041",
+      "phase": "P2",
+      "title": "Complete the Task Invoice contract",
+      "approach": "Extend the current project/job contract with project ID, original request,\nconstraints, expected files, stage results, and validation.\nDo not create a duplicate orchestrator.",
+      "acceptance": "One request creates one job and returns saved project/file references.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/invoice_orchestrator.py",
+        "src/core/project_jobs.py",
+        "src/core/project_contracts.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/n-contract-before.xml",
+          "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+          "environment": "actual native model and typed contract fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/n-contract-after.xml",
+          "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+          "environment": "actual native model and typed contract fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-job-contracts.json",
+          "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+          "environment": "actual native model and typed contract fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+          "environment": "actual native model and typed contract fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Old jobs without recorded invoices remain explicitly unavailable_legacy; no invented retrospective data.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "implemented_and_verified",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified."
+    },
+    {
+      "id": "N042",
+      "phase": "P2",
+      "title": "Use planning only when useful",
+      "approach": "Distinguish explanations, edits, simple projects, and complex projects.\nAvoid a mandatory four-model cycle for every task.\nPreserve explicit requirements between stages.",
+      "acceptance": "Explanations create no project.\nSimple work avoids unnecessary model swaps.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "src/core/invoice_orchestrator.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+          "environment": "packaged Qt actual model plus scheduler fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+          "environment": "packaged Qt actual model plus scheduler fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+          "environment": "packaged Qt actual model plus scheduler fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Planning is explicit/optional, not a mandatory cycle or general autonomous complexity planner.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage."
+    },
+    {
+      "id": "N043",
+      "phase": "P2",
+      "title": "Preserve filenames and references",
+      "approach": "Prefer structured filename/content generation.\nHandle fragmented fences, duplicate filenames, incomplete output, and conflicts\nwith planned names when legacy extraction remains.",
+      "acceptance": "index.html, style.css, and script.js are saved with matching references.\nDo not silently substitute broken file_1 names.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_stream.py",
+        "src/core/invoice_orchestrator.py",
+        "src/core/project_validation.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+          "environment": "actual model stream plus parser fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-job-contracts.json",
+          "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+          "environment": "actual model stream plus parser fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+          "environment": "actual model stream plus parser fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Bounded fenced legacy protocol remains supported; broken output fails instead of guessing names.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree."
+    },
+    {
+      "id": "N044",
+      "phase": "P2",
+      "title": "Validate output deterministically",
+      "approach": "Reject zero files, unsafe paths, missing required files, duplicate names,\noversized output, and invalid Python/JSON syntax.\nUse static parsing without running generated code.",
+      "acceptance": "Invalid output cannot be reported as successful.\nStatic validation is clearly distinguished from behavioral testing.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_stream.py",
+        "src/core/project_validation.py",
+        "src/core/project_files.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
+          "environment": "deterministic parser/store tests plus real generation",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
+          "environment": "deterministic parser/store tests plus real generation",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Static checks are distinct from behavioral testing.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed."
+    },
+    {
+      "id": "N045",
+      "phase": "P2",
+      "title": "Correct reviewer and repair logic",
+      "approach": "Reproduce reported review bugs first.\nApproval must satisfy deterministic checks as well as the explicit verdict.\nBound repair attempts.",
+      "acceptance": "Grade B with NEEDS_FIX is not accepted.\nZero-file output never passes.\nFailed repairs end honestly.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/invoice_parser.py",
+        "src/core/invoice_orchestrator.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/n-contract-before.xml",
+          "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+          "environment": "review parser and active orchestrator fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/n-contract-after.xml",
+          "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+          "environment": "review parser and active orchestrator fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+          "environment": "review parser and active orchestrator fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "No mandatory model reviewer pass; grade cannot replace deterministic acceptance or behavioral testing.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "implemented_and_verified",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts."
+    },
+    {
+      "id": "N049",
+      "phase": "P2",
+      "title": "Create projects directly from chat",
+      "approach": "Reuse the chat request and project context to create a project and open its\nworkspace. Do not make the user retype the request in another form.",
+      "acceptance": "The Arabic CV-site request creates one project and opens its workspace.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/chat_dispatch.py",
+        "web/chat.js",
+        "web/workspace.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+          "environment": "actual native model packaged Qt",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-job-contracts.json",
+          "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+          "environment": "actual native model packaged Qt",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+          "environment": "actual native model packaged Qt",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Conservative creation grammar avoids turning explanations into projects.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping."
+    },
+    {
+      "id": "N050",
+      "phase": "P2",
+      "title": "Store separate named projects",
+      "approach": "Use stable project IDs and separate display names.\nStore files under writable user data with safe path validation, atomic commits,\nand recoverable revisions.",
+      "acceptance": "Duplicate titles do not collide.\nRestart preserves projects.\nFailure cannot overwrite the last good revision or escape the project root.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_store.py",
+        "src/core/project_files.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
+          "environment": "actual model Qt and controlled filesystem failures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
+          "environment": "actual model Qt and controlled filesystem failures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Administrative installed-version migration is not claimed; snapshots and old-row compatibility are tested locally.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources."
+    },
+    {
+      "id": "N052",
+      "phase": "P2",
+      "title": "Stream actual project/file events",
+      "approach": "Connect the real worker to ordered job/file events.\nInclude project/job identity, sequence, state, and relevant file/revision.\nBound queues and support UTF-8 fragmentation and snapshot recovery.",
+      "acceptance": "Visible code corresponds to actual generation.\nReconnects do not create duplicate jobs.\nCancellation preserves resource safety.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_jobs.py",
+        "src/core/project_stream.py",
+        "src/backend/project_api.py",
+        "web/workspace.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+          "environment": "actual native stream plus worker fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+          "environment": "actual native stream plus worker fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+          "environment": "actual native stream plus worker fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "One worker, queue4, retained4096 events; restart marks interrupted work rather than silently regenerating it.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass."
+    },
+    {
+      "id": "N051",
+      "phase": "P3",
+      "title": "Code left, preview right",
+      "approach": "Reuse any existing workspace.\nProvide project status, file navigation, code, preview, and return-to-chat.\nSet physical pane positions explicitly despite RTL.",
+      "acceptance": "A website opens with code LEFT and preview RIGHT.\nNon-web projects show files and useful instructions.",
+      "status": "accepted",
+      "code_paths": [
+        "web/workspace.js",
+        "web/workspace.css"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
+          "environment": "actual model packaged Qt",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
+          "environment": "actual model packaged Qt",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Preview supports static web; there is no fake Python console.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution."
+    },
+    {
+      "id": "N053",
+      "phase": "P3",
+      "title": "Swap panes",
+      "approach": "Implement pane swapping and persist the preference.\nKeep selected files and unsaved editor state.",
+      "acceptance": "Swapping and restarting preserve the selected arrangement without losing edits.",
+      "status": "accepted",
+      "code_paths": [
+        "web/workspace.js",
+        "src/core/project_store.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
+          "environment": "packaged Qt with actual API/store",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
+          "environment": "packaged Qt with actual API/store",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Unsaved restart is reviewed; declining keeps draft. Explicitly discarded unsaved text is not auto-saved to disk.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart."
+    },
+    {
+      "id": "N054",
+      "phase": "P3",
+      "title": "Safe editing and saving",
+      "approach": "Add dirty indicators, atomic saves, revision/hash guards, external-change\ndetection, and unsaved-change handling.",
+      "acceptance": "Conflicting edits produce a reviewable conflict instead of silent overwrite.",
+      "status": "accepted",
+      "code_paths": [
+        "web/workspace.js",
+        "src/core/project_store.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/save-race-before.json",
+          "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+          "environment": "actual Qt/API delayed fixture and client state tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/save-race-after.json",
+          "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+          "environment": "actual Qt/API delayed fixture and client state tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+          "environment": "actual Qt/API delayed fixture and client state tests",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+          "environment": "actual Qt/API delayed fixture and client state tests",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Pending save blocks changing its target, while same-project view switching stays available; no silent autosave on exit.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft."
+    },
+    {
+      "id": "N055",
+      "phase": "P3",
+      "title": "Static web preview",
+      "approach": "Support actual HTML/CSS/JavaScript and eligible assets.\nRefresh completed or valid saved snapshots rather than every token.\nIdentify projects requiring a build or backend.",
+      "acceptance": "A small interactive static website renders correctly.\nUnsupported React/TSX/server projects are not falsely labelled ready.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_validation.py",
+        "src/desktop/preview_server.py",
+        "web/workspace.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
+          "environment": "actual model preview and static validators",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
+          "environment": "actual model preview and static validators",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "External resources restricted; unsupported build/backend projects are saved but not auto-run.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready."
+    },
+    {
+      "id": "N056",
+      "phase": "P3",
+      "title": "Full-page preview",
+      "approach": "Enable the corner button when the supported entry point and required files\nare ready. Open the same project in a dedicated isolated preview view.",
+      "acceptance": "Embedded and full-page views show the same project/revision.\nFull-page mode does not bypass isolation.",
+      "status": "accepted",
+      "code_paths": [
+        "web/workspace.js",
+        "src/desktop/preview_server.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+          "environment": "actual browser and packaged Qt",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+          "environment": "actual browser and packaged Qt",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/browser-full-isolation.json",
+          "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+          "environment": "actual browser and packaged Qt",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Raw Brave preview URLs are not used to bypass isolation.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked."
+    },
+    {
+      "id": "N057",
+      "phase": "P3",
+      "title": "Preview isolation",
+      "approach": "Separate generated content from the privileged app origin and native bridge.\nApply appropriate sandbox/CSP, navigation/request controls, authorization, and\nasset confinement.\n\nExclude secrets, internal metadata, unrelated files/projects, and unrelated\nlocal services. Restrict external resources by default.",
+      "acceptance": "Generated JavaScript cannot access privileged actions, WebChannel methods,\nsecrets, or other projects. Test browser and Qt paths separately.",
+      "status": "accepted",
+      "code_paths": [
+        "src/desktop/preview_server.py",
+        "src/desktop/preview_policy.py",
+        "src/desktop/app.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/browser-isolation.json",
+          "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/browser-backend-state.json",
+          "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+          "environment": "IAB Chromium and packaged Qt separately",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "JavaScript CPU consumption has no universal time budget; this is a static preview boundary.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded."
+    },
+    {
+      "id": "N060",
+      "phase": "P3",
+      "title": "Saved-project drawer",
+      "approach": "Use one small folder button near the composer.\nList saved projects and reopen them.\nResolve ambiguous project references from chat.",
+      "acceptance": "Projects reopen after restart without restoring the removed permanent tabs.\nView switching preserves active work.",
+      "status": "accepted",
+      "code_paths": [
+        "web/index.html",
+        "web/workspace.js"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+          "environment": "packaged Qt and actual native model",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+          "environment": "packaged Qt and actual native model",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+          "environment": "packaged Qt and actual native model",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+          "environment": "packaged Qt and actual native model",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Switching to a different dirty project/file still requires review.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work."
+    },
+    {
+      "id": "N058",
+      "phase": "P4",
+      "title": "Create the compact project index",
+      "approach": "Maintain one canonical metadata representation and derive a readable summary.\nInclude purpose, actual languages, files/roles, entry point, preview capability,\nvalidation provenance, and revisions.\n\nUse actual saved files for factual fields.\nAvoid an extra model pass solely for routine metadata.",
+      "acceptance": "Basic language/purpose questions use metadata.\nKeep the model-facing summary bounded, roughly 600–1,000 tokens when suitable.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_store.py",
+        "tools/measure_project_context.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/project-context-tokens.json",
+          "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+          "environment": "actual GGUF vocabulary only plus native API trial",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+          "environment": "actual GGUF vocabulary only plus native API trial",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+          "environment": "actual GGUF vocabulary only plus native API trial",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Summary is character-bounded, not a universal tokenizer ceiling; small source can be shorter than summary.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens."
+    },
+    {
+      "id": "N059",
+      "phase": "P4",
+      "title": "Maintain freshness and selective source access",
+      "approach": "Refresh metadata after committed changes.\nDetect external changes using file statistics/watchers and relevant hashes.\nAnswer deterministic metadata questions directly.\nRead relevant actual files before behavioral answers or code edits.",
+      "acceptance": "Stale metadata is detected.\nEditing never relies on a summary alone.\nContext savings are measured using representative queries.",
+      "status": "accepted",
+      "code_paths": [
+        "src/core/project_store.py",
+        "src/core/project_jobs.py",
+        "src/backend/project_api.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/project-context-tokens.json",
+          "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+          "environment": "actual tokenizer/API/model trial and freshness fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/qt-extra/qt-extra.json",
+          "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+          "environment": "actual tokenizer/API/model trial and freshness fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/real-job-contracts.json",
+          "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+          "environment": "actual tokenizer/API/model trial and freshness fixtures",
+          "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/pytest-junit.xml",
+          "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+          "environment": "actual tokenizer/API/model trial and freshness fixtures",
+          "outcome": "passed"
+        }
+      ],
+      "remaining_limitation": "Freshness is checked on access, not a global watcher; no fixed context-saving or speed guarantee.",
+      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
+      "resolution": "verified_reuse",
+      "tested_version": "0.4.4",
+      "acceptance_scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts."
+    },
+    {
+      "id": "N002",
+      "phase": "P5",
+      "title": "Import and shared-state boundaries",
+      "approach": "Inspect the import graph and remove confirmed cycles.\nKeep shared state dependency-safe and optional modules from breaking startup.",
+      "acceptance": "Supported entry points import successfully without confirmed circular imports.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N006",
+      "phase": "P5",
+      "title": "Empty replies, reasoning tags, repetition, and limits",
+      "approach": "Reproduce each issue independently.\nInspect actual templates, roles, stop conditions, finish reasons, token-budget\npropagation, and output filtering.",
+      "acceptance": "Representative Arabic, English, and coding requests return valid output or an\nexplicit error. Filtering cannot erase valid final answers.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N008",
+      "phase": "P5",
+      "title": "Verify Qwen2.5-Coder availability",
+      "approach": "Inspect configured files, incomplete downloads, metadata, compatibility, and\nprovenance information. Test actual loading/generation when available.",
+      "acceptance": "Missing or incomplete models remain unavailable.\nAny claimed Coder trial contains real output.",
+      "status": "partially_verified_backlog",
+      "code_paths": [
+        "configs/models.yaml",
+        "src/backends/llama_cpp_backend.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/real-qt/real-qt.json",
+          "scenario": "Local Qwen2.5 Coder14B actually generated site and Python on CPU.",
+          "environment": "packaged native inference",
+          "outcome": "partial"
+        }
+      ],
+      "remaining_limitation": "Full model provenance/incomplete-download audit is not closed by a successful generation trial.",
+      "next_action": "Finish the remaining N008 acceptance in P5; reuse this actual trial if weights/runtime are unchanged."
+    },
+    {
+      "id": "N011",
+      "phase": "P5",
+      "title": "Reduce unnecessary swaps",
+      "approach": "Measure cold load, warm reuse, queueing, and generation separately.\nReuse resident weights shared by tiers and avoid unnecessary unloading.",
+      "acceptance": "Repeated requests to the same weights avoid redundant loads.\nAny improvement is measured.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N013",
+      "phase": "P5",
+      "title": "Timeouts and failure handling",
+      "approach": "Audit network, tool, and generation deadlines.\nBound retries and distinguish client timeout from native work still running.",
+      "acceptance": "Stalled operations do not hang forever or release native resources prematurely.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N015",
+      "phase": "P5",
+      "title": "Real system readings",
+      "approach": "Use available OS/vendor sensors with nonblocking sampling.\nKeep missing readings unknown and estimates explicitly labelled.",
+      "acceptance": "CPU/RAM/VRAM/temperature displays match supported samples without fabricated\nfallback values.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N016",
+      "phase": "P5",
+      "title": "Safe Gaming mode",
+      "approach": "Connect configured game detection to residency and job scheduling.\nDefine treatment of pending and running inference before freeing memory.",
+      "acceptance": "Mode changes cannot unload an active model and recovery is tested.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N017",
+      "phase": "P5",
+      "title": "Profiling and tracing",
+      "approach": "Track queue/load/generation/tool phases by request/job ID.\nUse actual token counters and measured timings. Redact and rotate logs.",
+      "acceptance": "Requests are traceable without invented token speeds or sensitive logging.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N018",
+      "phase": "P5",
+      "title": "Safe hardware defaults",
+      "approach": "Account for free memory, context/KV cache, runtime buffers, and selected device.\nProvide conservative defaults and graceful OOM behavior.",
+      "acceptance": "Limited-memory configurations remain usable or fail clearly.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N022",
+      "phase": "P5",
+      "title": "Startup performance",
+      "approach": "Measure UI startup, backend liveness, model readiness, and first generation\nseparately. Warm only necessary resources.",
+      "acceptance": "Readiness labels match reality and cold/warm timings are recorded.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N031",
+      "phase": "P5",
+      "title": "Cloud-folder warning",
+      "approach": "Inspect existing diagnostics and detect relevant synced-folder risks without\nblocking ordinary paths based on loose name matching.",
+      "acceptance": "Controlled fixtures warn appropriately without false-positive blocking.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N032",
+      "phase": "P5",
+      "title": "Scoped lint and style cleanup",
+      "approach": "Run actual repository lint/import/compile checks.\nFix relevant issues without renaming working public contracts.",
+      "acceptance": "Required checks pass or remaining baseline failures are documented.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N097",
+      "phase": "P5",
+      "title": "Repeatable evaluations",
+      "approach": "Create versioned Arabic chat, coding, skills, failure, and injection fixtures.\nSeparate deterministic tests from model, desktop, and performance trials.",
+      "acceptance": "Results record environment, input, expectation, and actual outcome.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N108",
+      "phase": "P5",
+      "title": "Live status transport",
+      "approach": "Reuse working polling/SSE/WebSocket infrastructure.\nBound producers and handle disconnects/backpressure.",
+      "acceptance": "Monitoring stays responsive during generation without duplicate workers.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N085",
+      "phase": "P6",
+      "title": "Local speech recognition",
+      "approach": "Inspect the existing Whisper adapter and pair the actual engine with compatible\nweights. Validate audio input and supported decoding.",
+      "acceptance": "A real Arabic recording is transcribed offline.\nMissing or incompatible weights produce a clear error.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N086",
+      "phase": "P6",
+      "title": "VAD and hallucination filters",
+      "approach": "Integrate supported local voice detection and engine-specific no-speech/\nconfidence signals. Tune against actual fixtures.",
+      "acceptance": "Silence, noise, short speech, and end-of-speech behavior are tested.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N087",
+      "phase": "P6",
+      "title": "Piper speech output",
+      "approach": "Verify the runtime and compatible voice/configuration.\nGenerate and play real audio with interruption support.",
+      "acceptance": "A supported Arabic-capable voice produces audible local output.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N088",
+      "phase": "P6",
+      "title": "Optional Kokoro suitability",
+      "approach": "Inspect runtime, trusted loading, model format, and actual language support.\nIntegrate only if suitable; otherwise keep its limitation explicit.",
+      "acceptance": "Readiness requires real supported audio output, not merely existing weights.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N089",
+      "phase": "P6",
+      "title": "Arabic voice evaluation",
+      "approach": "Compare available voices using the same Arabic phrases, names, and numbers.\nSave samples and measure startup/synthesis latency.",
+      "acceptance": "Voice selection has reproducible evidence and documented limitations.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N090",
+      "phase": "P6",
+      "title": "Sentence streaming and isolated audio worker",
+      "approach": "Queue complete sentences from real generation.\nHandle Arabic punctuation and code/Markdown.\nBound queues, isolate audio failures, and cancel stale playback.",
+      "acceptance": "Stopping a reply clears queued speech.\nAn audio crash does not crash chat.\nFirst-audio latency is measured.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N091",
+      "phase": "P6",
+      "title": "Dictation",
+      "approach": "Use a supported KDE/Wayland input, clipboard, or portal workflow.\nProvide visible controls and a deliberate destination/insert action.",
+      "acceptance": "Text reaches the intended supported application without covert input capture\nor disabling desktop security.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N092",
+      "phase": "P6",
+      "title": "Mute and activation",
+      "approach": "Implement visible recording state, reliable mute, and configurable activation.\nPassive wake behavior must be explicitly enabled and supported.",
+      "acceptance": "Mute actually stops capture and false-trigger behavior is tested.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N093",
+      "phase": "P6",
+      "title": "Current vision integration",
+      "approach": "Verify model/projector compatibility, message schema, installed runtime support,\nand resource coordination.",
+      "acceptance": "An actual uploaded image is interpreted through the packaged application.\nText-only fallback is not claimed as vision success.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N094",
+      "phase": "P6",
+      "title": "Mascot/Orb states",
+      "approach": "Preserve the current design and connect visual states to real idle/listening/\ngenerating/speaking/error events.",
+      "acceptance": "Visual state follows actual activity and recovers after cancellation/errors.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N095",
+      "phase": "P6",
+      "title": "Audio animation and HUD",
+      "approach": "Use real playback/audio levels and real sensor samples.\nBound refresh rates and support reduced motion.",
+      "acceptance": "Animation stops with playback and monitoring values agree with samples.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N034",
+      "phase": "P7",
+      "title": "Preference/directive vault",
+      "approach": "Store approved facts with provenance and update/delete rules.\nInject a bounded relevant profile rather than full history.",
+      "acceptance": "Approved preferences persist across sessions and deletion updates retrieval\nand cached profile content.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N035",
+      "phase": "P7",
+      "title": "Memory extraction",
+      "approach": "Support explicit remember requests first.\nKeep inferred facts as reviewable suggestions with sources.",
+      "acceptance": "Approved facts are stored once and rejected suggestions are not injected.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N036",
+      "phase": "P7",
+      "title": "Long-conversation summaries",
+      "approach": "Summarize when context pressure justifies it.\nPreserve requirements and keep original history recoverable.",
+      "acceptance": "Long-session fixtures retain important constraints within the context budget.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N037",
+      "phase": "P7",
+      "title": "Memory management and transfer",
+      "approach": "Provide view/edit/delete and validated import/export with conflict handling.",
+      "acceptance": "Round-trip transfer works and deleted facts do not return through stale indexes.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N038",
+      "phase": "P7",
+      "title": "Local RAG",
+      "approach": "Index approved sources into versioned chunks with stable source IDs.\nRetrieve a bounded relevant set and invalidate stale/deleted content.",
+      "acceptance": "Answers cite the correct allowed source passages and acknowledge missing or\nirrelevant evidence.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N039",
+      "phase": "P7",
+      "title": "Reviewable preference learning",
+      "approach": "Propose persistent preference rules with review and rollback.\nKeep application permissions and core policies outside learned text.",
+      "acceptance": "Accepted/rejected suggestions behave correctly without autonomous policy changes.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N040",
+      "phase": "P7",
+      "title": "Personas and prompt caching",
+      "approach": "Separate persona style from permissions.\nUse supported caching and invalidate it after model/template/profile changes.",
+      "acceptance": "Personas change style without expanding privileges.\nAny cache benefit is measured.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N109",
+      "phase": "P7",
+      "title": "Vault Harvest",
+      "approach": "Inspect the endpoint for placeholders.\nGenerate a real article from selected saved notes and retain source references.",
+      "acceptance": "The result is actually generated and stored.\nMissing notes or unavailable generation return truthful errors.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N080",
+      "phase": "P8",
+      "title": "Persistent reminders",
+      "approach": "Implement create/list/edit/complete/delete with stable IDs, UTC due times,\nIANA timezones, and optional project/URL references.",
+      "acceptance": "Reminders persist across restart, resolve ambiguous times, and avoid duplicates.\nDefault this user's timezone preference to Asia/Riyadh.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N081",
+      "phase": "P8",
+      "title": "Notification delivery",
+      "approach": "Define due-time scheduling and missed-reminder behavior.\nClosed-app delivery requires an intentional supported per-user service.",
+      "acceptance": "Due-time, restart, missed schedules, and duplicate delivery are tested.\nDo not claim closed-app delivery without a real service test.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N082",
+      "phase": "P8",
+      "title": "Video continuation",
+      "approach": "Store validated video URLs and optional user-provided timestamps.\nConstruct correct resume links without claiming account watch-history access.",
+      "acceptance": "The stored video and timestamp reopen correctly where supported.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N074",
+      "phase": "P9",
+      "title": "Calculator, time, and weather",
+      "approach": "Use a restricted arithmetic parser and real timezone-aware time.\nWeather needs a chosen source, location, freshness, and timeout behavior.",
+      "acceptance": "Arithmetic/time fixtures pass and weather is sourced, dated, or explicitly\nunavailable.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N075",
+      "phase": "P9",
+      "title": "YouTube summaries",
+      "approach": "Retrieve available transcript/caption text through a supported integration.\nSummarize retrieved content with a source URL.",
+      "acceptance": "Missing transcripts are acknowledged.\nSearch results alone are not presented as video understanding.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N076",
+      "phase": "P9",
+      "title": "File organization",
+      "approach": "Preview proposed moves inside permitted roots.\nHandle collisions and keep a reversible journal or recoverable staging.",
+      "acceptance": "Approved moves, cancellation, and recovery work without touching unrelated files.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N077",
+      "phase": "P9",
+      "title": "Code explanation",
+      "approach": "Reuse normal chat plus approved relevant-file reading when sufficient.\nAdd a wrapper only if it provides a meaningful workflow.",
+      "acceptance": "Selected real source is explained without running it or creating an unwanted\nproject. Verified reuse may satisfy this item.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N078",
+      "phase": "P9",
+      "title": "Deep research",
+      "approach": "Use bounded search/fetch/retrieve stages with source IDs, safe URL fetching,\ndeduplication, and supporting citations.",
+      "acceptance": "Reports cite actual retrieved evidence and respect request/step budgets.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N079",
+      "phase": "P9",
+      "title": "Optional MCP adapter",
+      "approach": "Integrate a deliberately configured trusted server through existing validation,\npermissions, timeouts, and result handling.",
+      "acceptance": "One selected server works and unauthorized/disconnected calls fail safely.\nDo not auto-install servers suggested by generated or retrieved content.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N047",
+      "phase": "P9",
+      "title": "Bounded multi-step actions",
+      "approach": "Represent plan/actions/results as typed state with step/retry limits,\ncancellation, progress summaries, and controlled fallback.",
+      "acceptance": "A supported multi-step task completes and loop/failure cases terminate.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N048",
+      "phase": "P9",
+      "title": "Sequential researcher/writer/reviewer",
+      "approach": "Reuse the inference scheduler for logical roles and shared artifact contracts.\nDo not require three resident models.",
+      "acceptance": "Outputs are traceable to sources and requirements.\nAdded calls/latency and resource behavior are measured.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N046",
+      "phase": "P9",
+      "title": "Isolated testing of generated programs",
+      "approach": "Offer an explicit bounded sandbox-test action.\nRestrict host filesystem, secrets, devices, network, memory, CPU, and duration.",
+      "acceptance": "Selected tests run only within the documented boundary.\nIf isolation is unavailable, report not tested rather than running on the host.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    },
+    {
+      "id": "N025",
+      "phase": "P10",
+      "title": "Installed package and installer",
+      "approach": "Identify the actual tested package/version.\nTest appropriate clean/disposable installation, retry/cache behavior,\nlauncher/assets, and user-data preservation.",
+      "acceptance": "Installed-app evidence is distinguished from source-checkout tests.",
+      "status": "partially_verified_backlog",
+      "code_paths": [
+        "tools/build_linux_release.py",
+        "src/desktop/service.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/package-source.json",
+          "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+          "environment": "extracted packaged app",
+          "outcome": "partial"
+        }
+      ],
+      "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+    },
+    {
+      "id": "N026",
+      "phase": "P10",
+      "title": "Updater verification",
+      "approach": "Audit release identity, version/architecture/size/hash checks, root-owned\nstaging, helper scope, and failures.",
+      "acceptance": "Tampered/wrong packages are rejected.\nActual authorized update testing preserves data.\nUntested administrative paths remain explicitly open.",
+      "status": "partially_verified_backlog",
+      "code_paths": [
+        "src/desktop/releases.py",
+        "packaging/linux/install-update"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/package-source.json",
+          "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+          "environment": "extracted packaged app",
+          "outcome": "partial"
+        }
+      ],
+      "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+    },
+    {
+      "id": "N030",
+      "phase": "P10",
+      "title": "Documentation and Doctor",
+      "approach": "Update documentation to match real feature availability and UI paths.\nCount only diagnostics that actually run and give actionable results.",
+      "acceptance": "Docs match the shipped app.\nNo invented diagnostic totals or success claims.",
+      "status": "partially_verified_backlog",
+      "code_paths": [
+        "README.md",
+        "docs/QA_v0.4.4_AR.md",
+        "tools/diagnose.py"
+      ],
+      "evidence": [
+        {
+          "artifact": "evidence/package-source.json",
+          "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+          "environment": "extracted packaged app",
+          "outcome": "partial"
+        }
+      ],
+      "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+    },
+    {
+      "id": "N103",
+      "phase": "P10",
+      "title": "Telegram/backend integration",
+      "approach": "Replace fixed-port assumptions with protected local discovery/configuration.\nVerify backend identity and stale state.\nKeep Telegram as an API client rather than a second model process.",
+      "acceptance": "Discovery/failure contract tests pass.\nReal channel tests are reported separately, without unsolicited live messages.",
+      "status": "backlog_verify_first",
+      "code_paths": [],
+      "evidence": [],
+      "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+      "next_action": "Verify and reuse existing implementation before editing."
+    }
+  ],
+  "deferred": [
+    {
+      "id": "N009",
+      "description": "Optional larger model after availability and memory benchmarking.",
+      "status": "deferred"
+    },
+    {
+      "id": "N027",
+      "description": "AUR publication when explicitly selected and account access exists.",
+      "status": "deferred"
+    },
+    {
+      "id": "N028",
+      "description": "Windows distribution with native Windows verification.",
+      "status": "deferred"
+    },
+    {
+      "id": "N083",
+      "description": "Opt-in unfinished-work/browser tracking with retention controls.",
+      "status": "deferred"
+    },
+    {
+      "id": "N084",
+      "description": "Calendar integration with scoped provider authorization.",
+      "status": "deferred"
+    },
+    {
+      "id": "N096",
+      "description": "Optional cinematic boot, display modes, and portrait layout.",
+      "status": "deferred"
+    },
+    {
+      "id": "N100",
+      "description": "Docker/public-server deployment only for a real deployment requirement.",
+      "status": "deferred"
+    },
+    {
+      "id": "N101",
+      "description": "Self-authored skills with draft/review/test/activation/rollback controls.",
+      "status": "deferred"
+    },
+    {
+      "id": "N102",
+      "description": "Advanced KDE window/mouse/keyboard control through supported interfaces.",
+      "status": "deferred"
+    },
+    {
+      "id": "N105",
+      "description": "Alternative inference server only after a measured compatibility study.",
+      "status": "deferred"
+    }
+  ],
+  "superseded": [
+    {
+      "id": "N106",
+      "description": "Do not add another pywebview wrapper solely to duplicate Qt.",
+      "status": "superseded"
+    },
+    {
+      "id": "N107",
+      "description": "Do not perform historical Windows F: maintenance as a Neura feature.",
+      "status": "superseded"
+    }
+  ],
+  "tested_version": "0.4.4",
+  "evidence_paths_relative_to": "delivery bundle NEURA_N_P1_P4",
+  "first_delivery_status": "accepted",
+  "p0": {
+    "source_base_commit": "3855bc71f4f5f85030fffef3413aad90fbef0616",
+    "source_checkout": "work/neura-workspace-v2",
+    "branch": "milestone-p1-p4-n-ids",
+    "installed_package_observed": "neura-ai-bin 0.4.2-1",
+    "baseline_evidence": "prior delivery NEURA_Remaining_P0_P4/evidence, source unchanged before targeted N contract checks",
+    "current_regression_cases": 205
+  },
+  "counts": {
+    "active_total": 80,
+    "accepted_first_delivery": 31,
+    "open_active": 49,
+    "deferred": 10,
+    "superseded": 2
+  }
+}

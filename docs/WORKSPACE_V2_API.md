@@ -35,3 +35,11 @@ Interrupted nonterminal jobs become failed/interrupted on restart; their drafts 
 - POST /skills/revoke: permission_id → revoke grant.
 
 Desktop content and model output cannot authorize actions. No shell, messages, installation, arbitrary executables, or dynamically imported skills.
+
+## Additive job invoice/result contract (0.4.4, N041)
+
+`ProjectRequest` accepts optional `constraints` (up to 28 user constraints; server safety constraints are appended). The shared TaskInvoice carries `task_id`, `project_id`, original `user_request`, requirements, constraints, `expected_files`, `required_python_symbols`, selected source context and target model. Both optional planning and generation receive the same identity/requirements.
+
+`GET /project-jobs/{id}` adds `invoice`, `invoice_provenance`, `stage_results`, `saved_files`, and `validation`. Stage results record actual stage transitions, model/finish reasons where returned, and optional plan output. File references contain project ID, path, committed revision and SHA256 and do not change after later edits. Recorded invoices may contain selected actual source for an edit; this remains an authenticated private endpoint, not preview data or unrestricted logs.
+
+Old records have `invoice: null`, `invoice_provenance: unavailable_legacy`, and empty unrecorded stage/file result lists. Their saved projects remain available. The additive `job_contracts` table does not replace the existing projects/jobs/catalog. No model grade bypasses deterministic file validation.

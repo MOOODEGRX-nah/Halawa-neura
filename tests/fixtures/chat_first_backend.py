@@ -45,5 +45,28 @@ async def save_delay(request,call_next):
  if saving:await asyncio.sleep(float(os.environ.get('NEURA_QA_SAVE_DELAY_S','0')))
  return response
 @app.get('/qa/state')
-async def state():return {'save_requests':save_requests,'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
-uvicorn.run(app,host='127.0.0.1',port=args.port,log_level='warning',proxy_headers=False)
+async def state():return {'unrelated_requests':unrelated_requests,'security_project':security_project,'save_requests':save_requests,'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
+security_project=None;unrelated_requests=0;unrelated_server=None
+if os.environ.get('NEURA_QA_SECURITY')=='1':
+ from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+ import threading
+ class Beacon(BaseHTTPRequestHandler):
+  def do_GET(self):
+   global unrelated_requests
+   unrelated_requests+=1;self.send_response(200);self.end_headers();self.wfile.write(b'QA only')
+  def log_message(self,*args):pass
+ unrelated_server=ThreadingHTTPServer(('127.0.0.1',0),Beacon)
+ threading.Thread(target=unrelated_server.serve_forever,daemon=True).start()
+ security_project=app.state.project_store.create('فحص عزل N057','Controlled adversarial preview fixture')['project_id']
+ payload="""const checks={};
+try{checks.parent=parent.document.title}catch(e){checks.parent='blocked'};
+try{localStorage.setItem('qa','x');checks.storage='allowed'}catch(e){checks.storage='blocked'};
+checks.bridge=typeof qt==='undefined'&&typeof QWebChannel==='undefined';
+try{parent.NeuraSkills.perform('open_website',{destination:'https://example.com/'});checks.tool='allowed'}catch(e){checks.tool='blocked'};
+const targets=[['api',APP+'/skills/authorize'],['vault',APP+'/vault/sessions'],['unrelated',UNRELATED+'/beacon']];
+Promise.all(targets.map(async([name,url])=>{try{await fetch(url,{method:name==='api'?'POST':'GET',headers:{'Content-Type':'application/json'},...(name==='api'?{body:JSON.stringify({name:'open_website',args:{destination:'https://example.com/'}})}:{})});checks[name]='allowed'}catch(e){checks[name]='blocked'}})).then(()=>document.querySelector('#checks').textContent=JSON.stringify(checks));""".replace('APP',json.dumps('http://127.0.0.1:'+str(args.port))).replace('UNRELATED',json.dumps('http://127.0.0.1:'+str(unrelated_server.server_port)))
+ app.state.project_store.commit(security_project,{'index.html':'<html dir="rtl"><h1>فحص العزل</h1><pre id="checks">pending</pre><script src="checks.js"></script></html>','checks.js':payload,'private.txt':'QA private content'},0)
+try:
+ uvicorn.run(app,host='127.0.0.1',port=args.port,log_level='warning',proxy_headers=False)
+finally:
+ if unrelated_server:unrelated_server.shutdown();unrelated_server.server_close()
