@@ -8,7 +8,7 @@ The OpenAI-compatible completion endpoint retains its text/inference contract.
 `POST /chat/dispatch` accepts exactly:
 
 ```json
-{"text":"هل يمكنك ان تفتح لي موقع youtube","request_id":"r_<13-digit UTC milliseconds>_<32 lowercase hex UUID>","active_project_id":null}
+{"text":"هل يمكنك ان تفتح لي موقع youtube","request_id":"r_<13-digit UTC milliseconds>_<32 lowercase hex UUID>","session_id":"s_<UUID hex>","active_project_id":null,"workspace_dirty":false}
 ```
 
 The backend resolves supported intent, checks actual capability availability,
@@ -19,11 +19,11 @@ message), `clarification` (server-bound choices), `project` (existing durable
 project/job), `metadata` (active-project index), or `pending` (same execution).
 Desktop errors remain structured results; they never fall back to model prose.
 
-`POST /chat/choose` accepts only `request_id` and opaque `choice_id`. No skill
+`POST /chat/choose` accepts `request_id`, opaque `choice_id`, and the originating `session_id`. No skill
 arguments can be substituted; the selected target is stored server-side. A second
 choice for an already selected request conflicts. Choices render inside chat.
 
-`GET /chat/requests/{request_id}` restores the truthful durable result/snapshot
+`GET /chat/requests/{request_id}?session_id=...` restores the truthful durable result/snapshot
 without executing. Retrying a POST with the same ID and fingerprint is also safe;
 changing its text/context conflicts. A running request returns pending. Interrupted
 desktop execution becomes unknown rather than being repeated after restart.
@@ -45,6 +45,36 @@ The client cannot submit `source`, skill names, arguments or grants to chat disp
 Project creation uses ProjectJobs/Invoice/NeuraLoop, with the same events, queue,
 model lock, cancellation, validation, revision guards, metadata and isolated preview.
 The UI opens the returned project/job without submitting another create request.
+
+## Application target context and short project edits (0.4.5)
+
+`session_id` is an optional additive field for older API clients. The current UI
+always sends its conversation UUID. Requests/choices/snapshots with a recorded
+session binding reject a different session; a session ID is context scope, not a
+replacement for API authentication. Manual UI execution also supplies session_id.
+
+Arabic/English Discord and Brave aliases resolve only against validated installed
+desktop IDs and available localized names. Zero matches return an unavailable
+result; multiple relevant matches alone become choices. No fuzzy executable
+construction, installation, or unrelated first-page catalog fallback is used.
+
+A user knowledge question can return `kind: knowledge` without inference or launch.
+The backend stores at most eight trusted target IDs per session, 128 sessions and
+five minutes of validity. Explicit follow-ups such as `هذا هوا افتحه` use only
+that session's still-installed targets. Assistant prose, restored messages,
+negation, quotations and code cannot establish permission or launch an action.
+New topics clear/replace context. Legacy clients omitting session_id do not gain
+implicit follow-up context.
+
+`برمج لي موقع للcv` enters project creation before ordinary chat inference. For a
+clean active project, `غيّر لون الخلفية إلى الأزرق` returns `kind: project` plus
+`operation: edit`, the same project ID, a new job and actual selected source paths.
+Dirty/saving editors do not silently discard changes or create another project.
+Named-project navigation remains reviewable through `kind: workspace`.
+
+Handled actions/errors/knowledge never continue into generic completion. The
+completion endpoint prepends a bounded server capability description while
+preserving client messages; a textual model response is never an execution result.
 
 ## Saved workspace routing (0.4.2)
 

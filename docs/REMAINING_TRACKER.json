@@ -54,13 +54,57 @@
           "scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects.",
           "environment": "packaged Qt fixture",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Workspace remains an internal view, not a permanent tab.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "No removed nav/forms; old hashes return to chat; saved drawer reopens projects.",
+              "environment": "packaged Qt fixture",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Workspace remains an internal view, not a permanent tab.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N062",
@@ -92,13 +136,69 @@
           "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
           "environment": "packaged Qt fixture and actual FileReader",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "File-picker choice is simulated by test subclass; selected file is packaged public logo.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+              "environment": "packaged Qt fixture and actual FileReader",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+              "environment": "packaged Qt fixture and actual FileReader",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/web-assets-build.txt",
+              "scenario": "Session restore and keyboard image selection run actual handlers; content-sized toolbar aligned after entrance animation.",
+              "environment": "packaged Qt fixture and actual FileReader",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "File-picker choice is simulated by test subclass; selected file is packaged public logo.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N063",
@@ -124,13 +224,63 @@
           "scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
           "environment": "packaged Qt fixture and renderer unit tests",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Streaming remains escaped text until completion; images/raw HTML are not rendered as assistant HTML.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
+              "environment": "packaged Qt fixture and renderer unit tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Paragraph/list/emphasis/link/inline/fenced code render; script/img/iframe absent from privileged reply DOM.",
+              "environment": "packaged Qt fixture and renderer unit tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Streaming remains escaped text until completion; images/raw HTML are not rendered as assistant HTML.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N064",
@@ -156,13 +306,63 @@
           "scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
           "environment": "packaged Qt offscreen",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Not an exhaustive screen-reader or every-compositor certification.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
+              "environment": "packaged Qt offscreen",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "RTL keyboard arrows, attachment Enter, focusable controls, Code/Preview, no clipped tested controls at 360/600/1200.",
+              "environment": "packaged Qt offscreen",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Not an exhaustive screen-reader or every-compositor certification.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N065",
@@ -194,13 +394,69 @@
           "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
           "environment": "backend fixture tests",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Seven static desktop skills; legacy research endpoints stay compatible and separate; no self-authored skills.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "implemented_and_verified",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "implemented_and_verified",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/n-contract-before.xml",
+              "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+              "environment": "backend fixture tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/n-contract-after.xml",
+              "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+              "environment": "backend fixture tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Strict input/output schemas; unknown/disabled/malformed cases; invalid adapter result becomes cached uncertain outcome.",
+              "environment": "backend fixture tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Seven static desktop skills; legacy research endpoints stay compatible and separate; no self-authored skills.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N066",
@@ -225,13 +481,63 @@
           "scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
           "environment": "actual GIO/Brave and backend fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Conservative supported phrases; ambiguous targets require selection.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
+              "environment": "actual GIO/Brave and backend fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch.",
+              "environment": "actual GIO/Brave and backend fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Conservative supported phrases; ambiguous targets require selection.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N067",
@@ -256,13 +562,63 @@
           "scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
           "environment": "actual desktop and failure fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Launch acceptance does not prove page loading or reading.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
+              "environment": "actual desktop and failure fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested.",
+              "environment": "actual desktop and failure fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Launch acceptance does not prove page loading or reading.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N068",
@@ -288,13 +644,63 @@
           "scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
           "environment": "actual Brave plus URL tests",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Server retrieval is separate; this result does not establish research retrieval.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
+              "environment": "actual Brave plus URL tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Arabic Brave search query encoded and opened; message explicitly says results were not read.",
+              "environment": "actual Brave plus URL tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Server retrieval is separate; this result does not establish research retrieval.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N069",
@@ -331,13 +737,75 @@
           "scenario": "Missing Arabic/English search query, before reproduction and final packaged UI verification.",
           "environment": "backend fixture and packaged Qt",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "No transcript/video understanding claim.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "implemented_and_verified",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected. Missing natural-language queries request a search phrase without launch/model fallback."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected. Missing natural-language queries request a search phrase without launch/model fallback.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "implemented_and_verified",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected.",
+              "environment": "actual Brave and schema fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected.",
+              "environment": "actual Brave and schema fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/n069-before.txt",
+              "scenario": "Missing Arabic/English search query, before reproduction and final packaged UI verification.",
+              "environment": "backend fixture and packaged Qt",
+              "outcome": "expected_failure_before_fix"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Missing Arabic/English search query, before reproduction and final packaged UI verification.",
+              "environment": "backend fixture and packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "No transcript/video understanding claim.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N070",
@@ -363,13 +831,63 @@
           "scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
           "environment": "actual GIO/Kate/Dolphin and security fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Only selected places and project roots; code is viewed via immutable copy, never executed.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
+              "environment": "actual GIO/Kate/Dolphin and security fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected.",
+              "environment": "actual GIO/Kate/Dolphin and security fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Only selected places and project roots; code is viewed via immutable copy, never executed.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N071",
@@ -394,13 +912,63 @@
           "scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
           "environment": "actual GIO and catalog fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Catalog launch request accepted, not a guarantee every external app finishes startup.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
+              "environment": "actual GIO and catalog fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail.",
+              "environment": "actual GIO and catalog fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Catalog launch request accepted, not a guarantee every external app finishes startup.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N072",
@@ -425,13 +993,63 @@
           "scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
           "environment": "actual persisted launches plus bounded-history fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Scope is Neura-only, not all KDE or Brave activity.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
+              "environment": "actual persisted launches plus bounded-history fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10.",
+              "environment": "actual persisted launches plus bounded-history fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Scope is Neura-only, not all KDE or Brave activity.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N073",
@@ -463,13 +1081,69 @@
           "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
           "environment": "actual desktop plus API/Qt fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Uncertain interrupted launches are not rerun; no OS-level exactly-once guarantee.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-desktop.json",
+              "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+              "environment": "actual desktop plus API/Qt fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+              "environment": "actual desktop plus API/Qt fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Every real trial retry cached; concurrent pending/restart unknown/forging/expiry/revocation tested; restored sessions do not replay actions.",
+              "environment": "actual desktop plus API/Qt fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Uncertain interrupted launches are not rerun; no OS-level exactly-once guarantee.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N098",
@@ -514,13 +1188,81 @@
           "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
           "environment": "IAB Chromium and packaged Qt separately",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Controlled adversarial fixtures, not a claim of universal security certification.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/browser-isolation.json",
+              "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/browser-full-isolation.json",
+              "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/browser-backend-state.json",
+              "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Host/Origin/token/forged request tests plus real browser and Qt preview attempts cannot access app/tools/private state.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Controlled adversarial fixtures, not a claim of universal security certification.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N041",
@@ -558,13 +1300,75 @@
           "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
           "environment": "actual native model and typed contract fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Old jobs without recorded invoices remain explicitly unavailable_legacy; no invented retrospective data.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "implemented_and_verified",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "implemented_and_verified",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/n-contract-before.xml",
+              "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+              "environment": "actual native model and typed contract fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/n-contract-after.xml",
+              "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+              "environment": "actual native model and typed contract fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-job-contracts.json",
+              "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+              "environment": "actual native model and typed contract fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Original request/constraints/required files/symbols/project+job IDs reach model; durable stages, validation and immutable saved refs verified.",
+              "environment": "actual native model and typed contract fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Old jobs without recorded invoices remain explicitly unavailable_legacy; no invented retrospective data.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N042",
@@ -572,7 +1376,7 @@
       "title": "Use planning only when useful",
       "approach": "Distinguish explanations, edits, simple projects, and complex projects.\nAvoid a mandatory four-model cycle for every task.\nPreserve explicit requirements between stages.",
       "acceptance": "Explanations create no project.\nSimple work avoids unnecessary model swaps.",
-      "status": "accepted",
+      "status": "partially_implemented",
       "code_paths": [
         "src/core/chat_dispatch.py",
         "src/core/invoice_orchestrator.py"
@@ -595,13 +1399,69 @@
           "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
           "environment": "packaged Qt actual model plus scheduler fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
-      "remaining_limitation": "Planning is explicit/optional, not a mandatory cycle or general autonomous complexity planner.",
-      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage."
+      "remaining_limitation": "Simple requests/explanations verified; general automatic complexity planning remains partial.",
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+              "environment": "packaged Qt actual model plus scheduler fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+              "environment": "packaged Qt actual model plus scheduler fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Explanations make no project; simple task uses one call; optional planning preserves constraints and adds only its explicit stage.",
+              "environment": "packaged Qt actual model plus scheduler fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Planning is explicit/optional, not a mandatory cycle or general autonomous complexity planner.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Partially implemented"
     },
     {
       "id": "N043",
@@ -633,13 +1493,69 @@
           "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
           "environment": "actual model stream plus parser fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Bounded fenced legacy protocol remains supported; broken output fails instead of guessing names.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+              "environment": "actual model stream plus parser fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-job-contracts.json",
+              "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+              "environment": "actual model stream plus parser fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Fragmented UTF-8/fences/names/conflicts/incomplete cases tested; actual index/style/script references agree.",
+              "environment": "actual model stream plus parser fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Bounded fenced legacy protocol remains supported; broken output fails instead of guessing names.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N044",
@@ -665,13 +1581,63 @@
           "scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
           "environment": "deterministic parser/store tests plus real generation",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Static checks are distinct from behavioral testing.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
+              "environment": "deterministic parser/store tests plus real generation",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Zero/unsafe/duplicate/missing/oversize/invalid Python-JSON-JS-CSS fixtures rejected; generated program marker not executed.",
+              "environment": "deterministic parser/store tests plus real generation",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Static checks are distinct from behavioral testing.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N045",
@@ -679,7 +1645,7 @@
       "title": "Correct reviewer and repair logic",
       "approach": "Reproduce reported review bugs first.\nApproval must satisfy deterministic checks as well as the explicit verdict.\nBound repair attempts.",
       "acceptance": "Grade B with NEEDS_FIX is not accepted.\nZero-file output never passes.\nFailed repairs end honestly.",
-      "status": "accepted",
+      "status": "partially_implemented",
       "code_paths": [
         "src/core/invoice_parser.py",
         "src/core/invoice_orchestrator.py"
@@ -702,13 +1668,69 @@
           "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
           "environment": "review parser and active orchestrator fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
-      "remaining_limitation": "No mandatory model reviewer pass; grade cannot replace deterministic acceptance or behavioral testing.",
-      "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "implemented_and_verified",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts."
+      "remaining_limitation": "Explicit verdict/static checks verified; streaming workspace has no complete automatic repair or semantic verification loop. First real blue edit passed static checks but failed the visual requirement; prompt improvement then a real retry succeeded.",
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "implemented_and_verified",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/n-contract-before.xml",
+              "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+              "environment": "review parser and active orchestrator fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/n-contract-after.xml",
+              "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+              "environment": "review parser and active orchestrator fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Explicit B+NEEDS_FIX already rejected; missing verdict no longer inferred approved; approved prose with zero files fails bounded two attempts.",
+              "environment": "review parser and active orchestrator fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "No mandatory model reviewer pass; grade cannot replace deterministic acceptance or behavioral testing.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Partially implemented"
     },
     {
       "id": "N049",
@@ -740,13 +1762,69 @@
           "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
           "environment": "actual native model packaged Qt",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Conservative creation grammar avoids turning explanations into projects.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+              "environment": "actual native model packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-job-contracts.json",
+              "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+              "environment": "actual native model packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Arabic CV request preserved verbatim, one project/job, automatically opens workspace without retyping.",
+              "environment": "actual native model packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Conservative creation grammar avoids turning explanations into projects.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N050",
@@ -771,13 +1849,63 @@
           "scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
           "environment": "actual model Qt and controlled filesystem failures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Administrative installed-version migration is not claimed; snapshots and old-row compatibility are tested locally.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
+              "environment": "actual model Qt and controlled filesystem failures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual site/Python in separate dirs; duplicate titles/restart/atomic conflict/crash journal/symlink tests preserve sources.",
+              "environment": "actual model Qt and controlled filesystem failures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Administrative installed-version migration is not claimed; snapshots and old-row compatibility are tested locally.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N052",
@@ -810,13 +1938,69 @@
           "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
           "environment": "actual native stream plus worker fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "One worker, queue4, retained4096 events; restart marks interrupted work rather than silently regenerating it.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+              "environment": "actual native stream plus worker fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+              "environment": "actual native stream plus worker fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual partial file events agree with saved drafts; sequence/reconnect/snapshot/UTF-8/cancel/native-lock tests pass.",
+              "environment": "actual native stream plus worker fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "One worker, queue4, retained4096 events; restart marks interrupted work rather than silently regenerating it.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N051",
@@ -841,13 +2025,63 @@
           "scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
           "environment": "actual model packaged Qt",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Preview supports static web; there is no fake Python console.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
+              "environment": "actual model packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Actual website code physically left/preview right; non-web Python has files and unsupported preview with no host execution.",
+              "environment": "actual model packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Preview supports static web; there is no fake Python console.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N053",
@@ -872,13 +2106,63 @@
           "scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
           "environment": "packaged Qt with actual API/store",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Unsaved restart is reviewed; declining keeps draft. Explicitly discarded unsaved text is not auto-saved to disk.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
+              "environment": "packaged Qt with actual API/store",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Swap preserves dirty selected file; saved edit and swapped preference survive real native service restart.",
+              "environment": "packaged Qt with actual API/store",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Unsaved restart is reviewed; declining keeps draft. Explicitly discarded unsaved text is not auto-saved to disk.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N054",
@@ -915,13 +2199,75 @@
           "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
           "environment": "actual Qt/API delayed fixture and client state tests",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Pending save blocks changing its target, while same-project view switching stays available; no silent autosave on exit.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/save-race-before.json",
+              "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+              "environment": "actual Qt/API delayed fixture and client state tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/save-race-after.json",
+              "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+              "environment": "actual Qt/API delayed fixture and client state tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+              "environment": "actual Qt/API delayed fixture and client state tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Before/after pending-save race, actual delayed save target/duplicate guard, real API conflict panel keeps local text, declined restart preserves draft.",
+              "environment": "actual Qt/API delayed fixture and client state tests",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Pending save blocks changing its target, while same-project view switching stays available; no silent autosave on exit.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N055",
@@ -947,13 +2293,63 @@
           "scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
           "environment": "actual model preview and static validators",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "External resources restricted; unsupported build/backend projects are saved but not auto-run.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
+              "environment": "actual model preview and static validators",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Actual generated JS interaction works; valid saved snapshot refresh; invalid CSS/JS and React/build/server fixtures not falsely ready.",
+              "environment": "actual model preview and static validators",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "External resources restricted; unsupported build/backend projects are saved but not auto-run.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N056",
@@ -984,13 +2380,69 @@
           "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
           "environment": "actual browser and packaged Qt",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Raw Brave preview URLs are not used to bypass isolation.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+              "environment": "actual browser and packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+              "environment": "actual browser and packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/browser-full-isolation.json",
+              "scenario": "Embedded/full use same project capability/revision and sandbox; actual site and adversarial fixture checked.",
+              "environment": "actual browser and packaged Qt",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Raw Brave preview URLs are not used to bypass isolation.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N057",
@@ -1028,13 +2480,75 @@
           "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
           "environment": "IAB Chromium and packaged Qt separately",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "JavaScript CPU consumption has no universal time budget; this is a static preview boundary.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/browser-isolation.json",
+              "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/browser-backend-state.json",
+              "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Separate origin plus sandbox/CSP, parent/bridge/storage/API/vault/unrelated service blocked in browser and Qt; private assets excluded.",
+              "environment": "IAB Chromium and packaged Qt separately",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "JavaScript CPU consumption has no universal time budget; this is a static preview boundary.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N060",
@@ -1071,13 +2585,75 @@
           "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
           "environment": "packaged Qt and actual native model",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Switching to a different dirty project/file still requires review.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/qt-standard/qt-journeys.json",
+              "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+              "environment": "packaged Qt and actual native model",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+              "environment": "packaged Qt and actual native model",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+              "environment": "packaged Qt and actual native model",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Small folder drawer opens saved projects after restart; ambiguous project references use bound choices; switching view keeps active work.",
+              "environment": "packaged Qt and actual native model",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Switching to a different dirty project/file still requires review.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N058",
@@ -1108,13 +2684,69 @@
           "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
           "environment": "actual GGUF vocabulary only plus native API trial",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Summary is character-bounded, not a universal tokenizer ceiling; small source can be shorter than summary.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/project-context-tokens.json",
+              "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+              "environment": "actual GGUF vocabulary only plus native API trial",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-qt/real-qt.json",
+              "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+              "environment": "actual GGUF vocabulary only plus native API trial",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Canonical SQLite index/derived summary from actual files; direct metadata answers; 12 fresh measured queries have 103-170 summary tokens.",
+              "environment": "actual GGUF vocabulary only plus native API trial",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Summary is character-bounded, not a universal tokenizer ceiling; small source can be shorter than summary.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N059",
@@ -1152,13 +2784,75 @@
           "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
           "environment": "actual tokenizer/API/model trial and freshness fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
-      "remaining_limitation": "Freshness is checked on access, not a global watcher; no fixed context-saving or speed guarantee.",
+      "remaining_limitation": "Freshness hashes at read/write boundaries including unchanged size/mtime; no persistent watcher. Catalog reads are not_checked. Actual-source editing required.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
-      "tested_version": "0.4.4",
-      "acceptance_scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts."
+      "resolution": "current_scoped_verification",
+      "tested_version": "0.4.5",
+      "acceptance_scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "accepted",
+          "resolution": "verified_reuse",
+          "tested_version": "0.4.4",
+          "evidence": [
+            {
+              "artifact": "evidence/project-context-tokens.json",
+              "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+              "environment": "actual tokenizer/API/model trial and freshness fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/qt-extra/qt-extra.json",
+              "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+              "environment": "actual tokenizer/API/model trial and freshness fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/real-job-contracts.json",
+              "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+              "environment": "actual tokenizer/API/model trial and freshness fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "evidence/pytest-junit.xml",
+              "scenario": "Committed edits update index; external writes stale/conflict; edits require actual relevant files; direct metadata inputs0 vs measured hypothetical contexts.",
+              "environment": "actual tokenizer/API/model trial and freshness fixtures",
+              "outcome": "passed"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Freshness is checked on access, not a global watcher; no fixed context-saving or speed guarantee.",
+          "next_action": "Retain implementation; reverify if these paths or acceptance requirements change."
+        }
+      ],
+      "current_status": "Completed and verified"
     },
     {
       "id": "N002",
@@ -1320,11 +3014,52 @@
       "title": "Repeatable evaluations",
       "approach": "Create versioned Arabic chat, coding, skills, failure, and injection fixtures.\nSeparate deterministic tests from model, desktop, and performance trials.",
       "acceptance": "Results record environment, input, expectation, and actual outcome.",
-      "status": "backlog_verify_first",
+      "status": "partially_implemented",
       "code_paths": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+        }
+      ],
       "remaining_limitation": "Acceptance not yet mapped to current evidence.",
-      "next_action": "Verify and reuse existing implementation before editing."
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "backlog_verify_first",
+          "resolution": null,
+          "tested_version": null,
+          "evidence": [
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+          "next_action": "Verify and reuse existing implementation before editing."
+        }
+      ],
+      "current_status": "Partially implemented",
+      "tested_version": "0.4.5",
+      "resolution": "current_scoped_verification"
     },
     {
       "id": "N108",
@@ -1716,7 +3451,7 @@
       "title": "Installed package and installer",
       "approach": "Identify the actual tested package/version.\nTest appropriate clean/disposable installation, retry/cache behavior,\nlauncher/assets, and user-data preservation.",
       "acceptance": "Installed-app evidence is distinguished from source-checkout tests.",
-      "status": "partially_verified_backlog",
+      "status": "partially_implemented",
       "code_paths": [
         "tools/build_linux_release.py",
         "src/desktop/service.py"
@@ -1727,10 +3462,56 @@
           "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
           "environment": "extracted packaged app",
           "outcome": "partial"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
-      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "partially_verified_backlog",
+          "resolution": null,
+          "tested_version": null,
+          "evidence": [
+            {
+              "artifact": "evidence/package-source.json",
+              "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+              "environment": "extracted packaged app",
+              "outcome": "partial"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+          "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+        }
+      ],
+      "current_status": "Partially implemented",
+      "tested_version": "0.4.5",
+      "resolution": "current_scoped_verification"
     },
     {
       "id": "N026",
@@ -1738,7 +3519,7 @@
       "title": "Updater verification",
       "approach": "Audit release identity, version/architecture/size/hash checks, root-owned\nstaging, helper scope, and failures.",
       "acceptance": "Tampered/wrong packages are rejected.\nActual authorized update testing preserves data.\nUntested administrative paths remain explicitly open.",
-      "status": "partially_verified_backlog",
+      "status": "partially_implemented",
       "code_paths": [
         "src/desktop/releases.py",
         "packaging/linux/install-update"
@@ -1749,10 +3530,56 @@
           "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
           "environment": "extracted packaged app",
           "outcome": "partial"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
-      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "partially_verified_backlog",
+          "resolution": null,
+          "tested_version": null,
+          "evidence": [
+            {
+              "artifact": "evidence/package-source.json",
+              "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+              "environment": "extracted packaged app",
+              "outcome": "partial"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+          "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+        }
+      ],
+      "current_status": "Partially implemented",
+      "tested_version": "0.4.5",
+      "resolution": "current_scoped_verification"
     },
     {
       "id": "N030",
@@ -1760,7 +3587,7 @@
       "title": "Documentation and Doctor",
       "approach": "Update documentation to match real feature availability and UI paths.\nCount only diagnostics that actually run and give actionable results.",
       "acceptance": "Docs match the shipped app.\nNo invented diagnostic totals or success claims.",
-      "status": "partially_verified_backlog",
+      "status": "partially_implemented",
       "code_paths": [
         "README.md",
         "docs/QA_v0.4.4_AR.md",
@@ -1772,10 +3599,56 @@
           "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
           "environment": "extracted packaged app",
           "outcome": "partial"
+        },
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
         }
       ],
       "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
-      "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "partially_verified_backlog",
+          "resolution": null,
+          "tested_version": null,
+          "evidence": [
+            {
+              "artifact": "evidence/package-source.json",
+              "scenario": "Local package payload and launcher checks applied to this delivery; no administrative installation/update.",
+              "environment": "extracted packaged app",
+              "outcome": "partial"
+            },
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Live administrative install/update and complete Doctor coverage remain untested/open; publication is not authorized.",
+          "next_action": "Continue P10 as a separate reviewable milestone; do not infer permission to publish/install."
+        }
+      ],
+      "current_status": "Partially implemented",
+      "tested_version": "0.4.5",
+      "resolution": "current_scoped_verification"
     },
     {
       "id": "N103",
@@ -1783,11 +3656,52 @@
       "title": "Telegram/backend integration",
       "approach": "Replace fixed-port assumptions with protected local discovery/configuration.\nVerify backend identity and stale state.\nKeep Telegram as an API client rather than a second model process.",
       "acceptance": "Discovery/failure contract tests pass.\nReal channel tests are reported separately, without unsolicited live messages.",
-      "status": "backlog_verify_first",
+      "status": "partially_implemented",
       "code_paths": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+          "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+          "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+          "outcome": "247 passed in 19.05s"
+        },
+        {
+          "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+          "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+          "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+          "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+        }
+      ],
       "remaining_limitation": "Acceptance not yet mapped to current evidence.",
-      "next_action": "Verify and reuse existing implementation before editing."
+      "next_action": "Use prioritized remaining work and acceptance criteria in docs/REQUIREMENTS_v0.4.5_AR.md; do not reuse historical acceptance as completion.",
+      "historical_reviews": [
+        {
+          "preserved_at": "2026-10-29",
+          "before_version": "0.4.5",
+          "status": "backlog_verify_first",
+          "resolution": null,
+          "tested_version": null,
+          "evidence": [
+            {
+              "artifact": "NEURA_Chat_Resolution_0.4.5/evidence/final-acceptance.xml",
+              "scenario": "Current 247-test suite; exact applicable scenarios and proof limits are mapped per N ID in REQUIREMENTS_v0.4.5_AR.md.",
+              "environment": "fake model/desktop, actual API/store; packaged Qt separate; real inference separately labeled",
+              "outcome": "247 passed in 19.05s"
+            },
+            {
+              "artifact": "docs/REQUIREMENTS_v0.4.5_AR.md",
+              "scenario": "Current requirement mapping, actual evidence and limitations; earlier reports retained as history.",
+              "environment": "source inspection, current tests, explicit CUA/real CPU model cases only",
+              "outcome": "See per-ID status; no blanket claim of complete 80-item plan."
+            }
+          ],
+          "remaining_limitation": "Acceptance not yet mapped to current evidence.",
+          "next_action": "Verify and reuse existing implementation before editing."
+        }
+      ],
+      "current_status": "Partially implemented",
+      "tested_version": "0.4.5",
+      "resolution": "current_scoped_verification"
     }
   ],
   "deferred": [
@@ -1871,5 +3785,13 @@
     "open_active": 49,
     "deferred": 10,
     "superseded": 2
+  },
+  "latest_review": {
+    "version": "0.4.5",
+    "branch": "fix/chat-targets-workspace-045",
+    "base_commit": "e10ebaa17cc2965429c02f52109fdd3016ddbfee",
+    "scope": "Focused application target/followup, exact CV flow, freshness fixes; whole plan not completed",
+    "report": "docs/QA_v0.4.5_AR.md",
+    "matrix": "docs/REQUIREMENTS_v0.4.5_AR.md"
   }
 }

@@ -7,6 +7,9 @@ All project/job/file/skill GET and mutation operations require X-Neura-Token and
 - POST /projects: existing synchronous request remains valid. With background=true: user_request, requirements, title?, project_type=auto|static_web|python|other, project_id?, expected_revision?, context_files=[], plan=false, max_tokens. Returns 202 `{project,job}` immediately. An existing project needs its revision and actual relevant source paths. No implicit source edits from a summary.
 - GET /projects → `{projects:[metadata]}`; no model invocation.
 - GET /projects/{id} → metadata + bounded derived summary + source_freshness.
+- Catalog/event reads that skip hashing return `source_freshness: null` and a
+  `not_checked` summary label; they never certify source freshness. The individual
+  project endpoint hashes bounded source files even when size and mtime match.
 - GET /projects/{id}/file?path=relative → content, sha256, project_revision, source_freshness.
 - PUT /projects/{id}/file: path, content, expected_revision, expected_sha256 → updated metadata. 409 requires review/refresh; no silent overwrite.
 - POST /projects/{id}/reindex: expected_revision → explicitly adopt statically valid external edits; keep previous snapshot.
@@ -43,3 +46,26 @@ Desktop content and model output cannot authorize actions. No shell, messages, i
 `GET /project-jobs/{id}` adds `invoice`, `invoice_provenance`, `stage_results`, `saved_files`, and `validation`. Stage results record actual stage transitions, model/finish reasons where returned, and optional plan output. File references contain project ID, path, committed revision and SHA256 and do not change after later edits. Recorded invoices may contain selected actual source for an edit; this remains an authenticated private endpoint, not preview data or unrestricted logs.
 
 Old records have `invoice: null`, `invoice_provenance: unavailable_legacy`, and empty unrecorded stage/file result lists. Their saved projects remain available. The additive `job_contracts` table does not replace the existing projects/jobs/catalog. No model grade bypasses deterministic file validation.
+
+## Filename hints and current source facts (0.4.5)
+
+`ProjectRequest.filename_hints` and `TaskInvoice.filename_hints` are optional
+advisory relative paths, distinct from mandatory `required_files/expected_files`.
+All are validated as safe paths. Named fences remain preferred. A legacy
+language-only fence is accepted only when one filename is established by the
+invoice, a completed HTML file's actual local asset references, or advisory hints
+(for an edit, actual selected context files). Multiple candidates, duplicate
+names, unsafe references or unresolved names fail. No `file_1` guessing occurs.
+`file_started.data.filename_origin` and the generation result's
+`filename_resolutions` record whether the name came from model/invoice/reference/hint.
+Reference, syntax, required-file and revision checks still decide commit eligibility.
+
+Freshness reads hash every bounded project file even if size/mtime are unchanged;
+metadata answers refuse stale sources. A second inventory check detects changes
+during the scan. Saves retain revision and content-hash guards.
+
+Metadata adds bounded `features`, `features_provenance: static_source_observations`
+and `limitations`. These describe saved source facts, not claimed behavioral tests.
+Existing valid catalogs are enriched additively from current source without
+changing source revision; stale catalogs require explicit reindex first. Summary
+maintenance and basic metadata questions do not require a model pass.
