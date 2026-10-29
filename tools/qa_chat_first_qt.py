@@ -57,6 +57,9 @@ try:
  record('website-chat-no-model',state()['model_calls']==0 and state()['model_loads']==0)
  send('افتح تطبيق Brave');wait(lambda:len(state()['desktop'])==2)
  record('application-chat',state()['desktop'][-1]==['app','brave-browser.desktop'])
+ for text in ('ابحث في يوتيوب','ابحث في يوتيوب عن'):
+  send(text);wait(lambda:not js('busy'))
+  record('n069-missing-query-'+str(len(text)),state()['model_calls']==0 and len(state()['desktop'])==2 and js('document.querySelector("#log").textContent.includes("عبارة البحث")'))
  send('اشرح كيف أكتب دالة Python');wait(lambda:js('document.querySelector("#log .neura-md strong")!==null'))
  record('explanation-remains-chat',state()['projects']==0 and js('location.hash!=="#workspace"'))
  wait(lambda:not js('busy'));pump(.2);window.grab().save(str(args.output/'chat-wide.png'))

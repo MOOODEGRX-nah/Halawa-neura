@@ -319,13 +319,25 @@
           "scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected.",
           "environment": "actual Brave and schema fixtures",
           "outcome": "passed"
+        },
+        {
+          "artifact": "evidence/n069-before.txt",
+          "scenario": "Missing Arabic/English search query, before reproduction and final packaged UI verification.",
+          "environment": "backend fixture and packaged Qt",
+          "outcome": "expected_failure_before_fix"
+        },
+        {
+          "artifact": "evidence/qt-standard/qt-journeys.json",
+          "scenario": "Missing Arabic/English search query, before reproduction and final packaged UI verification.",
+          "environment": "backend fixture and packaged Qt",
+          "outcome": "passed"
         }
       ],
       "remaining_limitation": "No transcript/video understanding claim.",
       "next_action": "Retain implementation; reverify if these paths or acceptance requirements change.",
-      "resolution": "verified_reuse",
+      "resolution": "implemented_and_verified",
       "tested_version": "0.4.4",
-      "acceptance_scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected."
+      "acceptance_scenario": "Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected. Missing natural-language queries request a search phrase without launch/model fallback."
     },
     {
       "id": "N070",
@@ -1851,7 +1863,7 @@
     "branch": "milestone-p1-p4-n-ids",
     "installed_package_observed": "neura-ai-bin 0.4.2-1",
     "baseline_evidence": "prior delivery NEURA_Remaining_P0_P4/evidence, source unchanged before targeted N contract checks",
-    "current_regression_cases": 205
+    "current_regression_cases": 208
   },
   "counts": {
     "active_total": 80,

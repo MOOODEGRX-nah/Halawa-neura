@@ -1,4 +1,5 @@
 import json,time
+import pytest
 from src.core.invoice_parser import InvoiceParser
 from src.core.invoice_orchestrator import InvoiceOrchestrator
 from tests.regression.test_chat_dispatch import application
@@ -76,7 +77,6 @@ def test_n041_plan_contract_preserved_and_legacy_rows_are_not_fabricated(system)
 
 
 def test_n072_history_is_bounded_and_n073_expired_grant_never_launches(tmp_path):
-    import pytest
     from src.core.project_store import ProjectStore
     from src.tools.desktop_skills import DesktopSkills,PermissionDenied
     from tests.security.test_desktop_skills import FakeDesktop
@@ -91,3 +91,13 @@ def test_n072_history_is_bounded_and_n073_expired_grant_never_launches(tmp_path)
     before=skills.recent();store.close();store=ProjectStore(tmp_path)
     assert DesktopSkills(store,FakeDesktop()).recent()==before
     store.close()
+
+
+@pytest.mark.parametrize('text',['ابحث في يوتيوب','ابحث في يوتيوب عن','search youtube for'])
+def test_n069_missing_query_does_not_launch_or_fall_back_to_model(system,text):
+    from tests.regression.test_chat_dispatch import request_id
+    app,desktop,dispatch=application(system)
+    result=dispatch.dispatch(text,request_id())
+    assert result['kind']=='action' and result['result']['status']=='error' and 'عبارة' in result['result']['message']
+    assert not desktop.calls and not system.backend.calls
+    app.state.project_store.close()

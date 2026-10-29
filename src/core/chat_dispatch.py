@@ -187,6 +187,8 @@ class ChatDispatcher:
         if project_intent(text):return {'kind':'project_intent'}
         if workspace_intent(text):return self._open_workspace(text,active_project_id)
         q=re.sub(r'\s+(?:من فضلك|لو سمحت|please)$','',q)
+        if re.fullmatch(r'^(?:ابحث(?:لي)?|تبحث|search)\s+(?:لي\s+)?(?:(?:في|على|in|on)\s+)?(?:(?:ال)?يوتيوب|(?:ال)?يوتوب|يو تيوب|youtube|you tube)(?:\s+(?:عن|for))?$',q):
+            return {'kind':'action','result':{'status':'error','message':'اكتب عبارة البحث في يوتيوب، مثل: ابحث في يوتيوب عن تعلم Python.'}}
         if re.fullmatch(r'(?:اعرض|افتح|ما هي|list|show)\s+(?:اخر التطبيقات|التطبيقات الاخيرة|البرامج الاخيرة|recent apps|recent applications)',q):
             return self._skill('list_recent_applications',{})
         match=re.match(r'^(?:ابحث(?:لي)?|تبحث|search)\s+(?:لي\s+)?(?:(?:في|على|in|on)\s+)?(?:(?:ال)?يوتيوب|(?:ال)?يوتوب|يو تيوب|youtube|you tube)\s+(?:عن\s+|for\s+)?(.+)$',q)

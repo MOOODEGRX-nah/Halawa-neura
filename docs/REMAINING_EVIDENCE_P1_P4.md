@@ -12,7 +12,7 @@
 | N066 | Execute skills from Arabic conversation | إعادة استخدام متحقق | Exact polite YouTube plus Arabic apps/files/folder invoke actual adapters; negation/quoted/code do not launch. |
 | N067 | Open websites in Brave | إعادة استخدام متحقق | HTTP(S) validation and trusted structured GIO argv; real YouTube launch accepted; missing/failing browser tested. |
 | N068 | Separate browser search from retrieved research | إعادة استخدام متحقق | Arabic Brave search query encoded and opened; message explicitly says results were not read. |
-| N069 | Search YouTube | إعادة استخدام متحقق | Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected. |
+| N069 | Search YouTube | استكمال واختبار | Arabic/mixed query encodes to correct YouTube search_query; invalid/empty schema inputs rejected. Missing natural-language queries request a search phrase without launch/model fallback. |
 | N070 | Open approved files and folders | إعادة استخدام متحقق | Actual approved QA file and project folder accepted; missing/ambiguous/traversal/executable fixtures rejected. |
 | N071 | Open installed applications | إعادة استخدام متحقق | Actual Brave and installed calculator launches; trusted root desktop-entry catalog and shell=False; injected args fail. |
 | N072 | Record recent applications | إعادة استخدام متحقق | Actual Neura launch history survives store reopen; fixture enforces max100 rows/history50/recent10. |
