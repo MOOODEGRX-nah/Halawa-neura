@@ -30,10 +30,12 @@ vm.runInNewContext(fs.readFileSync('web/workspace.js','utf8'),context);
  const opening=window.NeuraWorkspace.openProject(pid);
  for(let i=0;i<30&&!finishJob;i++)await new Promise(resolve=>setTimeout(resolve,1));
  assert.ok(finishJob,'job lookup must be pending');
+ assert.equal(el('ws-editor').readOnly,true,'opening revision is not editable before its final snapshot settles');
  el('ws-return').onclick();assert.equal(views.at(-1),'chat');
  finishJob();await opening;
  assert.equal(views.at(-1),'chat','late workspace navigation erased explicit return to chat');
  assert.equal(el('ws-editor').value,'pass\n');
+ assert.equal(el('ws-editor').readOnly,false,'completed opening must restore editing');
 })().catch(error=>{process.stderr.write(error.stack);process.exitCode=1});
 '''
     result=subprocess.run(['node','-e',script],cwd=Path(__file__).resolve().parents[2],capture_output=True,text=True,timeout=10)

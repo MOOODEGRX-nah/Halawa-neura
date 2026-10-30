@@ -512,7 +512,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "اختبار التطبيق المثبّت والمثبّت",
-    "scope_note_ar": "المثبت فعليًا 0.4.5-1؛ هدف QA حزمة 0.4.6 مستخرجة مطابقة للمصدر. لا تثبيت/تحديث إداري أو فتح أيقونة أصلية مثبتة في هذه الجولة."
+    "scope_note_ar": "المثبت فعليًا 0.4.5-1؛ هدف QA حزمة 0.4.7 مستخرجة مطابقة للمصدر. لا تثبيت/تحديث إداري أو فتح أيقونة أصلية مثبتة في هذه الجولة."
   },
   {
     "task_id": "N026",
@@ -527,7 +527,15 @@
       "src/desktop/releases.py",
       ".github/workflows/build.yml",
       "tools/build_linux_release.py",
-      "web/index.html"
+      "web/index.html",
+      "src/desktop/app.py",
+      "src/desktop/service.py",
+      "src/core/neura_loop.py",
+      "src/core/project_jobs.py",
+      "src/backend/project_api.py",
+      "web/workspace.js",
+      "tests/regression/test_update_lifecycle.py",
+      "tools/qa_review_update_qt.py"
     ],
     "required_evidence": [
       "CONTRACT_FAKE",
@@ -535,7 +543,7 @@
     ],
     "scope_note": "Release/hash/staging helpers exist; dirty/active-job gate before updater backend stop and administrative trial remain open.",
     "title_ar": "التحقق الإداري من المحدّث",
-    "scope_note_ar": "فحوص الهوية والبصمة والتجهيز موجودة؛ حماية dirty والمهام قبل إيقاف الخلفية والمعاملة الإدارية الفعلية ما زالت مفتوحة."
+    "scope_note_ar": "0.4.7 ترفض التحديث عند dirty/عمل نشط، وتحجز admission في الخلفية، وتعيد فحص UI قبل stop؛ الإلغاء وفشل المصادقة يستعيدان العمل. المعاملة الإدارية/root staging الحقيقية ما زالت غير مختبرة."
   },
   {
     "task_id": "N027",
@@ -824,7 +832,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "عقد Task Invoice",
-    "scope_note_ar": "WorkspaceRequest وjob_contracts يحفظان الأصل والقيود والمراحل والملفات والتحقق داخل ProjectJobs؛ لا منسق موازٍ جديد."
+    "scope_note_ar": "WorkspaceRequest/ProjectJobs يحفظان Invoice ومراحلها؛ planning المطلوبة تحتاج stop وعقد JSON مختصر صالح قبل coder. الفشل يحفظ result وlast-good؛ القبول الساكن لا يثبت السلوك."
   },
   {
     "task_id": "N042",
@@ -849,7 +857,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "التخطيط عند الحاجة",
-    "scope_note_ar": "التصنيف يفصل الشرح والإنشاء والتعديل؛ المشاريع البسيطة تستخدم coder مباشرة. التخطيط المعقد ليس رحلة مكتملة ومقياس EXPERT فشل."
+    "scope_note_ar": "المشاريع البسيطة لا تفرض تخطيطًا؛ plan=true يطبق عقد خطوات/ملفات مع حد768 ودون إعادة تلقائية. التخطيط النصي العام وجودة EXPERT لهما دليل مستقل."
   },
   {
     "task_id": "N043",
@@ -874,7 +882,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "أسماء الملفات ومراجعها",
-    "scope_note_ar": "FileStream يستخرج الأسماء من headers/references ويعالج التجزئة؛ اختبرت أسماء HTML/CSS/JS/SVG الفعلية وروابطها بدل file_1 الوهمية."
+    "scope_note_ar": "FileStream يحفظ أسماء المخرجات وروابطها؛ اختبرت أسماء HTML/CSS/JS/SVG وتجزئتها في العقود، وحُفظ game.py/index.html وmain.py من النماذج الفعلية. المشاريع الحقيقية الحالية تستخدم JavaScript/CSS مضمنين؛ لا يُنسب fixture الأربع ملفات إلى نموذج."
   },
   {
     "task_id": "N044",
@@ -923,7 +931,7 @@
     ],
     "scope_note": "Legacy explicit verdict/bounded repair exists; streaming project jobs have deterministic checks but no complete semantic repair loop.",
     "title_ar": "المراجعة والإصلاح المحدود",
-    "scope_note_ar": "حكم المراجعة الصريح والفحص الساكن موجودان؛ إصلاح سلوكي تلقائي كامل في مساحة العمل المبثوثة غير منفذ."
+    "scope_note_ar": "حكم المراجعة الصريح والفحص الساكن موجودان؛ تجربة 0.4.7 أضافت الوضع الداكن لكنها استبدلت Login السابق. نجاح syntax والحفظ لا يثبت الحفاظ على السلوك، والإصلاح السلوكي العام في workspace غير مكتمل."
   },
   {
     "task_id": "N046",
@@ -1021,7 +1029,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "إنشاء المشاريع من المحادثة",
-    "scope_note_ar": "ChatDispatcher.dispatch ينشئ مشروعًا ومهمة من النص نفسه، وNeuraChat يفتح NeuraWorkspace قبل اكتمال البث؛ CV وPython لهما أدلة فعلية."
+    "scope_note_ar": "وسّع التوجيه لطلبات لعبة XO/ثعبان وكود Python، مع تعديل زر/وضع داكن على المشروع الحالي من مصدره الفعلي. لا هدف حالي يعني اختيارًا دون job؛ الإثبات الحقيقي لكل صياغة يسجل في الجولة."
   },
   {
     "task_id": "N050",
@@ -1131,7 +1139,7 @@
     "title": "Save edits with revision protection",
     "acceptance": "Saving CSS updates the correct revision; concurrent or external changes produce a reviewable conflict rather than silent overwrite.",
     "category": "active",
-    "feature_state": "IMPLEMENTED",
+    "feature_state": "PARTIAL",
     "source_paths": [
       "src/core/chat_dispatch.py",
       "src/core/project_jobs.py",
@@ -1149,7 +1157,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "تحرير وحفظ مع حماية المراجعات",
-    "scope_note_ar": "المحرر يحتفظ بـdirty ويحرس expected_revision/sha256؛ تأخير الحفظ والتعارض والفشل اختبرت في Qt fake، وحفظ حقيقي غيّر المعاينة."
+    "scope_note_ar": "حراس dirty وexpected_revision/sha256 والحفظ الذري والتعارض تعمل ضمن الفحوص؛ حفظ يدوي وبقاء النص عند تبديل العرض ثبتا فعليًا. تعديل النموذج للوضع الداكن حذف رابط Login السابق؛ تبقى سلامة التعديل السلوكية جزئية."
   },
   {
     "task_id": "N055",
@@ -1175,7 +1183,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "معاينة المواقع الثابتة",
-    "scope_note_ar": "PreviewServer يخدم snapshot للملفات المؤهلة فقط؛ زر JavaScript والشعار المحلي عملا فعلًا. React/TSX/backend لا يُعلنان جاهزين دون build."
+    "scope_note_ar": "PreviewServer يأخذ metadata وmanifest وbytes لمراجعة واحدة عبر ProjectStore.preview_snapshot؛ التزامن يعيد اللقطة المطلوبة أو conflict، ولا يخلط المراجعات. static فقط، دون build تلقائي."
   },
   {
     "task_id": "N056",
@@ -1200,7 +1208,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "المعاينة الكاملة",
-    "scope_note_ar": "زر المعاينة الكاملة يفتح iframe آخر لنفس URL/revision وsandbox؛ ليس فتح صفحة مولدة في أصل التطبيق المميز."
+    "scope_note_ar": "المضمنة والكاملة تستخدمان capability snapshot نفسها؛ مراجعة وملفات اللقطة ثابتة عبر commits لاحقة. فحوص UI والعزل والتزامن منفصلة."
   },
   {
     "task_id": "N057",
@@ -1318,12 +1326,12 @@
       "web/workspace.js"
     ],
     "required_evidence": [
-      "CONTRACT_FAKE",
-      "UI_FIXTURE"
+      "UI_FIXTURE",
+      "PACKAGE"
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "إزالة تبويبي المشاريع والمهارات",
-    "scope_note_ar": "nav يحتوي المحادثة والمراقبة وحول فقط؛ أُزيلت Projects/Skills الدائمتان وبقي backend ومساحة العمل والإعدادات."
+    "scope_note_ar": "nav يحتوي المحادثة والمراقبة وحول فقط؛ أُزيلت Projects/Skills الدائمتان وبقي backend ومساحة العمل والإعدادات. قبول التنقل/التخطيط البصري يتطلب فحص UI وأصول الحزمة الفعلية؛ لا يُحتسب placeholder عقد بلا اختبار مقابل."
   },
   {
     "task_id": "N062",
@@ -1339,12 +1347,12 @@
       "web/workspace.js"
     ],
     "required_evidence": [
-      "CONTRACT_FAKE",
-      "UI_FIXTURE"
+      "UI_FIXTURE",
+      "PACKAGE"
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "إجراءات مربع المحادثة",
-    "scope_note_ar": "chat-actions toolbar يجمع الصورة والجلسات والمجلد قرب composer؛ فحوص Qt واستجابة 480px تمنع شريطًا بعرض النافذة."
+    "scope_note_ar": "chat-actions toolbar يجمع الصورة والجلسات والمجلد قرب composer؛ فحوص Qt واستجابة 480px تمنع شريطًا بعرض النافذة. قبول التنقل/التخطيط البصري يتطلب فحص UI وأصول الحزمة الفعلية؛ لا يُحتسب placeholder عقد بلا اختبار مقابل."
   },
   {
     "task_id": "N063",
@@ -1974,7 +1982,7 @@
     ],
     "scope_note": "Actual packaged MTMD image/projector inference identified red and blue in the owned PNG fixture on CPU. UI upload and hardware scope are listed per case.",
     "title_ar": "الرؤية بالنموذج ومعالج الصورة الحقيقيين",
-    "scope_note_ar": "API حقيقي أجاب أحمر/أزرق؛ رفع PNG نفسه من composer أجاب الأحمر والأسود. فشل قبول جودة UI محفوظ ولم يُستبدل بنجاح API."
+    "scope_note_ar": "0.4.7: ثلاثة أزواج API/UI بمدخلات native التسعة متطابقة. الأخضر/الأصفر والأسود/الأبيض نجحا في المسارين؛ الأحمر/الأزرق أخفق في UI ونجح في API. sampling متطابق دون seed ثابت؛ السبب الجذري غير محسوم ولا إعادة حتى النجاح."
   },
   {
     "task_id": "N094",
@@ -2054,7 +2062,7 @@
     ],
     "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
     "title_ar": "تقييمات قبول قابلة للتكرار",
-    "scope_note_ar": "runner جديد وكتالوج109 وfixtures حالية ومستويات دليل منفصلة. تغطية الصوت/الإدارة/desktop الأصلي ما زالت مفتوحة؛ أعطال harness القديمة محفوظة مع تصحيحها."
+    "scope_note_ar": "runner وكتالوج109 وfixtures وخط أساس للفشل وtracing لمدخلات النموذج الحقيقي. التقرير يفصل 310 عقود و65 فحص Qt offscreen عن IAB والنموذج وGIO؛ desktop الأصلي/GPU/audio/admin ما زالت أدلتها مفتوحة."
   },
   {
     "task_id": "N098",

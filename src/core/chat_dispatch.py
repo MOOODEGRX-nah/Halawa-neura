@@ -39,11 +39,13 @@ def command_text(text):
 
 def project_intent(text):
     q=command_text(text)
-    return bool(re.match(r'^(?:برمج|تبرمج|انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:موقع|برنامج|تطبيق|صفحة|مشروع|website|web ?app|application|project|program|landing page)\b',q))
+    return bool(re.match(r'^(?:برمج|تبرمج|انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:(?:python|javascript|html|css)\s+)?(?:موقع|برنامج|تطبيق|صفحة|مشروع|لعبة|كود|سكربت|website|web ?app|application|project|program|game|code|script|landing page)\b',q))
 
 
 def active_edit_intent(text):
-    return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',command_text(text)))
+    q=command_text(text)
+    return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',q) or
+        re.match(r'^(?:اضف|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زر|الزر|ازرار|وضع|الوضع|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login button|dark mode|feature|input|function|bug)\b',q))
 
 
 def metadata_intent(text):
@@ -299,7 +301,7 @@ class ChatDispatcher:
         knowledge=bool(re.match(r'^(?:هل (?:تعرف|تعلم)|ما (?:اسم|هو|هي)|what is|do you know)\b',q))
         action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي)\b',q))
         metadata=bool(active_project_id and metadata_intent(text))
-        edit=bool(active_project_id and active_edit_intent(text))
+        edit=active_edit_intent(text)
         if not action and not project_intent(text) and not workspace_intent(text) and not metadata and not followup and not knowledge and not edit:
             self.targets.set(session_id,[])
             return {'kind':'chat'}
@@ -308,7 +310,14 @@ class ChatDispatcher:
             if metadata:
                 answer=self.store.answer(active_project_id,text)
                 return {'kind':'metadata','message':answer['answer']+'\n— من فهرس المشروع، دون استدعاء نموذج.','project_id':active_project_id,'model_called':False,'source':answer['source']}
-            if edit:return self._edit_current(text,active_project_id,workspace_dirty)
+            if edit:
+                # An explicit modification without a unique current project is
+                # a project choice, never a new project or a generic code reply.
+                named_other=bool(re.search(r'(?:الى|في|to|in)\s+(?:مشروع|project)\s+(?!هذا\b|الحالي\b|this\b|current\b)',q))
+                if active_project_id and not named_other:return self._edit_current(text,active_project_id,workspace_dirty)
+                candidates=[(p['display_name']+' — '+p['purpose'][:70],'workspace',{'project_id':p['project_id'],'edit_request':text}) for p in self.store.list()]
+                if not candidates:return {'kind':'action','result':{'status':'error','message':'اختر مشروعًا محفوظًا أو أنشئه أولًا؛ لم يبدأ تعديل أو مشروع جديد.'}}
+                return self._choice(candidates,'أي مشروع تريد تعديله؟ اختره ثم راجع المصدر وطلب التعديل.')
             if knowledge and not metadata:
                 apps=self.skills.adapter.status().get('applications',[])
                 config=getattr(self.skills.adapter,'configuration',lambda:{})()

@@ -1,6 +1,7 @@
 """Additive authenticated workspace routes. Legacy /projects POST remains."""
 import asyncio
 import json
+import os
 from pydantic import BaseModel, ConfigDict, Field
 from fastapi import Request, HTTPException
 from fastapi.responses import Response, StreamingResponse
@@ -42,9 +43,24 @@ class LegacyImport(Strict):
     legacy_id:str=Field(pattern=r'^proj_[a-f0-9]{32}$')
 
 
+class UpdateReservation(Strict):
+    reservation_id:str=Field(pattern=r'^u_[a-f0-9]{32}$')
+    instance_id:str|None=Field(default=None,max_length=64)
+
+
 def attach_projects(app, store, jobs, preview):
     from src.core.legacy_projects import LegacyProjects
     legacy=LegacyProjects(store)
+    @app.post('/lifecycle/update/prepare')
+    async def prepare_update(req:UpdateReservation):
+        if req.instance_id!=os.environ.get('NEURA_INSTANCE_ID'):raise HTTPException(409,'Backend instance changed; update deferred')
+        value=await asyncio.to_thread(jobs.prepare_update,req.reservation_id)
+        return {**value,'instance_id':os.environ.get('NEURA_INSTANCE_ID')}
+
+    @app.post('/lifecycle/update/release')
+    async def release_update(req:UpdateReservation):
+        if req.instance_id!=os.environ.get('NEURA_INSTANCE_ID'):raise HTTPException(409,'Backend instance changed')
+        return await asyncio.to_thread(jobs.release_update,req.reservation_id)
     @app.get('/workspace/schema')
     async def public_schema():
         from src.core.project_contracts import JobEvent,ProjectCreated,APIError

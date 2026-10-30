@@ -75,16 +75,34 @@ def test_source_files_open_in_editor_and_never_execute(tmp_path,monkeypatch):
     store.close()
 
 
-def test_arbitrary_paths_and_untrusted_desktop_entries_rejected(tmp_path):
+def test_arbitrary_paths_and_untrusted_desktop_entries_rejected(tmp_path,monkeypatch):
     store=ProjectStore(tmp_path);skills=DesktopSkills(store,FakeDesktop())
     with pytest.raises(ValidationError):skills.authorize('open_file',{'path':'/etc/passwd'})
     with pytest.raises(ValidationError):skills.authorize('open_folder',{'selection_id':'l_'+'a'*32,'path':'/tmp'})
     root=tmp_path/'applications';root.mkdir()
     (root/'evil.desktop').write_text('[Desktop Entry]\nType=Application\nName=Evil\nExec=sh -c bad\n')
     (root/'linked.desktop').symlink_to(root/'evil.desktop')
+    actual_lstat=Path.lstat
+    def untrusted_owner(path,*args,**kwargs):
+        info=actual_lstat(path,*args,**kwargs)
+        # Model the trust input explicitly: a root-run CI temporary file is
+        # otherwise genuinely root-owned, unlike the intended untrusted file.
+        return SimpleNamespace(st_uid=1001,st_mode=info.st_mode) if path==root/'evil.desktop' else info
+    monkeypatch.setattr(Path,'lstat',untrusted_owner)
     adapter=DesktopAdapter(store,settings={},roots=[root])
     assert not adapter.catalog()  # User-created/untrusted launchers never enter the catalog.
     store.close()
+
+
+@pytest.mark.parametrize('owner,mode,accepted',[(0,0o100644,True),(1001,0o100644,False),(0,0o100664,False),(0,0o100646,False)])
+def test_desktop_catalog_trust_is_explicit_and_independent_of_test_uid(tmp_path,monkeypatch,owner,mode,accepted):
+    root=tmp_path/'applications';root.mkdir();entry=root/'qa.desktop'
+    entry.write_text('[Desktop Entry]\nType=Application\nName=QA\nExec=/usr/bin/true\n')
+    original=Path.lstat
+    monkeypatch.setattr(Path,'lstat',lambda path,*a,**k:SimpleNamespace(st_uid=owner,st_mode=mode) if path==entry else original(path,*a,**k))
+    store=ProjectStore(tmp_path/'data')
+    try:assert bool(DesktopAdapter(store,settings={},roots=[root]).catalog()) is accepted
+    finally:store.close()
 
 
 def test_api_grants_require_app_origin_and_token(system):

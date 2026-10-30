@@ -44,6 +44,7 @@ class NeuraLoop:
         self.recent = deque(maxlen=20)
         self.totals = {'requests': 0, 'prompt_tokens': 0, 'output_tokens': 0, 'errors': 0, 'unknown_usage_requests': 0}
         self._closed = False
+        self._maintenance = False
         # Game monitoring is opt-in. It uses the same lock and never closes a busy model.
         self.game_monitor = None
         self._monitor_stop = threading.Event()
@@ -89,6 +90,8 @@ class NeuraLoop:
         try:
             if self._closed:
                 raise InferenceError('Coordinator is shut down')
+            if self._maintenance:
+                raise InferenceError('التحديث قيد التهيئة؛ أُجّل الطلب ولم يبدأ استدلال جديد.',503,'update_pending')
             yield
         finally:
             self.lock.release()

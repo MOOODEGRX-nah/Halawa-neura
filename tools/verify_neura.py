@@ -259,6 +259,8 @@ class Run:
             'test_desktop_skills':'N065 N067 N068 N069 N070 N071 N072 N073 N098',
             'test_markdown_renderer':'N063 N098','test_safety':'N098','test_vault':'N033',
             'test_verification_runner':'N014 N097'}
+        mapping['test_review_046']='N041 N042 N049 N050 N054 N055 N056 N066'
+        mapping['test_update_lifecycle']='N026 N010 N013 N098'
         for tc in tree.iter('testcase'):
             status='FAIL' if tc.find('failure') is not None or tc.find('error') is not None else 'NOT_RUN' if tc.find('skipped') is not None else 'PASS'
             counts[status]+=1;module=tc.get('classname','').split('.')[-1];name=tc.get('name')
@@ -274,7 +276,8 @@ class Run:
     def ui(self):
         suites=[('qa_targets_workspace_qt.py','journeys.json','N049 N050 N051 N052 N053 N055 N056 N059 N060 N066 N071 N073'),
                 ('qa_chat_first_qt.py','qt-journeys.json','N029 N033 N049 N051 N052 N053 N054 N055 N056 N060 N061 N062 N063 N064 N066 N073'),
-                ('qa_milestone_ui.py','qt-extra.json','N053 N054 N056 N057 N062 N064 N098')]
+                ('qa_milestone_ui.py','qt-extra.json','N053 N054 N056 N057 N062 N064 N098'),
+                ('qa_review_update_qt.py','update-qt.json','N026 N054 N098')]
         codes=[]
         for script,record,ids in suites:
             name=Path(script).stem;folder=self.out/'artifacts'/name
@@ -338,6 +341,7 @@ def main(argv=None):
     p.add_argument('--target-root',default=str(REPO));p.add_argument('--vendor-dir')
     p.add_argument('--output-root',default=str(REPO/'verification-runs'));p.add_argument('--profile-root');p.add_argument('--resume')
     p.add_argument('--allow-real-model',action='store_true');p.add_argument('--allow-desktop',action='store_true')
+    p.add_argument('--trace-real-model',action='store_true',help='QA-only observer of actual model input/options; never production data')
     p.add_argument('--model-case',choices=['all','history','budget','transport'],default='all')
     p.add_argument('--serve',choices=['fixture','real']);p.add_argument('--observations')
     p.add_argument('--archive',action='store_true')
@@ -347,7 +351,7 @@ def main(argv=None):
         'command':shlex.join([sys.executable,str(Path(__file__).resolve()),*(argv if argv is not None else sys.argv[1:])]),
         'cwd':str(Path.cwd()),'suite':args.suite,'serve':args.serve})
     print(json.dumps({'run_id':run.result['run_id'],'source':str(REPO),'target':str(run.target),'profile':str(run.profile),'suite':args.suite,
-        'side_effects':{'static':'QA files/imports only','contract':'fake inference/desktop/sensors','ui':'owned offscreen Qt fixture windows, sandbox enabled','model':args.allow_real_model,'desktop_launch':args.allow_desktop,'serve':args.serve,'admin_or_publish':False},'output':str(run.out)},ensure_ascii=False,indent=2),flush=True)
+        'side_effects':{'static':'QA files/imports only','contract':'fake inference/desktop/sensors','ui':'owned offscreen Qt fixture windows, sandbox enabled','model':args.allow_real_model,'trace_real_model':args.trace_real_model,'desktop_launch':args.allow_desktop,'serve':args.serve,'admin_or_publish':False},'output':str(run.out)},ensure_ascii=False,indent=2),flush=True)
     run.source_review();codes=[]
     if args.observations:run.observations(args.observations)
     if args.serve:

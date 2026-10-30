@@ -39,6 +39,7 @@ class ProjectJobs:
         self.cancel_flags = {}
         self.stopping = threading.Event()
         self.worker = None
+        self.update_reservation = None
         with store.lock:
             store.db.execute('CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,project_id TEXT,state TEXT,request TEXT,draft TEXT,seq INTEGER,cancel INTEGER,error TEXT,created TEXT,updated TEXT)')
             store.db.execute('CREATE TABLE IF NOT EXISTS project_events(job_id TEXT,seq INTEGER,payload TEXT,PRIMARY KEY(job_id,seq))')
@@ -127,9 +128,32 @@ class ProjectJobs:
                          'data': self.get(job_id)}]
             return [json.loads(x['payload']) for x in self.store.db.execute('SELECT payload FROM project_events WHERE job_id=? AND seq>? ORDER BY seq LIMIT 128', (job_id, after))]
 
+    def prepare_update(self,reservation_id):
+        # Same ordering as admission: store lock serializes queued jobs, and a
+        # nonblocking coordinator lock refuses active native work, never kills it.
+        with self.store.lock:
+            if self.update_reservation==reservation_id:return {'reservation_id':reservation_id,'ready':True}
+            if self.update_reservation:raise Conflict('توجد تهيئة تحديث أخرى؛ لم يُوقف المحرك.')
+            active=self.store.db.execute("SELECT COUNT(*) FROM jobs WHERE state NOT IN ('completed','failed','cancelled')").fetchone()[0]
+            if active:raise Conflict('توجد مهام توليد نشطة أو منتظرة؛ انتظر اكتمالها أو ألغها من مساحة العمل ثم أعد التحديث.')
+            if not self.coordinator.lock.acquire(blocking=False):raise Conflict('الاستدلال ما زال يعمل؛ أُجّل التحديث دون إيقافه.')
+            try:
+                if self.stopping.is_set() or getattr(self.coordinator,'_closed',False):raise Conflict('المحرك غير جاهز لتهيئة التحديث')
+                self.coordinator._maintenance=True
+                self.update_reservation=reservation_id
+            finally:self.coordinator.lock.release()
+            return {'reservation_id':reservation_id,'ready':True}
+
+    def release_update(self,reservation_id):
+        with self.store.lock:
+            if self.update_reservation and self.update_reservation!=reservation_id:raise Conflict('هوية تهيئة التحديث غير مطابقة')
+            self.coordinator._maintenance=False;self.update_reservation=None
+            return {'status':'released'}
+
     def create(self, request):
         request = WorkspaceRequest.model_validate(request)
         with self.store.lock:
+            if self.update_reservation:raise Conflict('التحديث قيد التهيئة؛ لم تُنشأ مهمة جديدة.')
             if self.stopping.is_set() or self.queue.full():
                 raise Conflict('قائمة التوليد ممتلئة؛ انتظر انتهاء مهمة')
             if request.project_id:

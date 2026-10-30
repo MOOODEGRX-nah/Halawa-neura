@@ -248,6 +248,7 @@ class UpdateDialog(QDialog):
     def __init__(self, window):
         super().__init__(window)
         self.window = window; self.package = None; self.cancelled = False; self.download_task = None
+        self.phase='idle';self.backend_stopped=False
         self.setWindowTitle('تحديث Neura AI'); self.resize(650, 410)
         layout = QVBoxLayout(self)
         self.status = QLabel('جارٍ التحقق من الإصدار الجديد…'); self.status.setWordWrap(True); layout.addWidget(self.status)
@@ -265,6 +266,20 @@ class UpdateDialog(QDialog):
         except RuntimeError:
             self.download_task = None
         self.window.update_dialog = None
+        if self.phase not in ('stopping','installing','done'):self.recover()
+
+    def reject(self):
+        if self.phase=='installing':
+            self.status.setText('انتظر نتيجة مصادقة النظام أو التثبيت؛ يمكن إلغاء المصادقة من نافذة النظام.')
+            return
+        super().reject()
+
+    def recover(self):
+        stopped=self.backend_stopped;self.backend_stopped=False
+        self.window.release_update()
+        if stopped and not self.window.closing:self.window.begin_backend()
+        elif not self.window.closing:self.window.timer.start()
+        self.phase='idle'
 
     def checked(self, package):
         if self.cancelled: return
@@ -278,6 +293,7 @@ class UpdateDialog(QDialog):
 
     def error(self, message):
         self.status.setText('تعذّر التحديث: ' + message); self.install_button.setEnabled(False)
+        self.recover()
 
     def install(self):
         if not self.package: return
@@ -297,11 +313,24 @@ class UpdateDialog(QDialog):
 
     def downloaded(self, path):
         if self.cancelled: return
-        self.status.setText('اكتمل التحقق. انتظر نافذة مصادقة النظام…')
-        self.window.task(lambda _: self.window.service.stop(), lambda _: self.authorize(path), self.error)
+        self.phase='reviewing'
+        self.status.setText('اكتمل التحقق. جارٍ مراجعة المحرر والمهام قبل إيقاف المحرك…')
+        self.window.prepare_update(lambda:self.stop_prepared(path),self.error)
+
+    def stop_prepared(self,path):
+        if self.cancelled:self.recover();return
+        self.phase='stopping'
+        self.window.timer.stop()
+        def stopped(_):
+            self.backend_stopped=True
+            if self.cancelled:self.recover()
+            else:self.authorize(path)
+        self.window.task(lambda _:self.window.service.stop(),stopped,self.error)
 
     def authorize(self, path):
-        if self.cancelled: return
+        if self.cancelled:self.recover();return
+        self.phase='installing'
+        self.status.setText('العمل محفوظ والمحرك متوقف بأمان. انتظر مصادقة النظام…')
         version = self.package.version
         self.window.task(lambda _: subprocess.run(['/usr/bin/pkexec', '/usr/lib/neura-ai/install-update', str(path), version],
             text=True, capture_output=True, timeout=300), self.installed, self.error)
@@ -309,7 +338,8 @@ class UpdateDialog(QDialog):
     def installed(self, result):
         if result.returncode:
             self.error(result.stderr.strip()[-1000:] or 'لم يكتمل تثبيت التحديث.')
-            self.window.begin_backend(); return
+            return
+        self.phase='done'
         QMessageBox.information(self, 'اكتمل التحديث', 'تم تثبيت التحديث. سيُعاد فتح Neura الآن.')
         subprocess.Popen(['/usr/bin/neura-ai', '--wait-for-lock'])
         self.window.close()
@@ -322,6 +352,7 @@ class MainWindow(QMainWindow):
         self.smoke_check = smoke_check; self.update_dialog = None
         self.tasks = set(); self.closing = False; self.stopping = False; self.loaded = False
         self.close_checked=False;self.checking_close=False
+        self.update_pending=False;self.update_preparing=False;self.update_release_requested=False;self.releasing_update=False
         self.setWindowTitle('Neura AI — معاينة' if os.environ.get('NEURA_PREVIEW') else 'Neura AI'); self.resize(1200, 850)
         self.setWindowIcon(QIcon(str(ROOT / 'assets/logo.png')))
         toolbar = QToolBar(); toolbar.setMovable(False); self.addToolBar(toolbar)
@@ -427,9 +458,56 @@ class MainWindow(QMainWindow):
 
     def restart(self):
         if self.closing: return
+        if self.update_pending:
+            self.statusBar().showMessage('التحديث قيد التهيئة؛ ألغِ نافذته أو انتظر النتيجة قبل إعادة الاتصال.',6000);return
         if self.loaded:
             self.review_dirty('إعادة الاتصال',self._restart_backend)
         else:self._restart_backend()
+
+    def prepare_update(self,continuation,failure):
+        if self.update_pending or self.closing or not self.loaded:
+            failure('المحرك أو الواجهة غير جاهزين؛ أُجّل التحديث دون إيقافهما.');return
+        self.update_pending=True
+        self.update_release_requested=False
+        def fail(message):
+            self.update_preparing=False;self.release_update();failure(message)
+        def read_state(method,callback):
+            finished=[False]
+            def received(value):
+                if finished[0]:return
+                try:value=json.loads(value) if isinstance(value,str) else value
+                except ValueError:value=None
+                finished[0]=True;callback(value if isinstance(value,dict) else {'ready':False,'reason':'تعذر قراءة حالة مساحة العمل؛ أُجّل التحديث.'})
+            self.page.runJavaScript('JSON.stringify(window.NeuraWorkspace?.'+method+'?.() || {ready:false,reason:"مساحة العمل غير جاهزة؛ أُجّل التحديث."})',received)
+            QTimer.singleShot(1200,lambda:received(None))
+        def final_state(state):
+            if self.closing or self.update_release_requested or not self.update_pending or not state.get('ready'):fail(state.get('reason') or 'تغيرت حالة العمل؛ أُجّل التحديث.')
+            else:continuation()
+        def reserved(_):
+            self.update_preparing=False
+            if self.update_release_requested or self.closing:fail('أُجّل التحديث مع إبقاء العمل.');return
+            read_state('checkUpdate',final_state)
+        def initial(state):
+            if self.update_release_requested or self.closing or not self.update_pending:fail('أُجّل التحديث.');return
+            if not state.get('ready'):fail(state.get('reason') or 'احفظ العمل وانتظر المهام قبل التحديث.');return
+            self.update_preparing=True
+            self.task(lambda _:self.service.prepare_update(),reserved,fail)
+        read_state('prepareUpdate',initial)
+
+    def release_update(self):
+        self.update_release_requested=True
+        # Do not release a not-yet-acknowledged reservation before prepare has
+        # reached the backend; that race could leave admission paused forever.
+        if self.update_preparing:return
+        if self.page:self.page.runJavaScript('window.NeuraWorkspace?.releaseUpdate?.()')
+        if self.releasing_update:return
+        if self.service.update_reservation:
+            self.releasing_update=True
+            def released(_):self.releasing_update=False;self.update_pending=False
+            def failed(message):
+                released(None);self.statusBar().showMessage(message+' يمكنك إعادة الاتصال يدويًا.',10000)
+            self.task(lambda _:self.service.release_update(),released,failed)
+        else:self.update_pending=False
 
     def review_dirty(self,title,continuation):
         if self.checking_close:return
@@ -454,6 +532,8 @@ class MainWindow(QMainWindow):
         self.task(lambda _: self.service.stop(), lambda _: self.begin_backend())
 
     def settings_dialog(self):
+        if self.update_pending:
+            self.statusBar().showMessage('أكمل التحديث أو أجّله قبل تغيير إعدادات المحرك.',6000);return
         model_keys = ('models_dir', 'n_gpu_layers', 'n_ctx', 'dedicated_coder', 'gpu_device')
         before = {key:self.settings.values[key] for key in model_keys}
         dialog = SettingsDialog(self.settings, self)

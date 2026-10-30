@@ -255,6 +255,26 @@ class ProjectStore:
                 snapshot = tree.read(f".neura/revisions/{meta['project_revision']}.json", internal=True, limit=6_000_000)
             return snapshot_files(snapshot)
 
+    def preview_snapshot(self, project_id, expected_revision):
+        """Bind metadata/manifest and immutable bytes under the store boundary.
+
+        A preview cannot perform another lookup of the latest revision after
+        validating expected_revision. Existing capabilities retain their bytes
+        even if a later commit changes the project or its asset manifest.
+        """
+        with self.lock:
+            meta=self.get(project_id)
+            if meta['project_revision']!=expected_revision or meta['source_freshness']!='current':
+                raise Conflict('تغير المشروع؛ أعد تحميله قبل المعاينة')
+            if not meta['preview']['supported']:
+                raise ProjectError(meta['preview'].get('reason') or 'هذا النوع لا يدعم المعاينة المباشرة')
+            with SafeTree(self.directory(project_id)) as tree:
+                raw=tree.read(f'.neura/revisions/{expected_revision}.json',internal=True,limit=6_000_000)
+            files=snapshot_files(raw)
+            assets=set(meta['preview']['assets'])
+            if not assets.issubset(files):raise Conflict('تغير فهرس أصول المعاينة؛ أعد تحميل المشروع')
+            return meta,{path:files[path] for path in assets}
+
     def commit(self, project_id, files, expected_revision):
         bounded_files(files)
         languages, preview, validation = inspect_files(files)

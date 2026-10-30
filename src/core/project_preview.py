@@ -37,13 +37,7 @@ class PreviewServer:
             self.thread.start()
 
     def issue(self, project_id, app_origin, expected_revision):
-        project = self.store.get(project_id)
-        if project['project_revision'] != expected_revision or project['source_freshness'] != 'current':
-            raise Conflict('تغير المشروع؛ أعد تحميله قبل المعاينة')
-        if not project['preview']['supported']:
-            raise ProjectError(project['preview'].get('reason') or 'هذا النوع لا يدعم المعاينة المباشرة')
-        files = self.store.committed_files(project_id)
-        assets = set(project['preview']['assets'])
+        project,files = self.store.preview_snapshot(project_id,expected_revision)
         self.start()
         capability = secrets.token_hex(24)
         with self.lock:
@@ -51,7 +45,7 @@ class PreviewServer:
             while len(self.entries) >= 32:
                 self.entries.pop(next(iter(self.entries)))
             self.entries[capability] = {'project_id': project_id, 'revision': expected_revision,
-                'files': {p: (files[p].encode('utf-8') if isinstance(files[p],str) else files[p]) for p in assets},
+                'files': {p: (value.encode('utf-8') if isinstance(value,str) else value) for p,value in files.items()},
                 'app_origin': app_origin, 'expires': time.monotonic() + 7200}
         prefix = self.origin + '/p/' + capability + '/'
         return {'project_id': project_id, 'revision': expected_revision, 'origin': self.origin,

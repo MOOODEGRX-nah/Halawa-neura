@@ -53,7 +53,8 @@ def test_n065_invalid_adapter_output_is_uncertain_not_false_success(system):
 def test_n041_plan_contract_preserved_and_legacy_rows_are_not_fabricated(system):
     from src.core.project_jobs import ProjectJobs
     app,desktop,dispatch=application(system);store=app.state.project_store;jobs=app.state.project_jobs
-    system.backend.replies=['Use one Python file.','```python main.py\ndef add(a,b):return a+b\n```']
+    plan=json.dumps({'steps':['Define inputs','Implement addition','Check source syntax'],'files':['main.py']})
+    system.backend.replies=[plan,'```python main.py\ndef add(a,b):return a+b\n```']
     created=jobs.create({'user_request':'Create add','requirements':['addition'],'required_files':['main.py'],'plan':True,'background':True})
     job=created['job']['job_id'];project=created['project']['project_id']
     for _ in range(300):
@@ -61,7 +62,8 @@ def test_n041_plan_contract_preserved_and_legacy_rows_are_not_fabricated(system)
         if result['state'] in ('completed','failed'):break
         time.sleep(.005)
     assert result['state']=='completed' and len(system.backend.calls)==2
-    assert next(s for s in result['stage_results'] if s['stage']=='planning')['result']['output']=='Use one Python file.'
+    planning=next(s for s in result['stage_results'] if s['stage']=='planning')['result']
+    assert planning['output']==plan and planning['accepted'] is True
     sent=[json.loads(c['messages'][1]['content'].split('\nOptional implementation plan:')[0]) for c in system.backend.calls]
     assert all(i['expected_files']==['main.py'] and i['project_id']==project and i['task_id']==job for i in sent)
     recorded=jobs.get(job)['saved_files'];opened=store.read(project,'main.py')

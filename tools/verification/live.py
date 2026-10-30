@@ -9,7 +9,7 @@ def foreign_instances(owned_pid=None):
     for process in psutil.process_iter(['pid','name','cmdline']):
         try:
             args=process.info['cmdline'] or []
-            if 'src.desktop.server' in args and process.pid!=owned_pid:
+            if ('src.desktop.server' in args or any(Path(arg).name=='real_backend_trace.py' for arg in args)) and process.pid!=owned_pid:
                 found.append({'pid':process.pid,'cwd':process.cwd(),'kind':'existing Neura backend; not stopped or used for QA data'})
         except (psutil.NoSuchProcess,psutil.AccessDenied):continue
     return found
@@ -79,6 +79,10 @@ def start(run,kind):
         os.environ['NEURA_QA_REAL_DESKTOP']='1' if run.args.allow_desktop else '0'
         fixture=Path(__file__).resolve().parents[2]/'tests/fixtures/chat_first_backend.py'
         service=BackendService(settings,popen=lambda command,**opts:subprocess.Popen([command[0],'-B',str(fixture),'--port',command[-1]],**opts))
+    elif getattr(run.args,'trace_real_model',False):
+        os.environ.update(NEURA_QA_RUN_ROOT=str(run.out),NEURA_QA_RUN_ID=run.result['run_id'],NEURA_QA_REAL_TRACE=str(run.out/'artifacts/model-traces'))
+        fixture=Path(__file__).resolve().parents[2]/'tests/fixtures/real_backend_trace.py'
+        service=BackendService(settings,popen=lambda command,**opts:subprocess.Popen([command[0],'-B',str(fixture),'--port',command[-1]],**opts))
     else:service=BackendService(settings)
     service.start();deadline=time.monotonic()+35;health=None
     while time.monotonic()<deadline:
@@ -93,6 +97,7 @@ def start(run,kind):
         'desktop_adapter':'actual trusted GIO' if kind=='real' or run.args.allow_desktop else 'fake',
         'device':'explicit CPU','n_ctx':4096,'profile_kind':'qa','startup':'BackendService owned dynamic-port discovery; not native Qt icon test',
         'started_at':time.time()}
+    info['real_model_observer']=bool(getattr(run.args,'trace_real_model',False))
     path=run.out/'artifacts/backend.json'
     if path.exists():
         previous=json.loads(path.read_text());history=run.out/'artifacts/backend-history';history.mkdir(exist_ok=True)

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import urllib.error
 from src.runtime import ROOT
 from src.desktop.paths import data_directory, state_directory
 
@@ -33,6 +34,7 @@ class BackendService:
         self.instance = secrets.token_hex(16)
         self.log_path = state_directory() / 'backend.log'
         self._log = None
+        self.update_reservation = None
 
     @property
     def url(self):
@@ -71,6 +73,7 @@ class BackendService:
             return
         if self.process is not None:
             self.stop()
+        self.update_reservation=None
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
             listener.bind(('127.0.0.1', 0))
             self.port = listener.getsockname()[1]
@@ -96,6 +99,32 @@ class BackendService:
         except (OSError, ValueError):
             return None
 
+    def _update_request(self,action,reservation_id):
+        if not self.health():raise RuntimeError('تعذر تأكيد هوية المحرك؛ أُجّل التحديث.')
+        token=(data_directory()/'.api-token').read_text().strip()
+        request=urllib.request.Request(self.url+'/lifecycle/update/'+action,
+            data=json.dumps({'reservation_id':reservation_id,'instance_id':self.instance}).encode(),
+            headers={'X-Neura-Token':token,'Content-Type':'application/json'})
+        try:
+            with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request,timeout=5) as response:value=json.load(response)
+        except urllib.error.HTTPError as exc:
+            try:message=json.load(exc).get('error',{}).get('message') or 'أُجّل التحديث؛ راجع حالة المهام.'
+            except (ValueError,OSError):message='أُجّل التحديث؛ تعذر تأكيد حالة المهام.'
+            raise RuntimeError(message) from exc
+        if action=='prepare' and value.get('instance_id')!=self.instance:raise RuntimeError('تغيرت هوية المحرك؛ لم يُوقف شيء.')
+        return value
+
+    def prepare_update(self):
+        if not self.update_reservation:self.update_reservation='u_'+secrets.token_hex(16)
+        return self._update_request('prepare',self.update_reservation)
+
+    def release_update(self):
+        reservation=self.update_reservation
+        if not reservation:return
+        if self.process is None:self.update_reservation=None;return
+        self._update_request('release',reservation)
+        if self.update_reservation==reservation:self.update_reservation=None
+
     def stop(self):
         if self.process is not None:
             if self.process.poll() is None:
@@ -109,3 +138,4 @@ class BackendService:
         if self._log:
             self._log.close()
             self._log = None
+        self.update_reservation=None
