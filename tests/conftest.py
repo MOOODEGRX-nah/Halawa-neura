@@ -1,15 +1,53 @@
 import copy
+import json
+import os
 import sys
 import threading
 import time
 from pathlib import Path
+from types import SimpleNamespace
 import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+TARGET = Path(os.environ.get('NEURA_TEST_TARGET_ROOT', ROOT)).resolve()
+sys.path.insert(0, str(ROOT))  # Test helpers only; selected application comes first.
+sys.path.insert(0, str(TARGET))
 from src.runtime import Settings
 from src.core.neura_loop import NeuraLoop
+
+
+def pytest_sessionstart(session):
+    """Refuse accidental source imports during an installed-target contract run."""
+    import src.runtime
+    origin = Path(src.runtime.__file__).resolve()
+    if not origin.is_relative_to(TARGET):
+        raise RuntimeError('Application import escaped the selected target: '+str(origin))
+    report = os.environ.get('NEURA_VERIFY_IMPORT_REPORT')
+    if report:
+        Path(report).write_text(json.dumps({'executable':sys.executable,'runtime':str(origin),
+            'target':str(TARGET),'test_source':str(ROOT)},indent=2))
+
+
+@pytest.fixture(autouse=True)
+def controlled_sensors(monkeypatch):
+    """Complete controlled boundary: never read live sensors or initialize Vulkan.
+
+    Individual sensor-policy tests may explicitly override these fixtures.
+    This affects tests only, not the shipped application or real-model suites.
+    """
+    import psutil
+    monkeypatch.setattr('src.backends.residency.gpu_memory',lambda:None)
+    if 'src.backend.api' in sys.modules:
+        monkeypatch.setattr('src.backend.api.gpu_memory',lambda:None)
+    monkeypatch.setattr(psutil,'cpu_percent',lambda *a,**k:0.0)
+    monkeypatch.setattr(psutil,'virtual_memory',lambda:SimpleNamespace(
+        total=32_000_000_000,used=8_000_000_000,available=24_000_000_000,
+        free=24_000_000_000,percent=25.0))
+    monkeypatch.setattr(psutil,'process_iter',lambda *a,**k:iter(()))
+    def forbidden_probe():
+        raise AssertionError('Controlled tests must not initialize Vulkan')
+    monkeypatch.setattr('src.backends.devices.probe_devices',forbidden_probe)
 
 
 class FakeBackend:

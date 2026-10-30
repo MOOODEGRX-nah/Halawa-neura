@@ -1,0 +1,2278 @@
+[
+  {
+    "task_id": "N001",
+    "title": "Repository audit and entry points",
+    "acceptance": "Current entry points and active/legacy boundaries are identified; cleanup preserves behavior and user files.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تدقيق المستودع ونقاط التشغيل",
+    "scope_note_ar": "مسار Linux الحالي يبدأ من src.desktop.app إلى BackendService؛ فُحصت الاستيرادات المدعومة فقط، لا صلاحية كل سكربت قديم."
+  },
+  {
+    "task_id": "N002",
+    "title": "Finish import/state boundaries",
+    "acceptance": "Application entry points import successfully in a clean supported environment; no confirmed circular dependency remains.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "حدود الاستيراد والحالة المشتركة",
+    "scope_note_ar": "الاستيرادات المدعومة تعمل؛ وحدات اختيارية وقديمة ليست كلها مفصولة أو مقبولة. لم يُعد بناء منظومة مشاركة حالة جديدة."
+  },
+  {
+    "task_id": "N003",
+    "title": "FastAPI core contracts",
+    "acceptance": "Health, route, and chat work with current validated contracts; missing services and invalid requests fail truthfully.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "عقود FastAPI الأساسية",
+    "scope_note_ar": "FastAPI يستعمل المنسق نفسه؛ /v1/chat/completions يدعم البث والرد المكتمل ويفرض تحقق Pydantic وحدود الجسم."
+  },
+  {
+    "task_id": "N004",
+    "title": "Tier/router integration",
+    "acceptance": "Visible and internal tiers agree with configuration; actual inference uses the selected routed model and supported overrides.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تكامل المستويات والموجّه",
+    "scope_note_ar": "NeuraLoop.select وrouter يختاران tier/model؛ تطابق النموذج الموجّه والفعلي قيس لكل طلب FAST/DAILY/EXPERT. جودة الرد معيار منفصل."
+  },
+  {
+    "task_id": "N005",
+    "title": "Chat templates and history roles",
+    "acceptance": "Actual GGUF template and supported message roles/history are used; multilingual turns preserve context without raw generic markers.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "GGUF chat templates and supported system/user/assistant history are preserved; tool-role messages are explicitly unsupported by the current public schema. Real multilingual history requires its own case.",
+    "title_ar": "قوالب المحادثة وأدوار التاريخ",
+    "scope_note_ar": "تُدمج تعليمات القدرات مع رسائل النظام الأولى في 0.4.6؛ بقي ترتيب user/assistant والصور محفوظًا. فشل 0.4.5 الحقيقي موثق منفصلًا."
+  },
+  {
+    "task_id": "N006",
+    "title": "Investigate empty replies, reasoning tags, repetition, and limits",
+    "acceptance": "Arabic/English/code fixtures return nonempty appropriate final output or an explicit error; token limits and cancellation propagate; filtering does not erase valid final answers.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "الردود الفارغة والتفكير والتكرار والحدود",
+    "scope_note_ar": "FAST/DAILY وسقف السياق والاسترداد نجحت؛ EXPERT بلغ length قبل إكمال الخطوات الثلاث. لا يُقبل الرد غير الفارغ دليل جودة."
+  },
+  {
+    "task_id": "N007",
+    "title": "GGUF identity and integrity records",
+    "acceptance": "Metadata identifies real weights/projectors; local hashes, completeness, and provenance limits are recorded separately.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "configs/models.yaml",
+      "src/backends/llama_cpp_backend.py",
+      "tools/audit_models.py"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "هوية GGUF وسلامة الملفات",
+    "scope_note_ar": "التنفيذ موجود في المسارات المرفقة؛ لا يُغلق معيار القبول إلا بعد مراجعة جميع أدلته المطلوبة."
+  },
+  {
+    "task_id": "N008",
+    "title": "Resolve the Coder model's real availability",
+    "acceptance": "The registry describes the actual usable file; a missing/incomplete model is not routed as healthy; any claimed Coder test includes real output.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "configs/models.yaml",
+      "src/backends/llama_cpp_backend.py",
+      "tools/audit_models.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "Current complete Coder GGUF produced real CV/Python files through the packaged coordinator; missing/incomplete fixtures remain unavailable. Publisher provenance is a separate limit.",
+    "title_ar": "توافر نموذج Coder الحقيقي",
+    "scope_note_ar": "التنفيذ موجود في المسارات المرفقة؛ لا يُغلق معيار القبول إلا بعد مراجعة جميع أدلته المطلوبة."
+  },
+  {
+    "task_id": "N009",
+    "title": "Optional large model",
+    "acceptance": "Record availability/provenance/resource feasibility only. Do not download, activate, or load a large model automatically.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "configs/models.yaml",
+      "src/backends/llama_cpp_backend.py",
+      "tools/audit_models.py"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "نموذج كبير اختياري",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N010",
+    "title": "Vulkan/device and model residency",
+    "acceptance": "Selected device identity is correct; scheduler prevents conflicting model loads and updates residency only on real lifecycle success.",
+    "category": "reported_done",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "Vulkan والجهاز وإقامة النماذج",
+    "scope_note_ar": "NeuraLoop.exclusive يحمي الاستدلال والحمل والإلغاء. التجارب الحقيقية CPU متسلسلة؛ قبول تخصيص VRAM الفعلي لم يُنفذ."
+  },
+  {
+    "task_id": "N011",
+    "title": "Reduce unnecessary model swaps",
+    "acceptance": "Repeated requests to the same weights avoid redundant loads; memory remains bounded; measured before/after results document any improvement.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تقليل تبديل الأوزان غير الضروري",
+    "scope_note_ar": "إعادة استخدام الوزن نفسه موجودة وتختبر بعدادات fake؛ زمن أول جزء الحقيقي مقاس، لكن تقسيم load/prefill/queue وعدادات التحميل الفعلية غير مكتمل."
+  },
+  {
+    "task_id": "N012",
+    "title": "Real streaming and cancellation",
+    "acceptance": "Chunks originate during real generation; cancel retains native ownership until safe release and a later request succeeds.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "البث الحقيقي والإلغاء",
+    "scope_note_ar": "تدفق API الحقيقي يرسل أجزاء قبل النهاية بهوية ثابتة وسبب نهاية صريح؛ الإلغاء تعاوني ولا يحرر المنسق قبل انتهاء native."
+  },
+  {
+    "task_id": "N013",
+    "title": "Audit timeouts and failure behavior",
+    "acceptance": "Stalled tools do not hang chat indefinitely; cancellation/timeouts do not release a native-model lock before work actually ends.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "المهل والفشل وملكية العمل الأصلي",
+    "scope_note_ar": "مهل الأدوات والشبكة والإلغاء موجودة؛ نجح الاسترداد بعد إلغاء/تجاوز سياق. توقف native غير القابل للمقاطعة يظل حدًا معلنًا."
+  },
+  {
+    "task_id": "N014",
+    "title": "Regression and integration suite",
+    "acceptance": "Current tests pass or failures are explained; controlled fixtures and real-model trials are clearly separated.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "مجموعة الانحدار والتكامل",
+    "scope_note_ar": "مجموعة regression الحالية تستخدم fixtures صريحة للنموذج والحساسات والأدوات؛ عدد الاختبارات ونتيجتها يقاسان لكل جولة، مع فصلها عن trials الحقيقية وإخفاقاتها."
+  },
+  {
+    "task_id": "N015",
+    "title": "Finish truthful system readings",
+    "acceptance": "Unavailable sensors are null/unavailable rather than fabricated values; polling continues without interrupting generation.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "Unavailable GPU readings remain null and real CPU/RAM samples were recorded. Per-vendor temperature/calibration coverage is incomplete.",
+    "title_ar": "قراءات النظام الصادقة",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N016",
+    "title": "Integrate Gaming mode safely",
+    "acceptance": "Entering game mode cannot unload an in-use model; mode transitions and recovery are tested with a real or controlled game-process fixture.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "وضع Gaming الآمن",
+    "scope_note_ar": "GameModeDetector مربوط بالمنسق واختبارات fake تغطي عدم تفريغ نموذج نشط؛ الانتقال الحقيقي أثناء لعبة لم يُختبر."
+  },
+  {
+    "task_id": "N017",
+    "title": "Complete profiling and request traces",
+    "acceptance": "A request can be traced across stages; speed is not derived from character animations or invented token counts.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "Request/job IDs and measured total durations exist; load/prefill/queue and stream token speeds remain unknown when native counters are absent.",
+    "title_ar": "القياس وتتبع الطلبات",
+    "scope_note_ar": "زمن الطلب وأول جزء مقاسان؛ queue/load/prefill ومعدل التوكنات تظل مجهولة عندما لا توفرها العدادات."
+  },
+  {
+    "task_id": "N018",
+    "title": "Provide safe hardware defaults",
+    "acceptance": "A lower-memory configuration remains usable or fails gracefully; a model file size alone is never treated as its full runtime memory requirement.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "Controlled low-memory fixtures fail safely and actual QA used explicit CPU with a RAM preflight. Full installed GPU/OOM/default-KV/cache acceptance remains open.",
+    "title_ar": "افتراضات العتاد الآمنة",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N019",
+    "title": "Qt desktop and automatic backend start",
+    "acceptance": "Installed desktop entry opens Qt and its identified backend through normal startup without terminal setup.",
+    "category": "reported_done",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "Qt and BackendService startup are exercised offscreen; launching/observing the installed icon in the native KDE session remains a separate unavailable CUA surface.",
+    "title_ar": "تطبيق Qt وبدء الخلفية تلقائيًا",
+    "scope_note_ar": "Qt وبدء الخدمة اختُبرا offscreen؛ رصد نافذة أصلية وفتح أيقونة KDE ليسا بديلًا عن هذه الفحوص."
+  },
+  {
+    "task_id": "N020",
+    "title": "Single instance and owned child cleanup",
+    "acceptance": "A repeated launch focuses/reuses the correct instance; shutdown affects only owned processes and preserves unrelated services.",
+    "category": "reported_done",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "Ownership/lock IPC contracts are tested; a native two-launch/focus observation is not substituted by source checks.",
+    "title_ar": "النسخة الواحدة وتنظيف العمليات المملوكة",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N021",
+    "title": "Model/device/context settings",
+    "acceptance": "Supported settings persist and affect subsequent real behavior; invalid selections and missing weights fail safely.",
+    "category": "reported_done",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "إعدادات النموذج والجهاز والسياق",
+    "scope_note_ar": "إعدادات DesktopSettings ومسارات XDG واختيار النماذج موجودة؛ قبول نافذة الإعدادات الأصلية بكامل خيارات الجهاز لم يُنفذ."
+  },
+  {
+    "task_id": "N022",
+    "title": "Measure and improve startup",
+    "acceptance": "Record cold and warm startup timings; health/status labels match actual readiness; no unsupported sub-second or under-five-second claim.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "HTTP first chunk timings are measured, but cold/warm native UI startup and model-readiness timings are not yet a complete benchmark.",
+    "title_ar": "قياس بدء التشغيل",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N023",
+    "title": "Arch packaging and release identity",
+    "acceptance": "Current package/build/version/assets match the intended source and correct release metadata; historical v0.3.0 is not assumed current.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "حزم Arch وهوية الإصدار",
+    "scope_note_ar": "التنفيذ موجود في المسارات المرفقة؛ لا يُغلق معيار القبول إلا بعد مراجعة جميع أدلته المطلوبة."
+  },
+  {
+    "task_id": "N024",
+    "title": "Installer PTY and verified cache",
+    "acceptance": "Piped script stdin is not consumed as pacman approval; tty confirmation, validated cache reuse, interruption, corruption, and cancellation are exercised.",
+    "category": "reported_done",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "ADMIN_TRANSACTION"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "الطرفية وذاكرة المثبّت المتحقق منها",
+    "scope_note_ar": "المثبت يصل pacman بـ /dev/tty عند stdin الممرر، ويتحقق من التنزيل/cache؛ الفحص الآلي لا يساوي تثبيتًا نظيفًا بصلاحيات مدير."
+  },
+  {
+    "task_id": "N025",
+    "title": "Verify the installed application and installer path",
+    "acceptance": "The tested package/version and environment are recorded; a source-checkout test is not reported as an installed-app test.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "ADMIN_TRANSACTION"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "اختبار التطبيق المثبّت والمثبّت",
+    "scope_note_ar": "المثبت فعليًا 0.4.5-1؛ هدف QA حزمة 0.4.6 مستخرجة مطابقة للمصدر. لا تثبيت/تحديث إداري أو فتح أيقونة أصلية مثبتة في هذه الجولة."
+  },
+  {
+    "task_id": "N026",
+    "title": "Close the updater's administrative-test gap",
+    "acceptance": "Tampered/wrong packages are rejected; a genuine tested update preserves user data. If the real administrative path is untested, keep that limitation open.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "ADMIN_TRANSACTION"
+    ],
+    "scope_note": "Release/hash/staging helpers exist; dirty/active-job gate before updater backend stop and administrative trial remain open.",
+    "title_ar": "التحقق الإداري من المحدّث",
+    "scope_note_ar": "فحوص الهوية والبصمة والتجهيز موجودة؛ حماية dirty والمهام قبل إيقاف الخلفية والمعاملة الإدارية الفعلية ما زالت مفتوحة."
+  },
+  {
+    "task_id": "N027",
+    "title": "AUR publishing",
+    "acceptance": "Report current publication evidence if supplied; do not create an account or publish packages during verification.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "نشر AUR",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N028",
+    "title": "Windows distribution",
+    "acceptance": "Keep out of Linux acceptance. Verify on a supported Windows environment separately if later requested.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "توزيع Windows",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N029",
+    "title": "Local frontend assets",
+    "acceptance": "Required UI assets are packaged locally; normal UI does not depend on an undeclared CDN or silently load untrusted executable assets.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "STATIC",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "أصول الواجهة المحلية",
+    "scope_note_ar": "التنفيذ موجود في المسارات المرفقة؛ لا يُغلق معيار القبول إلا بعد مراجعة جميع أدلته المطلوبة."
+  },
+  {
+    "task_id": "N030",
+    "title": "Update documentation and Doctor diagnostics",
+    "acceptance": "Documentation matches the packaged UI; Doctor gives actionable results, with no invented 20/20 or 30-check claim.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "Current docs are updated, but tools/diagnose.py remains a Windows/Flet-era probe that writes install-tree paths and starts its own model; it was inspected, not run during live inference.",
+    "title_ar": "الوثائق وDoctor",
+    "scope_note_ar": "الوثائق الحالية متاحة؛ Doctor القديم يفترض Windows/Flet ويبدأ نموذجًا مستقلًا، لذلك فُحص مصدره ولم يُشغّل كتشخيص آمن."
+  },
+  {
+    "task_id": "N031",
+    "title": "Check cloud-folder diagnostics",
+    "acceptance": "A controlled synced-path fixture warns correctly, while ordinary local paths are not incorrectly blocked.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/desktop/app.py",
+      "src/desktop/paths.py",
+      "src/desktop/service.py",
+      "src/runtime.py",
+      "tools/diagnose.py"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "No synced-folder detector or controlled cloud-path fixture exists in the current Linux path. The legacy Doctor targets python-embed/Flet and must not be run as a safe modern audit.",
+    "title_ar": "تشخيص المجلدات المتزامنة",
+    "scope_note_ar": "لا كاشف حديث للمجلدات المتزامنة أو عينة قبول له في مسار Linux الحالي."
+  },
+  {
+    "task_id": "N032",
+    "title": "Apply scoped code-style checks",
+    "acceptance": "Required checks pass or remaining baseline failures are explained; no API or UI handler breaks from a cosmetic rename.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "فحوص أسلوب الكود المحددة",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N033",
+    "title": "SQLite session persistence",
+    "acceptance": "Save, restore, update, delete, restart, and isolation between test sessions work; conversation history is not mislabeled as long-term memory.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "حفظ جلسات SQLite",
+    "scope_note_ar": "ConversationVault يحفظ جلسات SQLite صراحة، مع CRUD وعزل المعرفات؛ ليس تفضيلات دائمة أو RAG ولا استخراج ذاكرة تلقائي."
+  },
+  {
+    "task_id": "N034",
+    "title": "Create a persistent preference/directive vault",
+    "acceptance": "An approved preference persists across new sessions; editing/deleting it updates retrieval and cached profile state.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "خزنة التفضيلات والتوجيهات",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N035",
+    "title": "Extract memory suggestions",
+    "acceptance": "Approved facts are stored once, rejected suggestions are not injected, and arbitrary conversation text cannot silently grant privileges.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "اقتراح استخراج الذكريات",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N036",
+    "title": "Summarize long conversations",
+    "acceptance": "A long-session fixture retains key facts/requirements and stays within the intended context budget; original history remains recoverable.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "تلخيص المحادثات الطويلة",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N037",
+    "title": "Manage and transfer memory",
+    "acceptance": "Round-trip import/export preserves valid facts; invalid input is rejected; deleted facts do not reappear through stale indexes.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "إدارة الذاكرة ونقلها",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N038",
+    "title": "Build local RAG",
+    "acceptance": "Questions retrieve the correct allowed source passages; irrelevant/missing sources are acknowledged; deleted/private sources are not returned.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "استرجاع RAG محلي",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N039",
+    "title": "Add reviewable preference learning",
+    "acceptance": "Accepting/rejecting a suggestion has the intended persistent effect; the model cannot rewrite its security policy or application code.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "تعلّم التفضيلات القابل للمراجعة",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N040",
+    "title": "Implement personas and measured prompt caching",
+    "acceptance": "Persona selection changes style without expanding privileges; stale cached profile content is not reused; cache speedup is measured if claimed.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "الشخصيات وقياس تخزين المطالبات",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N041",
+    "title": "Complete the Task Invoice contract",
+    "acceptance": "One request creates one job; completion returns saved project/file references rather than only a grade or a large chat code block.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "عقد Task Invoice",
+    "scope_note_ar": "WorkspaceRequest وjob_contracts يحفظان الأصل والقيود والمراحل والملفات والتحقق داخل ProjectJobs؛ لا منسق موازٍ جديد."
+  },
+  {
+    "task_id": "N042",
+    "title": "Use planning only when useful",
+    "acceptance": "A short explanation creates no project; a simple edit does not force four model swaps; complex tasks retain their constraints.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "التخطيط عند الحاجة",
+    "scope_note_ar": "التصنيف يفصل الشرح والإنشاء والتعديل؛ المشاريع البسيطة تستخدم coder مباشرة. التخطيط المعقد ليس رحلة مكتملة ومقياس EXPERT فشل."
+  },
+  {
+    "task_id": "N043",
+    "title": "Preserve filenames and references",
+    "acceptance": "A web project saves index.html, style.css, and script.js with matching references; extraction never silently creates broken file_1 substitutions.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "أسماء الملفات ومراجعها",
+    "scope_note_ar": "FileStream يستخرج الأسماء من headers/references ويعالج التجزئة؛ اختبرت أسماء HTML/CSS/JS/SVG الفعلية وروابطها بدل file_1 الوهمية."
+  },
+  {
+    "task_id": "N044",
+    "title": "Validate saved output deterministically",
+    "acceptance": "Bad paths, empty output, malformed JSON/Python, and absent required files fail before success; static checks are labelled as such.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "الفحص الحتمي للمخرجات",
+    "scope_note_ar": "inspect_files وsource_syntax تفحص المسارات والتكرار والحدود والمراجع وPython/JSON/JS/CSS؛ لم تُشغل برامج Python الناتجة."
+  },
+  {
+    "task_id": "N045",
+    "title": "Fix review and repair decisions",
+    "acceptance": "Grade B with NEEDS_FIX is not accepted; zero-file output cannot pass; exhausted repair loops end with an honest incomplete result.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "Legacy explicit verdict/bounded repair exists; streaming project jobs have deterministic checks but no complete semantic repair loop.",
+    "title_ar": "المراجعة والإصلاح المحدود",
+    "scope_note_ar": "حكم المراجعة الصريح والفحص الساكن موجودان؛ إصلاح سلوكي تلقائي كامل في مساحة العمل المبثوثة غير منفذ."
+  },
+  {
+    "task_id": "N046",
+    "title": "Offer isolated testing of generated programs",
+    "acceptance": "A selected sample test runs only in the documented sandbox; forbidden access and runaway code are stopped; missing isolation reports 'not tested'.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "اختبار البرامج داخل عزل صريح",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N047",
+    "title": "Add a bounded multi-step action loop",
+    "acceptance": "A permitted search/calculation workflow completes; failure/loop/cancellation cases terminate within the declared budget.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "حلقة أفعال متعددة الخطوات ومحدودة",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N048",
+    "title": "Add sequential researcher/writer/reviewer roles",
+    "acceptance": "A report can be traced to role outputs and real sources; resource policy holds and added latency/calls are measured.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "أدوار الباحث والكاتب والمراجع",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N049",
+    "title": "Create projects directly from chat",
+    "acceptance": "The Arabic CV-website request opens the correct workspace and one job; ordinary programming questions remain chat.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "إنشاء المشاريع من المحادثة",
+    "scope_note_ar": "ChatDispatcher.dispatch ينشئ مشروعًا ومهمة من النص نفسه، وNeuraChat يفتح NeuraWorkspace قبل اكتمال البث؛ CV وPython لهما أدلة فعلية."
+  },
+  {
+    "task_id": "N050",
+    "title": "Store named projects safely",
+    "acceptance": "Same-title projects do not collide; restart preserves files; failed/cancelled generation cannot overwrite the last good revision or escape the project root.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "حفظ مشاريع مسماة بأمان",
+    "scope_note_ar": "ProjectStore يفصل stable ID عن الاسم؛ يحفظ manifest/revisions وملفات كل مشروع تحت user data، مع commit قابل للاستعادة وحراس مسار وبصمة."
+  },
+  {
+    "task_id": "N051",
+    "title": "Show code left and preview right",
+    "acceptance": "A generated CV project opens with code on the left and preview on the right; Python projects show real files without a fake web preview.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "الكود يسارًا والمعاينة يمينًا",
+    "scope_note_ar": "workspace.js يضبط المواضع الفيزيائية LTR داخل غلاف RTL؛ الكود يسار والمعاينة يمين افتراضيًا، وPython يعرض ملفات دون معاينة وهمية."
+  },
+  {
+    "task_id": "N052",
+    "title": "Stream real project/file events",
+    "acceptance": "Code updates correspond to real generation; fragmented events and reconnects recover correctly without starting a second job; cancellation reports its real cooperative limits.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "أحداث المشاريع والملفات الحقيقية",
+    "scope_note_ar": "ProjectJobs يحفظ أحداث seq/job/project وdraft، وSSE يستأنف المؤشر دون إعادة الطلب؛ فحوص fake للتجزئة وreconnect وقياس فعلي لتوليد وإلغاء."
+  },
+  {
+    "task_id": "N053",
+    "title": "Swap panes and remember the choice",
+    "acceptance": "Pane order changes and survives restart without losing edits or resetting the project.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تبديل الجانبين وحفظ التفضيل",
+    "scope_note_ar": "زر swap يحفظ التفضيل عبر /workspace/preferences في SQLite، لا يعتمد على origin المتغير؛ استعيد بعد إعادة BackendService وفتح الواجهة."
+  },
+  {
+    "task_id": "N054",
+    "title": "Save edits with revision protection",
+    "acceptance": "Saving CSS updates the correct revision; concurrent or external changes produce a reviewable conflict rather than silent overwrite.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تحرير وحفظ مع حماية المراجعات",
+    "scope_note_ar": "المحرر يحتفظ بـdirty ويحرس expected_revision/sha256؛ تأخير الحفظ والتعارض والفشل اختبرت في Qt fake، وحفظ حقيقي غيّر المعاينة."
+  },
+  {
+    "task_id": "N055",
+    "title": "Preview plain static web projects",
+    "acceptance": "A small interactive website uses its real local assets; missing assets produce visible errors; React/TSX or server apps are not falsely labelled ready.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "معاينة المواقع الثابتة",
+    "scope_note_ar": "PreviewServer يخدم snapshot للملفات المؤهلة فقط؛ زر JavaScript والشعار المحلي عملا فعلًا. React/TSX/backend لا يُعلنان جاهزين دون build."
+  },
+  {
+    "task_id": "N056",
+    "title": "Open a full-page preview",
+    "acceptance": "Embedded and full-page views show the same revision; full-page mode does not bypass isolation or open an unsafe raw file URL.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "المعاينة الكاملة",
+    "scope_note_ar": "زر المعاينة الكاملة يفتح iframe آخر لنفس URL/revision وsandbox؛ ليس فتح صفحة مولدة في أصل التطبيق المميز."
+  },
+  {
+    "task_id": "N057",
+    "title": "Implement and test preview isolation",
+    "acceptance": "Generated JS cannot reach privileged API actions, WebChannel methods, secrets, or other projects. Browser and Qt paths are tested separately where supported.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "عزل المعاينة",
+    "scope_note_ar": "منفذ منفصل وcapability للsnapshot وCSP وsandbox allow-scripts؛ فحوص متصفح وQt مستقلة ضد parent/storage/bridge/API وخدمة QA بآثار صفر."
+  },
+  {
+    "task_id": "N058",
+    "title": "Create a truthful compact project index",
+    "acceptance": "Basic project-purpose/language questions use metadata; a concise model-facing summary remains bounded, targeting roughly 600–1,000 tokens where appropriate.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "PACKAGE",
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "فهرس مشروع مختصر وصادق",
+    "scope_note_ar": "ProjectStore._canonical/get/summary يشتقان اللغات والأدوار والمراجع والتحقق من الملفات المحفوظة؛ metadata question لا يستدعي نموذجًا. قياس tokenizer منفصل عن disk hashing."
+  },
+  {
+    "task_id": "N059",
+    "title": "Maintain freshness and retrieve relevant source",
+    "acceptance": "External edits mark/refresh stale metadata; code edits inspect source; representative context-token savings are measured rather than guessed.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "PACKAGE",
+      "STATIC"
+    ],
+    "scope_note": "Hash revalidation at read/save boundaries catches same-size/mtime changes; no watcher. Basic metadata avoids a generation call, but does hash full bounded sources.",
+    "title_ar": "حداثة الفهرس والمصدر الانتقائي",
+    "scope_note_ar": "الحداثة تُعاد بالبصمات عند حدود القراءة والحفظ حتى مع ثبات الحجم والوقت؛ تقرأ البايتات من القرص دون إرسالها كلها إلى نموذج. لا watcher دائم."
+  },
+  {
+    "task_id": "N060",
+    "title": "Reopen projects through a compact drawer",
+    "acceptance": "Projects reopen after restart from the drawer or a chat card; active jobs and unsaved edits survive view switching.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/core/chat_dispatch.py",
+      "src/core/project_jobs.py",
+      "src/core/project_store.py",
+      "src/core/project_validation.py",
+      "src/core/project_stream.py",
+      "src/core/project_preview.py",
+      "src/core/invoice_orchestrator.py",
+      "web/workspace.js",
+      "web/workspace.css"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "درج المشاريع المحفوظة",
+    "scope_note_ar": "زر المجلد قرب composer يفتح درج المشاريع بالأسماء والغاية والمعرفات؛ إعادة الفتح بعد restart محفوظة، دون تبويب دائم جديد."
+  },
+  {
+    "task_id": "N061",
+    "title": "Remove the two top-level tabs",
+    "acceptance": "Neither tab is visible; normal chat, settings, and workspace navigation still function.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "web/index.html",
+      "web/chat.js",
+      "web/markdown.js",
+      "web/skills.js",
+      "web/workspace.js"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "إزالة تبويبي المشاريع والمهارات",
+    "scope_note_ar": "nav يحتوي المحادثة والمراقبة وحول فقط؛ أُزيلت Projects/Skills الدائمتان وبقي backend ومساحة العمل والإعدادات."
+  },
+  {
+    "task_id": "N062",
+    "title": "Repair composer actions",
+    "acceptance": "No full-window action bars; attachment and session actions work at narrow and wide widths.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "web/index.html",
+      "web/chat.js",
+      "web/markdown.js",
+      "web/skills.js",
+      "web/workspace.js"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "إجراءات مربع المحادثة",
+    "scope_note_ar": "chat-actions toolbar يجمع الصورة والجلسات والمجلد قرب composer؛ فحوص Qt واستجابة 480px تمنع شريطًا بعرض النافذة."
+  },
+  {
+    "task_id": "N063",
+    "title": "Render Markdown safely",
+    "acceptance": "Completed lists/emphasis/code render correctly; malicious HTML and links cannot trigger privileged operations.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "web/index.html",
+      "web/chat.js",
+      "web/markdown.js",
+      "web/skills.js",
+      "web/workspace.js"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "عرض Markdown بأمان",
+    "scope_note_ar": "markdown.js يهرب HTML ويحصر الروابط ويعالج fences غير المكتملة؛ HTML المولد لا يُنفذ داخل سجل المحادثة المميز."
+  },
+  {
+    "task_id": "N064",
+    "title": "Finish RTL, responsiveness, and accessibility",
+    "acceptance": "No clipped controls in the user's desktop window; keyboard navigation and Code/Preview tabs work at smaller widths.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "web/index.html",
+      "web/chat.js",
+      "web/markdown.js",
+      "web/skills.js",
+      "web/workspace.js"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "RTL والتجاوب والإتاحة",
+    "scope_note_ar": "تحكم RTL ومصدر LTR وfocus وتبويبا code/preview ضيقان؛ تحقق 480px دون overflow أفقي و1280px، لكن native DPI/KDE غير مرصود."
+  },
+  {
+    "task_id": "N065",
+    "title": "Unify the skill registry",
+    "acceptance": "Unknown/disabled skills and malformed arguments fail clearly; adding an approved skill does not require rewriting the chat handler.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "Seven desktop skills share schema/permission/dispatch handling. Handler registration is still a fixed conditional; adding a wholly new conversational skill is not demonstrated by the existing seven.",
+    "title_ar": "سجل مهارات موحد",
+    "scope_note_ar": "سبع مهارات لها مخططات وصلاحيات مشتركة؛ تسجيل معالج مهارة جديدة ما زال يعتمد على شروط ثابتة."
+  },
+  {
+    "task_id": "N066",
+    "title": "Connect Arabic chat to skill execution",
+    "acceptance": "The exact request 'هل يمكنك ان تفتح لي موقع youtube' issues a Brave launch on a supported desktop. 'لا تفتح يوتيوب' and quoted examples cause no launch.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تنفيذ الأفعال العربية من المحادثة",
+    "scope_note_ar": "الطلبات العربية الصريحة تذهب إلى dispatcher قبل LLM؛ النفي والاقتباس والمعرفة لا يطلقان فعلًا. تسلسل Discord composer نجح بقبول GIO فقط."
+  },
+  {
+    "task_id": "N067",
+    "title": "Open websites in Brave",
+    "acceptance": "A real desktop test opens YouTube; a failed launch returns a failure, and the reply does not claim the remote page finished loading.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "فتح المواقع في Brave",
+    "scope_note_ar": "DesktopAdapter.browser يقيّد http/https ويستعمل Brave من trusted GIO بوسائط منظمة؛ قبول التشغيل لا يثبت تحميل يوتيوب."
+  },
+  {
+    "task_id": "N068",
+    "title": "Separate browser search from retrieved research",
+    "acceptance": "Arabic queries open the intended search page; simply opening results is never reported as reading or verifying them.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "فصل البحث المرئي عن البحث المسترجع",
+    "scope_note_ar": "search_web الخاص بسطح المكتب يبني URL مرمزًا إلى Brave؛ بحث DDGS الخادمي قدرة مستقلة ولا يحوّل فتح صفحة إلى بحث موثّق."
+  },
+  {
+    "task_id": "N069",
+    "title": "Search YouTube",
+    "acceptance": "An Arabic query produces the correct results URL; invalid or empty queries fail usefully.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "البحث في YouTube",
+    "scope_note_ar": "search_youtube يبني search_query مرمزًا ويرسله إلى Brave؛ العربية والمختلط اختبرا، ولا يفهم الفيديو من صفحة النتائج."
+  },
+  {
+    "task_id": "N070",
+    "title": "Open approved files and folders",
+    "acceptance": "An approved file/folder opens; missing/ambiguous targets are handled; traversal and executable-launch bypasses are rejected.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP"
+    ],
+    "scope_note": "Approved project/selected roots and viewer separation are enforced. Actual GIO file/folder acceptance is recorded separately from observing a viewer window.",
+    "title_ar": "فتح الملفات والمجلدات المعتمدة",
+    "scope_note_ar": "التنفيذ موجود في المسارات المرفقة؛ لا يُغلق معيار القبول إلا بعد مراجعة جميع أدلته المطلوبة."
+  },
+  {
+    "task_id": "N071",
+    "title": "Launch installed applications",
+    "acceptance": "One installed application launches; missing applications are reported; model text cannot inject extra commands or arbitrary arguments.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تشغيل التطبيقات المثبتة",
+    "scope_note_ar": "ApplicationTargets يوحد ديسكورد/Discord ومتابعة افتحه ضمن سياق جلسة محدود؛ DesktopAdapter يطلق desktop ID موثوقًا دون shell. ظهور النافذة غير مرصود."
+  },
+  {
+    "task_id": "N072",
+    "title": "Record and reopen recent applications",
+    "acceptance": "The recent list contains actual Neura launches after restart; selecting an entry reuses validated application launch.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "سجل تطبيقات Neura وإعادة فتحها",
+    "scope_note_ar": "skill_history يحتفظ بحد100 محاولة، /skills/history يعيد50، وrecent يجمع آخر10 تطبيقات أطلقها Neura بنجاح فقط؛ بقاء السجل بعد restart تحقق."
+  },
+  {
+    "task_id": "N073",
+    "title": "Enforce permissions and deduplication",
+    "acceptance": "Retries/reconnects do not duplicate launches; forged input, project text, and model output cannot grant permissions; expired grants are rejected.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "UI and direct calls with request_id use a shared durable ledger; one-time grants are consumed. Legacy reusable-grant executions without request_id cannot distinguish retry from a deliberate repeat.",
+    "title_ar": "الصلاحيات ومنع التنفيذ المكرر",
+    "scope_note_ar": "request_id يمنع الإعادة عبر الواجهة وAPI؛ منح الاستخدام الواحد تُستهلك. النداءات القديمة بمنح قابلة لإعادة الاستخدام ودون request_id لا تميز الإعادة من الفعل الجديد."
+  },
+  {
+    "task_id": "N074",
+    "title": "Add calculator, time, and weather",
+    "acceptance": "Arithmetic and timezone fixtures pass; weather is sourced and dated, and unavailable data is never invented.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The active SafeActions service has web-search and email-draft support, not a complete restricted calculator/time/weather workflow.",
+    "title_ar": "الحاسبة والوقت والطقس",
+    "scope_note_ar": "لا مسار إنتاج متكامل للحاسبة والوقت والطقس؛ البحث ومسودة البريد لا يحققان هذا البند."
+  },
+  {
+    "task_id": "N075",
+    "title": "Summarize YouTube using available source text",
+    "acceptance": "The summary is grounded in retrieved text; a search result alone is not presented as video understanding.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "تلخيص فيديو من نص مسترجع",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N076",
+    "title": "Organize files with a reviewable plan",
+    "acceptance": "A controlled folder is organized as approved; cancellation, collisions, and rollback work; no file outside permitted roots is touched.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "تنظيم الملفات بخطة قابلة للاسترجاع",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N077",
+    "title": "Provide a consistent code-explanation capability",
+    "acceptance": "The selected real source is explained accurately without an unnecessary project or duplicate infrastructure; document verified reuse where that satisfies the item.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "Ordinary explanations stay in chat and the context endpoint reads actual source, but automatically explaining the selected editor source is not a completed integrated workflow.",
+    "title_ar": "شرح الكود الحقيقي",
+    "scope_note_ar": "الشرح العادي يبقى في المحادثة وقراءة المصدر متاحة؛ ربط شرح الملف المختار تلقائيًا ليس رحلة متكاملة مثبتة."
+  },
+  {
+    "task_id": "N078",
+    "title": "Implement source-grounded deep research",
+    "acceptance": "A report cites real supporting passages; unavailable sources and uncertainty are visible; request/step budgets are enforced.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "بحث متعمق بمصادر",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N079",
+    "title": "Add a scoped optional MCP adapter",
+    "acceptance": "One selected server works through the same policy layer; disconnects and unauthorized tool calls fail safely; optional unselected integrations stay clearly pending.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "موصل MCP اختياري ومحدود",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N080",
+    "title": "Persist and manage reminders",
+    "acceptance": "Reminders survive restart, edit/complete correctly, and duplicate submissions do not create duplicate reminders.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "إدارة التذكيرات المستمرة",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N081",
+    "title": "Deliver reminders and handle missed schedules",
+    "acceptance": "Due-time, restart, duplicate-delivery, and missed-reminder tests pass; closed-app delivery is claimed only if a real service test succeeds.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "الإشعارات والمواعيد الفائتة",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N082",
+    "title": "Store video continuation links",
+    "acceptance": "A stored URL/timestamp reopens the requested video position where supported; missing timestamps remain unknown rather than invented.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "روابط استكمال الفيديو",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N083",
+    "title": "Unfinished browsing/activity discovery",
+    "acceptance": "Remain opt-in and deferred. No browser-history scraping or background monitoring is activated by this audit.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تتبع التصفح والعمل غير المكتمل",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N084",
+    "title": "Calendar integration",
+    "acceptance": "Remain deferred; do not connect accounts, request access, or create events as a test side effect.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تكامل التقويم",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N085",
+    "title": "Complete local speech recognition",
+    "acceptance": "A real Arabic recording is transcribed locally with the network disconnected; malformed/oversized input and missing weights fail clearly.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "التعرف المحلي على الكلام",
+    "scope_note_ar": "VoiceService لديه whisper-cli/ffmpeg ووزن GGML اختياري؛ البيئة الحالية تعيد stt_unavailable501. لم يُسجّل صوت عربي ولم تثبت توافق الأوزان."
+  },
+  {
+    "task_id": "N086",
+    "title": "Add VAD and silence/hallucination filtering",
+    "acceptance": "A fixture set covers silence, background noise, short speech, and end-of-speech; residual errors and latency are reported.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "كشف النشاط الصوتي والضجيج",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N087",
+    "title": "Complete Piper speech output",
+    "acceptance": "A real Arabic-capable installed voice produces audible output offline; the feature is not marked ready based only on an adapter class.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "صوت Piper محلي",
+    "scope_note_ar": "VoiceService يطلب Piper وONNX+JSON محليين؛ البيئة الحالية تعيد tts_unavailable501. لا WAV عربي أو تشغيل مسموع مثبت."
+  },
+  {
+    "task_id": "N088",
+    "title": "Resolve optional Kokoro integration",
+    "acceptance": "A supported integration has real audio evidence; an unsupported option is explicitly left unimplemented rather than reported successful.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "ملاءمة Kokoro الاختياري",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N089",
+    "title": "Evaluate Arabic voice quality",
+    "acceptance": "The selected voice has reproducible samples and measured timings, with the preference saved and limitations documented.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "تقييم الأصوات العربية",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N090",
+    "title": "Stream sentences and isolate audio failures",
+    "acceptance": "Speech starts from available sentences, stopping a reply clears its queued audio, and a crashed audio worker does not crash chat; first-audio latency is measured.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "بث الجمل وعزل أعطال الصوت",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N091",
+    "title": "Implement explicit dictation",
+    "acceptance": "Dictation inserts into the intended supported application without covert global input capture or disabling desktop security.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_DESKTOP",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "The requested complete production workflow is absent or unwired; legacy helpers/buttons do not satisfy it.",
+    "title_ar": "إملاء صريح لتطبيق محدد",
+    "scope_note_ar": "رحلة الاستخدام المطلوبة غائبة أو غير موصولة في التطبيق الحالي؛ وجود وحدات قديمة لا يكملها."
+  },
+  {
+    "task_id": "N092",
+    "title": "Finish mute and optional wake behavior",
+    "acceptance": "Mute stops capture; activation/false-trigger fixtures are tested; the UI never indicates muted while capturing.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "الكتم والتنشيط الاختياري",
+    "scope_note_ar": "أزرار mute/التسجيل لها معالجة محدودة؛ توقف الالتقاط الفعلي والكلمة المنبهة غير مثبتين دون محرك صوت وبيئة تسجيل."
+  },
+  {
+    "task_id": "N093",
+    "title": "Verify current vision integration",
+    "acceptance": "An uploaded test image is interpreted through the packaged app with the actual vision backend; no text-only or unrelated legacy handler is reported as vision success.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "configs/models.yaml",
+      "src/backends/llama_cpp_backend.py",
+      "tools/audit_models.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL"
+    ],
+    "scope_note": "Actual packaged MTMD image/projector inference identified red and blue in the owned PNG fixture on CPU. UI upload and hardware scope are listed per case.",
+    "title_ar": "الرؤية بالنموذج ومعالج الصورة الحقيقيين",
+    "scope_note_ar": "API حقيقي أجاب أحمر/أزرق؛ رفع PNG نفسه من composer أجاب الأحمر والأسود. فشل قبول جودة UI محفوظ ولم يُستبدل بنجاح API."
+  },
+  {
+    "task_id": "N094",
+    "title": "Connect existing mascot/Orb states",
+    "acceptance": "Visible state corresponds to real app activity; errors/cancellation return it to a correct state.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "Generating/idle/error UI events are wired; real listening/speaking lifecycle is limited by unavailable voice engines.",
+    "title_ar": "ربط حالات Orb بالنشاط الحقيقي",
+    "scope_note_ar": "حالات idle/generating/error مربوطة جزئيًا؛ speaking يبدأ مع أول نص بدل إثبات تشغيل صوت، لذلك لا يُقبل اكتمال دورة الصوت."
+  },
+  {
+    "task_id": "N095",
+    "title": "Synchronize audio visuals and HUD",
+    "acceptance": "The face reacts to real audio and stops with playback; HUD values agree with sampled data without excessive CPU use.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/core/voice_service.py",
+      "src/stt.py",
+      "src/tts.py",
+      "web/chat.js",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "AUDIO_PLAYBACK"
+    ],
+    "scope_note": "HUD metrics exist; real audio-level face animation and playback synchronization are not complete.",
+    "title_ar": "مزامنة الصوت والوجه وHUD",
+    "scope_note_ar": "التنفيذ جزئي أو تنقصه رحلة قبول كاملة؛ فحوص المحاكي لا تثبت العمل الحقيقي."
+  },
+  {
+    "task_id": "N096",
+    "title": "Cinematic boot, extra modes, portrait display",
+    "acceptance": "Record existing behavior if available; these extensions do not block the core chat/workspace fixes.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "إقلاع سينمائي وأوضاع عرض إضافية",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N097",
+    "title": "Create repeatable acceptance evaluations",
+    "acceptance": "Results identify input, environment, model/config, expected behavior, actual outcome, and test type; old test counts are not attributed to a new build.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "tools/verify_neura.py",
+      "tools/verification/live.py",
+      "tools/verification/probes.py",
+      "tools/verification/catalog.json",
+      "tests/regression/test_verification_runner.py",
+      "tests/conftest.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تقييمات قبول قابلة للتكرار",
+    "scope_note_ar": "runner جديد وكتالوج109 وfixtures حالية ومستويات دليل منفصلة. تغطية الصوت/الإدارة/desktop الأصلي ما زالت مفتوحة؛ أعطال harness القديمة محفوظة مع تصحيحها."
+  },
+  {
+    "task_id": "N098",
+    "title": "Protect local APIs and reject injected tool instructions",
+    "acceptance": "A generated preview or third-party page cannot launch tools or change private data; prompt-injection fixtures cannot bypass the permission layer.",
+    "category": "active",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "حماية APIs والتعليمات المحقونة",
+    "scope_note_ar": "مصادقة token وHost/Origin وحدود أجسام وbridge/preview policy موجودة؛ رفض HTTP وعزل browser وQt اختبرا دون تفويض من محتوى مولد."
+  },
+  {
+    "task_id": "N099",
+    "title": "Git/GitHub/CI and versioning",
+    "acceptance": "Current relevant CI configuration and local checks are valid; version artifacts match intended source without auto-publishing or inventing historical tags.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "packaging/linux/install.py",
+      "packaging/linux/install-update",
+      "src/desktop/install_update.py",
+      "src/desktop/releases.py",
+      ".github/workflows/build.yml",
+      "tools/build_linux_release.py",
+      "web/index.html"
+    ],
+    "required_evidence": [
+      "STATIC"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "Git وGitHub وCI والإصدارات",
+    "scope_note_ar": "ملف Actions صالح محليًا والحزمة المحلية بُنيت وفُحصت؛ لم يُشغّل workflow بعيد أو يُنشر إصدار."
+  },
+  {
+    "task_id": "N100",
+    "title": "Docker/public hosting",
+    "acceptance": "Remain deferred; do not expose the local backend publicly or weaken local authentication for QA.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "Docker أو الاستضافة العامة",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N101",
+    "title": "Self-authored skills",
+    "acceptance": "Remain deferred; future drafts require review, bounded tests, controlled activation and rollback, with no self-granted privileges.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "مهارات يؤلفها النموذج تحت المراجعة",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N102",
+    "title": "Advanced KDE window/mouse/keyboard control",
+    "acceptance": "Remain deferred unless explicitly enabled through a trusted supported integration. Do not bypass desktop protections.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/tools/desktop_skills.py",
+      "src/core/chat_dispatch.py",
+      "src/core/application_targets.py",
+      "src/desktop/actions.py",
+      "src/backend/api.py",
+      "src/desktop/preview_policy.py"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "تحكم KDE المتقدم",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N103",
+    "title": "Connect Telegram to the existing backend reliably",
+    "acceptance": "Fake-network contract tests cover discovery and failure; actual channel tests are reported separately and no unsolicited live messages are sent.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/channels/telegram_gateway.py",
+      "src/desktop/service.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "Gateway is an API client but rejects ports other than 8000; protected dynamic discovery is missing.",
+    "title_ar": "Telegram واكتشاف الخلفية",
+    "scope_note_ar": "القناة عميل API وليست نموذجًا ثانيًا، لكنها تقيّد الاتصال بالمنفذ8000؛ الاكتشاف الديناميكي غير موصول ولم ترسل رسائل حية."
+  },
+  {
+    "task_id": "N104",
+    "title": "Email drafts without sending",
+    "acceptance": "A supported draft produces actual draft text and honest errors; draft acceptance sends no email.",
+    "category": "reported_done",
+    "feature_state": "IMPLEMENTED",
+    "source_paths": [
+      "src/tools/safe_actions.py",
+      "src/agent/router.py",
+      "src/backend/api.py",
+      "src/core/chat_dispatch.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "مسودات البريد دون إرسال",
+    "scope_note_ar": "draft_email يعيد مسودة محلية فقط، ولا يرسل بريدًا؛ API الحالي اختبر بعنوان QA غير حقيقي."
+  },
+  {
+    "task_id": "N105",
+    "title": "Alternative inference server",
+    "acceptance": "Remain optional; record current architecture rather than starting a duplicate server or claiming a migration occurred.",
+    "category": "deferred",
+    "feature_state": "DEFERRED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "خادم استدلال بديل",
+    "scope_note_ar": "مؤجل صراحةً؛ لم يُفعّل أو يُنشر أثناء التحقق."
+  },
+  {
+    "task_id": "N106",
+    "title": "Old pywebview wrapper",
+    "acceptance": "Verify the current Qt application is the supported path. Do not reintroduce the obsolete parallel wrapper.",
+    "category": "superseded",
+    "feature_state": "SUPERSEDED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "غلاف pywebview القديم",
+    "scope_note_ar": "ملغى وليس من متطلبات Linux النشطة."
+  },
+  {
+    "task_id": "N107",
+    "title": "Old Windows F: trash-cleanup task",
+    "acceptance": "Not an active Linux requirement. Perform no filesystem deletion to satisfy this historical task.",
+    "category": "superseded",
+    "feature_state": "SUPERSEDED",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/desktop/app.py",
+      "docs/Neura_Remaining_Tasks_Implementation_EN_2026-10-29.md"
+    ],
+    "required_evidence": [],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "مهمة تنظيف Windows F القديمة",
+    "scope_note_ar": "ملغى وليس من متطلبات Linux النشطة."
+  },
+  {
+    "task_id": "N108",
+    "title": "Verify the live status transport",
+    "acceptance": "Status updates remain live while generation runs; reconnecting does not create duplicate monitoring or inference workers.",
+    "category": "active",
+    "feature_state": "PARTIAL",
+    "source_paths": [
+      "src/backend/api.py",
+      "src/core/neura_loop.py",
+      "src/backends/residency.py",
+      "src/backends/llama_cpp_backend.py",
+      "src/backends/devices.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE",
+      "REAL_MODEL",
+      "UI_FIXTURE"
+    ],
+    "scope_note": "State is based on current source review; acceptance execution is recorded separately. Existing module/endpoint presence is not a full workflow pass.",
+    "title_ar": "نقل الحالة الحية",
+    "scope_note_ar": "polling /health و/stats يعمل خلال الاستدلال، وتُحفظ عينات تأخيره الفعلية في الجولة؛ لا تقسيم كامل للمراحل أو WebSocket جديد."
+  },
+  {
+    "task_id": "N109",
+    "title": "Verify or implement Vault Harvest",
+    "acceptance": "A saved note produces a real stored article with traceable sources; missing notes or unavailable generation return an honest error.",
+    "category": "active",
+    "feature_state": "MISSING",
+    "source_paths": [
+      "src/core/vault.py",
+      "src/backend/api.py",
+      "src/memory.py"
+    ],
+    "required_evidence": [
+      "CONTRACT_FAKE"
+    ],
+    "scope_note": "The actual packaged /vault/harvest endpoint returns 501; no saved-note article is generated.",
+    "title_ar": "Vault Harvest من ملاحظات محفوظة",
+    "scope_note_ar": "الواجهة الفعلية تعيد501 بصدق؛ لم يُولد مقال من ملاحظة."
+  }
+]

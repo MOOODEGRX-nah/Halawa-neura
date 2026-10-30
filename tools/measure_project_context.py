@@ -21,14 +21,17 @@ report={'version':VERSION,'ids':['N058','N059'],'tokenizer':args.gguf.name,'mode
 try:
  for source,store,projects in [('actual_generated',actual,actual.list()),('deterministic_large_fixture',fixtures,fixtures.list())]:
   for meta in projects:
-   if meta['generation_status'] not in ('completed','idle'):continue
+   # A cancelled edit can retain a valid committed source revision. Controlled
+   # browser-security fixtures are not model-generated projects.
+   if meta['project_revision']<1:continue
+   origin='controlled_security_fixture' if meta['purpose'].startswith('Owned adversarial fixture') else source
    meta=store.get(meta['project_id']);files=store.committed_files(meta['project_id']);summary=meta['summary']
    full='\n'.join('FILE '+path+'\n'+body for path,body in files.items() if isinstance(body,str))
    assert len(summary)<=3500
    for question in ('ما هو هذا المشروع؟','ما هي لغات المشروع؟','لماذا أنشئ هذا المشروع؟'):
     answer=store.answer(meta['project_id'],question);assert not answer['model_called'] and not answer.get('stale')
     source_tokens=len(tokenizer.tokenize((full+'\n'+question).encode(),add_bos=False));summary_tokens=len(tokenizer.tokenize((summary+'\n'+question).encode(),add_bos=False))
-    report['cases'].append({'fixture_source':source,'project_type':meta['type'],'project_id':meta['project_id'],'question':question,'files':len(files),'summary_characters':len(summary),'full_source_context_tokens':source_tokens,'summary_context_tokens_if_used':summary_tokens,'actual_metadata_question_model_input_tokens':0,'deterministic_summary_maintenance_model_tokens':0})
+    report['cases'].append({'fixture_source':origin,'project_type':meta['type'],'project_id':meta['project_id'],'question':question,'files':len(files),'summary_characters':len(summary),'full_source_context_tokens':source_tokens,'summary_context_tokens_if_used':summary_tokens,'actual_metadata_question_model_input_tokens':0,'deterministic_summary_maintenance_model_tokens':0})
  args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(report,ensure_ascii=False,indent=2))
  print(json.dumps({'cases':len(report['cases']),'full_token_range':[min(x['full_source_context_tokens'] for x in report['cases']),max(x['full_source_context_tokens'] for x in report['cases'])],'summary_token_range':[min(x['summary_context_tokens_if_used'] for x in report['cases']),max(x['summary_context_tokens_if_used'] for x in report['cases'])],'generation_calls':0}))
 finally:tokenizer.close();actual.close();fixtures.close()

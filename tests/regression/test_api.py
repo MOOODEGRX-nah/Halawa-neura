@@ -53,10 +53,29 @@ def test_chat_history_parameters_and_tier(system,messages):
         response=await client.post('/v1/chat/completions',json={'messages':messages,'neura':{'tier':'fast'},'temperature':.3,'max_tokens':123,'top_p':.8})
         assert response.status_code==200,response.text
         result=response.json();assert result['model']=='gemma-4-e4b-q4'
-        assert system.backend.calls[-1]['messages'][1:]==messages
-        assert 'dispatcher' in system.backend.calls[-1]['messages'][0]['content']
+        actual=system.backend.calls[-1]['messages']
+        assert actual[1:]==messages[1:]
+        assert actual[0]['content'].endswith(messages[0]['content'])
+        assert 'dispatcher' in actual[0]['content']
         assert system.backend.calls[-1]['max_tokens']==123
         assert result['usage']['total_tokens']==8
+    run(system,check)
+
+
+def test_capabilities_preserve_system_text_and_strict_template_turns(system):
+    history=[{'role':'system','content':'Keep QA742'},
+             {'role':'system','content':[{'type':'text','text':'Use Arabic'},{'type':'text','text':'Do not invent facts'}]},
+             {'role':'user','content':'My code is QA742'},
+             {'role':'assistant','content':'Understood'},
+             {'role':'user','content':'ما الرمز؟'}]
+    async def check(client,app):
+        response=await client.post('/v1/chat/completions',json={'messages':history,'tier':'fast'})
+        assert response.status_code==200,response.text
+        actual=system.backend.calls[-1]['messages']
+        assert actual[1:]==history[2:]
+        assert [m['role'] for m in actual]==['system','user','assistant','user']
+        assert actual[0]['content'].endswith('Keep QA742\n\nUse Arabic\n\nDo not invent facts')
+        assert history[0]['content']=='Keep QA742'
     run(system,check)
 
 

@@ -5,6 +5,15 @@ import uvicorn
 from src.runtime import Settings
 from src.core.neura_loop import NeuraLoop
 from src.backend.api import create_app
+# The fixture backend has no native inference or live sensor dependency.
+import src.backend.api as api_module
+import src.backends.residency as residency_module
+from types import SimpleNamespace
+import psutil
+api_module.gpu_memory=lambda:None
+residency_module.gpu_memory=lambda:None
+psutil.cpu_percent=lambda *a,**k:0.0
+psutil.virtual_memory=lambda:SimpleNamespace(total=32_000_000_000,used=8_000_000_000,available=24_000_000_000,free=24_000_000_000,percent=25.0)
 parser=argparse.ArgumentParser();parser.add_argument('--port',type=int,required=True);args=parser.parse_args()
 WEB='```html index.html\n<html lang="ar" dir="rtl"><link rel="stylesheet" href="style.css"><h1>سيرة Qt</h1><button id="hello">تجربة</button><p id="result"></p><script src="script.js"></script></html>\n```\n```css style.css\nbody{background:#e8f4ee;color:#24523e;font-family:sans-serif;padding:30px}\n```\n```javascript script.js\ndocument.querySelector("#hello").onclick=()=>document.querySelector("#result").textContent="مرحبا";\n```'
 MARKDOWN='فقرة **غامقة** و*مائلة* و`inline`.\n\n- واحد\n- two\n\n[رابط](https://example.com/)\n\n```python\nprint("code")\n```\n\n<script>fetch("/skills/authorize",{method:"POST"})</script><img src=x onerror="fetch(\'/skills/authorize\',{method:\'POST\'})">\n[bad](javascript:alert(1))'
@@ -38,6 +47,18 @@ class Desktop:
  def open_file(self,args):self.calls.append(['file',args]);return {'status':'launched','message':'طلب عرض ملف QA'}
  def open_folder(self,args):self.calls.append(['folder',args]);return {'status':'launched','message':'طلب فتح مجلد QA'}
 settings=Settings();backend=Backend();desktop=Desktop();loop=NeuraLoop(settings=settings,backend=backend);app=create_app(settings,loop,desktop_adapter=desktop)
+if os.environ.get('NEURA_QA_REAL_DESKTOP')=='1':
+ from src.desktop.actions import DesktopAdapter
+ import subprocess
+ class RecordedDesktop(DesktopAdapter):
+  def __init__(self):
+   self.calls=[]
+   super().__init__(app.state.project_store,runner=self.recorded_launch)
+  def recorded_launch(self,command,**options):
+   result=subprocess.run(command,**options)
+   self.calls.append({'argv':command,'shell':options.get('shell'),'returncode':result.returncode,'time':time.time()})
+   return result
+ desktop=RecordedDesktop();app.state.desktop_skills.adapter=desktop
 save_requests=0
 @app.middleware('http')
 async def save_delay(request,call_next):
@@ -48,7 +69,9 @@ async def save_delay(request,call_next):
  if saving:await asyncio.sleep(float(os.environ.get('NEURA_QA_SAVE_DELAY_S','0')))
  return response
 @app.get('/qa/state')
-async def state():return {'unrelated_requests':unrelated_requests,'security_project':security_project,'save_requests':save_requests,'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
+async def state():
+ from src.runtime import ROOT
+ return {'target_root':str(ROOT),'model_adapter':'fake','desktop_adapter':'actual trusted GIO' if os.environ.get('NEURA_QA_REAL_DESKTOP')=='1' else 'fake','unrelated_requests':unrelated_requests,'security_project':security_project,'save_requests':save_requests,'desktop':desktop.calls,'model_calls':backend.calls,'model_loads':backend.loads,'projects':len(app.state.project_store.list()),'grants':app.state.project_store.db.execute('SELECT COUNT(*) FROM skill_grants').fetchone()[0]}
 security_project=None;unrelated_requests=0;unrelated_server=None
 if os.environ.get('NEURA_QA_SECURITY')=='1':
  from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer

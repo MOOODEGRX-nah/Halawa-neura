@@ -36,6 +36,7 @@ python-embed/
 
 node_modules/
 .pytest_cache/
+verification-runs/
 *.aria2
 
 vendor/
