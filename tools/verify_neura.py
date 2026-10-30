@@ -151,6 +151,7 @@ class Run:
             f"النتيجة الكاملة: **{s['acceptance']}**. كود قبول الكتالوج: {s['acceptance_exit_code']}. هذا مستقل عن نجاح suite مختارة.",
             f"النسخة المستهدفة `{r['target_version']}` من `{r['target_root']}`؛ المثبتة `{r['installed_version']}`.",
             f"المصدر `{r['source']['branch']}` / `{r['source']['commit']}`؛ dirty عند البدء: {r['source']['dirty']}.",
+            f"المصدر الحالي `{r.get('source_after',r['source'])['branch']}` / `{r.get('source_after',r['source'])['commit']}`؛ dirty الآن: {r.get('source_after',r['source'])['dirty']}.",
             'الحالات: `IMPLEMENTED/PARTIAL/MISSING/UNKNOWN` تصف التنفيذ؛ `PASS/FAIL/BLOCKED/NOT_RUN` تصف الأدلة. لا يحول فحص المصدر أو المحاكي إلى قبول حقيقي.',
             '## أعداد التنفيذ',json.dumps(s['implementation_states'],ensure_ascii=False),'## أعداد الأدلة المسجلة، بما فيها المحاولات التاريخية', '```json',json.dumps(s['case_results_by_method'],ensure_ascii=False,indent=2),'```',
             '## الأدلة المطلوبة الحالية فقط','```json',json.dumps(s['current_required_case_results_by_method'],ensure_ascii=False,indent=2),'```',
