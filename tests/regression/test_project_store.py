@@ -88,6 +88,28 @@ def test_revision_conflict_external_edit_and_rebuild(tmp_path):
     store.close()
 
 
+def test_external_rebuild_refreshes_contract_without_reusing_job_receipt(tmp_path):
+    store=ProjectStore(tmp_path)
+    try:
+        pid=store.create('CV','CV')['project_id']
+        requirements=[{'request':'Preserve contact link','origin':'user'}]
+        store.commit(pid,{'index.html':'<h1>Old</h1>'},0,
+                     accepted_requirements=requirements,
+                     execution_receipt={'outcome':'committed','result_revision':1})
+        (store.directory(pid)/'index.html').write_text('<h1>Current</h1><a href="#contact">Contact</a>')
+        rebuilt=store.rebuild(pid,1)
+        assert rebuilt['project_revision']==2
+        assert 'last_execution' not in rebuilt
+        assert rebuilt['accepted_requirements']==requirements
+        contract=rebuilt['preserve_contract']['html']['index.html']
+        assert contract['text']==['Current','Contact']
+        assert contract['controls'][0]['href']=='#contact'
+        store.close();store=ProjectStore(tmp_path)
+        assert store.get(pid)['preserve_contract']==rebuilt['preserve_contract']
+        assert 'last_execution' not in store.get(pid)
+    finally:store.close()
+
+
 def test_crash_journal_restores_last_good_revision(tmp_path):
     store=ProjectStore(tmp_path);p=store.create('test','test')['project_id']
     store.commit(p,WEB,0);folder=store.directory(p)

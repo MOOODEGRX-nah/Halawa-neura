@@ -1,0 +1,846 @@
+{
+  "version": 1,
+  "scope": "Author-created corpus; holdout fixed before execution and not used to tune this iteration",
+  "cases": [
+    {
+      "id": "AX-E001",
+      "split": "development",
+      "text": "حسن واجهة الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E002",
+      "split": "development",
+      "text": "حسّن تصميمه",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E003",
+      "split": "development",
+      "text": "طور الواجهة",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E004",
+      "split": "development",
+      "text": "خل الموقع احترافي",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E005",
+      "split": "development",
+      "text": "خله أجمل وأسرع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E006",
+      "split": "development",
+      "text": "أضف أنيميشن خفيف",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E007",
+      "split": "development",
+      "text": "Improve this website",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E008",
+      "split": "development",
+      "text": "Polish the current UI",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E009",
+      "split": "development",
+      "text": "هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E010",
+      "split": "development",
+      "text": "هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E011",
+      "split": "development",
+      "text": "من فضلك حسن تصميم الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E012",
+      "split": "development",
+      "text": "أريد منك أن تحسن واجهة الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E013",
+      "split": "development",
+      "text": "لو سمحت طور الواجهة",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E014",
+      "split": "development",
+      "text": "Can you improve this website?",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E015",
+      "split": "development",
+      "text": "Please polish the current UI",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E016",
+      "split": "development",
+      "text": "أضف زر تسجيل دخول",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E017",
+      "split": "development",
+      "text": "أضف الوضع الداكن إلى هذا المشروع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E018",
+      "split": "development",
+      "text": "Change background to blue",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E019",
+      "split": "development",
+      "text": "Add a login button",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E020",
+      "split": "development",
+      "text": "Enable dark mode in this project",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E021",
+      "split": "development",
+      "text": "طور تصميمه",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E022",
+      "split": "development",
+      "text": "حسن شكل الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E023",
+      "split": "development",
+      "text": "هل تستطيع أن تحسن الواجهة؟",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E024",
+      "split": "development",
+      "text": "ممكن تحسن الواجهه",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E025",
+      "split": "development",
+      "text": "Improve the current website",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E026",
+      "split": "development",
+      "text": "Refine this design",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E027",
+      "split": "held_out",
+      "text": "Enhance the interface",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E028",
+      "split": "held_out",
+      "text": "Add some animation",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E029",
+      "split": "held_out",
+      "text": "اجعل الموقع احترافيا",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E030",
+      "split": "held_out",
+      "text": "Make it professional",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E031",
+      "split": "held_out",
+      "text": "Could you polish this interface?",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E032",
+      "split": "held_out",
+      "text": "رجاء حسن تصميمه",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E033",
+      "split": "held_out",
+      "text": "طور الواجهة باستخدام CSS",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E034",
+      "split": "held_out",
+      "text": "خلي الموقع أجمل",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E035",
+      "split": "held_out",
+      "text": "Make this website beautiful",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E036",
+      "split": "held_out",
+      "text": "أضف حركة خفيفة",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E037",
+      "split": "held_out",
+      "text": "حسنلي واجهة الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E038",
+      "split": "held_out",
+      "text": "طورلي الواجهة",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E039",
+      "split": "held_out",
+      "text": "Refine the current layout",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E040",
+      "split": "held_out",
+      "text": "هل تقدر تحسن واجهة الموقع",
+      "expected": "edit",
+      "target": "current"
+    },
+    {
+      "id": "AX-E041",
+      "split": "development",
+      "text": "كيف أحسن واجهة الموقع؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E042",
+      "split": "development",
+      "text": "لا تعدل الموقع",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E043",
+      "split": "development",
+      "text": "\"حسن واجهة الموقع\"",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E044",
+      "split": "development",
+      "text": "اشرح كيف أضيف الوضع الداكن",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E045",
+      "split": "development",
+      "text": "Explain how to improve this website",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E046",
+      "split": "development",
+      "text": "Do not improve this website",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E047",
+      "split": "development",
+      "text": "هل يمكنك أن لا تحسن الواجهة",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E048",
+      "split": "development",
+      "text": "```html\nحسن الموقع\n```",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E049",
+      "split": "development",
+      "text": "ما الفرق بين HTML وCSS؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E050",
+      "split": "development",
+      "text": "مرحبا",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E051",
+      "split": "development",
+      "text": "لو قلت لك حسن الواجهة ماذا ستفعل؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E052",
+      "split": "development",
+      "text": "أشرح معنى improve this website",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E053",
+      "split": "development",
+      "text": "مثال: أضف أنيميشن خفيف",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E054",
+      "split": "development",
+      "text": "كيف أبرمج لعبة XO؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E055",
+      "split": "development",
+      "text": "لا تفتح يوتيوب",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E056",
+      "split": "development",
+      "text": "\"افتح Brave\"",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E057",
+      "split": "development",
+      "text": "Never open Discord",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E058",
+      "split": "development",
+      "text": "ما هو الوضع الداكن؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E059",
+      "split": "development",
+      "text": "كيف أختار ألوان الموقع؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E060",
+      "split": "development",
+      "text": "ماذا تعني واجهة المستخدم؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E061",
+      "split": "development",
+      "text": "لا تحذف زر الدخول",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E062",
+      "split": "development",
+      "text": "لا تضف أنيميشن",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E063",
+      "split": "development",
+      "text": "كيف أغير الألوان؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E064",
+      "split": "development",
+      "text": "explain this code",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E065",
+      "split": "development",
+      "text": "What is CSS?",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E066",
+      "split": "development",
+      "text": "لا تبرمج لي لعبة",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E067",
+      "split": "held_out",
+      "text": "«خل الموقع احترافي»",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E068",
+      "split": "held_out",
+      "text": "`افتح يوتيوب`",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E069",
+      "split": "held_out",
+      "text": "> أضف زر دخول",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E070",
+      "split": "held_out",
+      "text": "شكرا لك",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E071",
+      "split": "held_out",
+      "text": "كيف أحسن تصميمه؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E072",
+      "split": "held_out",
+      "text": "لا تجعل الموقع احترافيا",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E073",
+      "split": "held_out",
+      "text": "Please do not polish the UI",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E074",
+      "split": "held_out",
+      "text": "اشرح لي تصميم الواجهة",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E075",
+      "split": "held_out",
+      "text": "\"Improve the current UI\"",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E076",
+      "split": "held_out",
+      "text": "لماذا نستخدم CSS؟",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E077",
+      "split": "held_out",
+      "text": "Do not add animation",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E078",
+      "split": "held_out",
+      "text": "كيفية تحسين واجهة الموقع",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E079",
+      "split": "held_out",
+      "text": "مثال حسن تصميمه وليس أمرا",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E080",
+      "split": "held_out",
+      "text": "Never modify the website",
+      "expected": "chat",
+      "target": null
+    },
+    {
+      "id": "AX-E081",
+      "split": "development",
+      "text": "برمج لي موقع للcv",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E082",
+      "split": "development",
+      "text": "أنشئ موقع سيرة ذاتية",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E083",
+      "split": "development",
+      "text": "أنشئ لي مشروع Python",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E084",
+      "split": "development",
+      "text": "Create a website",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E085",
+      "split": "development",
+      "text": "Build a game",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E086",
+      "split": "development",
+      "text": "اكتب لي كود Python",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E087",
+      "split": "development",
+      "text": "صمم صفحة شخصية",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E088",
+      "split": "development",
+      "text": "Make a landing page",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E089",
+      "split": "development",
+      "text": "برمج لعبة XO",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E090",
+      "split": "development",
+      "text": "Write a Python script",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E091",
+      "split": "development",
+      "text": "هل يمكنك إنشاء موقع؟",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E092",
+      "split": "development",
+      "text": "من فضلك أنشئ موقعا",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E093",
+      "split": "development",
+      "text": "لو سمحت برمج تطبيق",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E094",
+      "split": "held_out",
+      "text": "Create an application",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E095",
+      "split": "held_out",
+      "text": "ابني مشروع جديد",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E096",
+      "split": "held_out",
+      "text": "Can you build a website?",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E097",
+      "split": "held_out",
+      "text": "Please write a Python program",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E098",
+      "split": "held_out",
+      "text": "Could you create a website?",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E099",
+      "split": "held_out",
+      "text": "صمم موقع للمصمم",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E100",
+      "split": "held_out",
+      "text": "اصنع لعبة بسيطة",
+      "expected": "create",
+      "target": "new"
+    },
+    {
+      "id": "AX-E101",
+      "split": "development",
+      "text": "افتح يوتيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E102",
+      "split": "development",
+      "text": "افتح لي موقع يوتيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E103",
+      "split": "development",
+      "text": "هل يمكنك ان تفتح لي موقع youtube",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E104",
+      "split": "development",
+      "text": "Open YouTube",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E105",
+      "split": "development",
+      "text": "ممكن تفتح يوتيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E106",
+      "split": "development",
+      "text": "من فضلك افتح يوتيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E107",
+      "split": "development",
+      "text": "افتح موقع youtube",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E108",
+      "split": "development",
+      "text": "هل تقدر تفتح اليوتيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E109",
+      "split": "held_out",
+      "text": "Please open YouTube",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E110",
+      "split": "held_out",
+      "text": "افتح Github",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E111",
+      "split": "held_out",
+      "text": "Could you open youtube?",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E112",
+      "split": "held_out",
+      "text": "افتح يو تيوب",
+      "expected": "website",
+      "target": null
+    },
+    {
+      "id": "AX-E113",
+      "split": "development",
+      "text": "لم تفعل شي حتى الان؟",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E114",
+      "split": "development",
+      "text": "هل انتهيت",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E115",
+      "split": "development",
+      "text": "task status",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E116",
+      "split": "development",
+      "text": "nothing changed",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E117",
+      "split": "development",
+      "text": "what happened",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E118",
+      "split": "held_out",
+      "text": "ما سويت شي",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E119",
+      "split": "held_out",
+      "text": "وش صار",
+      "expected": "status",
+      "target": "current"
+    },
+    {
+      "id": "AX-E120",
+      "split": "held_out",
+      "text": "ما حالة المهمة",
+      "expected": "status",
+      "target": "current"
+    }
+  ]
+}

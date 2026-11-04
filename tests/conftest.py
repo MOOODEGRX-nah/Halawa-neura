@@ -37,6 +37,7 @@ def controlled_sensors(monkeypatch):
     This affects tests only, not the shipped application or real-model suites.
     """
     import psutil
+    monkeypatch.setattr('src.core.project_jobs.check_candidate',lambda *a,**k:{'status':'fixture_not_run','environment':'fake browser boundary in deterministic tests'})
     monkeypatch.setattr('src.backends.residency.gpu_memory',lambda:None)
     if 'src.backend.api' in sys.modules:
         monkeypatch.setattr('src.backend.api.gpu_memory',lambda:None)

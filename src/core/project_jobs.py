@@ -11,9 +11,13 @@ from pydantic import ConfigDict, Field
 from src.core.invoice_orchestrator import InvoiceOrchestrator, ProjectRequest
 from src.core.neura_loop import InferenceError
 from src.core.project_files import ProjectError, Conflict
-from src.core.project_store import now
+from src.core.project_store import now, digest
 from src.core.project_stream import FileStream
 from src.core.project_contracts import JobEvent
+from src.core.project_validation import inspect_files
+from src.core.edit_preservation import require_preserved, html_contract, contract_summary
+from src.core.candidate_browser import check_candidate
+from src.core.contrast_repair import repair_contrast
 
 TERMINAL = {'completed', 'failed', 'cancelled'}
 
@@ -47,6 +51,11 @@ class ProjectJobs:
             interrupted = store.db.execute("SELECT id FROM jobs WHERE state NOT IN ('completed','failed','cancelled')").fetchall()
             store.db.commit()
         for row in interrupted:
+            job=self._row(row['id']);meta=self.store.get(job['project_id']);receipt=meta.get('last_execution')
+            if receipt and receipt['job_id']==row['id'] and receipt['result_revision']==meta['project_revision'] and meta['source_freshness']=='current':
+                result={'execution':receipt,'validation':meta['validation'],'saved_files':[{'project_id':job['project_id'],'path':path,'revision':receipt['result_revision'],'sha256':sha} for path,sha in receipt['result_hashes'].items()]}
+                store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',(json.dumps(result,ensure_ascii=False),row['id']));store.db.commit()
+                self._state(row['id'],'completed');self._emit(row['id'],'job_completed',{'execution':receipt,'recovered_committed_receipt':True});continue
             self._state(row['id'], 'failed', error='interrupted: توقف التطبيق؛ لم يُستأنف التوليد تلقائيًا')
             self._emit(row['id'], 'job_failed', {'code': 'interrupted'})
 
@@ -70,7 +79,7 @@ class ProjectJobs:
                     'invoice':json.loads(contract['invoice']) if contract else None,
                     'invoice_provenance':'recorded' if contract else 'unavailable_legacy',
                     'stage_results':json.loads(contract['stages']) if contract else [],
-                    'saved_files':result.get('saved_files',[]),'validation':result.get('validation')}
+                    'saved_files':result.get('saved_files',[]),'validation':result.get('validation'),'execution':result.get('execution'),'attempts':result.get('attempts',[])}
 
     def _stage_result(self, job_id, stage, result):
         with self.store.lock:
@@ -157,6 +166,8 @@ class ProjectJobs:
             if self.stopping.is_set() or self.queue.full():
                 raise Conflict('قائمة التوليد ممتلئة؛ انتظر انتهاء مهمة')
             if request.project_id:
+                active=self.store.db.execute("SELECT COUNT(*) FROM jobs WHERE project_id=? AND state NOT IN ('completed','failed','cancelled')",(request.project_id,)).fetchone()[0]
+                if active:raise Conflict('توجد مهمة نشطة لهذا المشروع؛ انتظر أو ألغها قبل إنشاء تعديل جديد')
                 project = self.store.get(request.project_id)
                 if request.expected_revision != project['project_revision'] or project['source_freshness'] != 'current':
                     raise Conflict('راجع مراجعة المشروع قبل تعديله')
@@ -233,51 +244,114 @@ class ProjectJobs:
             actual_invoice=self.invoice.make_invoice(request.legacy(),project_id=project_id,task_id=job_id,context=context)
             with self.store.lock:
                 self.store.db.execute('UPDATE job_contracts SET invoice=? WHERE job_id=?',(actual_invoice.model_dump_json(),job_id));self.store.db.commit()
-            with closing(self.invoice.stream_files(request.legacy(), context=context, project_id=project_id,task_id=job_id,cancel=cancel, deadline=deadline)) as stream:
-                for item in stream:
-                    if item['kind'] == 'stage':
-                        self._state(job_id, item['stage'])
-                        self._emit(job_id, 'stage_changed', {'stage': item['stage']})
-                    elif item['kind'] == 'delta':
-                        parser.feed(item['text'])
-                    elif item['kind'] in ('stage_result','finished'):
-                        result={key:value for key,value in item.items() if key not in ('kind','stage')}
-                        if item['kind']=='finished':result['filename_resolutions']=parser.resolutions
-                        self._stage_result(job_id,item.get('stage','generating'),result)
-            generated = parser.finish()
-            self.coordinator._check(cancel, deadline)
-            self._state(job_id, 'validating')
-            self._emit(job_id, 'stage_changed', {'stage': 'validating'})
-            files = self.store.committed_files(project_id) if request.project_id else {}
-            unseen=set(generated).intersection(files).difference(request.context_files) if request.project_id else set()
-            if unseen:
-                raise ProjectError('لم يُرسل المصدر الفعلي لهذه الملفات؛ اخترها قبل تعديلها: '+', '.join(sorted(unseen)))
-            files.update(generated)
-            # Reuse the existing deterministic required-file/symbol acceptance checks.
-            missing = set(request.required_files) - files.keys()
-            if missing:
-                raise ProjectError('ملفات مطلوبة مفقودة: ' + ', '.join(sorted(missing)))
-            if request.required_python_symbols:
-                import ast
-                symbols = {node.name for p, text in files.items() if PurePosixPath(p).suffix.lower()=='.py' for node in ast.walk(ast.parse(text))
-                           if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
-                if set(request.required_python_symbols) - symbols:
-                    raise ProjectError('رموز Python المطلوبة مفقودة')
-            self.coordinator._check(cancel, deadline)
-            project = self.store.commit(project_id, files, expected)
+            before = self.store.committed_files(project_id) if request.project_id else {}
+            accepted=project.get('accepted_requirements',[])
+            if request.project_id:
+                context+='\nPreserve ALL existing visible content, control labels, IDs, links and behavior. Keep Login as a placeholder, not authentication. Dark mode must have readable foreground and background colors. Use local resources only.\n'
+                requirements_context=json.dumps(accepted,ensure_ascii=False)
+                if len(requirements_context)>8000:raise ProjectError('سجل متطلبات المشروع يتجاوز حد السياق؛ يلزم مراجعته قبل تعديل جديد')
+                context+='Accepted user requirements: '+requirements_context
+            attempts=[];browser={'status':'not_run'};preserved={'status':'not_applicable'}
+            repair='';generated={};files={};browser_failure=None
+            # One corrective attempt, same deadline and a shared output budget.
+            remaining_tokens=request.max_tokens//4
+            for attempt in range(2):
+                parser=FileStream(lambda kind,data:self._emit(job_id,kind,data,drafts=parser.files),
+                                  expected_files=request.required_files,filename_hints=request.filename_hints or request.context_files)
+                if attempt:
+                    self._state(job_id,'generating');self._emit(job_id,'stage_changed',{'stage':'generating','attempt':attempt,'mode':'candidate_patch'})
+                    try:
+                        corrected=repair_contrast(generated,preview.get('entry_point'),browser_failure,request.user_request+' '+json.dumps(accepted,ensure_ascii=False))
+                        if corrected:generated,repair_result=corrected
+                        else:generated,repair_result=self.invoice.repair_candidate(generated,request,repair,contract_summary(before),
+                            cancel=cancel,deadline=deadline,max_tokens=remaining_tokens)
+                        self._stage_result(job_id,'generating',repair_result)
+                        for path,content in generated.items():
+                            parser.files[path]={'content':'','complete':False};self._emit(job_id,'file_started',{'path':path},drafts=parser.files)
+                            parser.files[path]['content']=content
+                            self._emit(job_id,'file_delta',{'path':path,'delta':content,'offset':0},drafts=parser.files)
+                            parser.files[path]['complete']=True;self._emit(job_id,'file_draft_complete',{'path':path},drafts=parser.files)
+                    except (ProjectError,InferenceError) as error:
+                        attempts.append({'attempt':attempt,'status':'rejected','error':str(error),'mode':'candidate_patch'})
+                        with self.store.lock:
+                            self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',(json.dumps({'attempts':attempts},ensure_ascii=False),job_id));self.store.db.commit()
+                        raise
+                else:
+                    candidate_request=request.legacy()
+                    candidate_request.max_tokens=max(64,request.max_tokens-remaining_tokens)
+                    with closing(self.invoice.stream_files(candidate_request,context=context+repair,project_id=project_id,task_id=job_id,cancel=cancel,deadline=deadline)) as stream:
+                        for item in stream:
+                            if item['kind']=='stage':
+                                self._state(job_id,item['stage']);self._emit(job_id,'stage_changed',{'stage':item['stage'],'attempt':attempt})
+                            elif item['kind']=='delta':parser.feed(item['text'])
+                            elif item['kind'] in ('stage_result','finished'):
+                                result={key:value for key,value in item.items() if key not in ('kind','stage')}
+                                if item['kind']=='finished':result['filename_resolutions']=parser.resolutions
+                                self._stage_result(job_id,item.get('stage','generating'),result)
+                    generated=parser.finish()
+                self.coordinator._check(cancel,deadline)
+                self._state(job_id,'validating');self._emit(job_id,'stage_changed',{'stage':'validating','attempt':attempt})
+                files={**before,**generated}
+                unseen=set(generated).intersection(before).difference(request.context_files) if request.project_id else set()
+                if unseen:raise ProjectError('لم يُرسل المصدر الفعلي لهذه الملفات: '+', '.join(sorted(unseen)))
+                try:
+                    missing=set(request.required_files)-files.keys()
+                    if missing:raise ProjectError('ملفات مطلوبة مفقودة: '+', '.join(sorted(missing)))
+                    if request.required_python_symbols:
+                        import ast
+                        symbols={node.name for path,text in files.items() if path.endswith('.py') for node in ast.walk(ast.parse(text)) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef))}
+                        if set(request.required_python_symbols)-symbols:raise ProjectError('رموز Python المطلوبة مفقودة')
+                    languages,preview,validation=inspect_files(files)
+                    if validation['errors']:raise ProjectError('; '.join(validation['errors']))
+                    if before:preserved=require_preserved(before,files,request.user_request)
+                    def meaningful(value):
+                        if not isinstance(value,str):return value
+                        return value.replace('\r\n','\n').rstrip('\n')
+                    changed=[path for path in generated if meaningful(before.get(path))!=meaningful(generated[path])]
+                    # Ignore only trailing line terminators, never whitespace within code strings.
+                    for path in set(generated)-set(changed):
+                        if path in before:files[path]=before[path]
+                    if changed:
+                        required=html_contract(before).get(preview.get('entry_point'),{})
+                        resulting=html_contract(files).get(preview.get('entry_point'),{})
+                        required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[])],
+                                  'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))]}
+                        browser=check_candidate(files,preview,cancel,deadline,required=required)
+                    attempts.append({'attempt':attempt,'status':'accepted' if changed else 'no_change','preservation':preserved,'browser':browser})
+                    break
+                except ProjectError as error:
+                    browser_failure=getattr(error,'browser_report',None)
+                    attempts.append({'attempt':attempt,'status':'rejected','error':str(error),'draft_files':dict(generated),'browser':browser_failure})
+                    with self.store.lock:
+                        self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',(json.dumps({'attempts':attempts},ensure_ascii=False),job_id));self.store.db.commit()
+                    if attempt or remaining_tokens<256:raise
+                    repair=str(error)[:1800]
+            self.coordinator._check(cancel,deadline)
+            # Receipt and project metadata share the SAME durable SQLite commit.
+            execution={'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
+                'base_revision':expected,'result_revision':expected+1 if changed else expected,'changed_files':changed,
+                'base_hashes':{path:digest(value) for path,value in before.items()},
+                'result_hashes':{path:digest(files[path]) for path in changed},
+                'preservation':preserved,'browser':{key:value for key,value in browser.items() if key!='samples'},'preview_checked_revision':expected+1 if changed and browser['status']=='passed' else None}
+            if changed:
+                project=self.store.commit(project_id,files,expected,execution_receipt=execution,
+                    accepted_requirements=[*accepted,{'origin':'user_request','job_id':job_id,'text':request.user_request}][-30:])
+            else:
+                project=self.store.get(project_id)
+                if project['project_revision']!=expected or project['source_freshness']!='current':raise Conflict('تغير المشروع قبل تأكيد عدم وجود تغييرات')
             saved=[{'project_id':project_id,'path':path,'revision':project['project_revision'],
-                    'sha256':next(file['sha256'] for file in project['files'] if file['path']==path)} for path in generated]
+                    'sha256':execution['result_hashes'][path]} for path in changed]
             with self.store.lock:
                 self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',
-                    (json.dumps({'saved_files':saved,'validation':project['validation']},ensure_ascii=False),job_id));self.store.db.commit()
+                    (json.dumps({'saved_files':saved,'validation':project['validation'],'execution':execution,'attempts':attempts},ensure_ascii=False),job_id));self.store.db.commit()
             self._emit(job_id, 'validation_result', project['validation'])
-            for path in generated:
+            for path in changed:
                 self._emit(job_id, 'file_saved', {'path': path, 'revision': project['project_revision']})
             self.coordinator.lock.release()
             acquired = False
             with self.store.lock:
                 self._state(job_id, 'completed')
-                self._emit(job_id, 'job_completed', {'revision': project['project_revision'], 'preview': project['preview']}, drafts=parser.files)
+                self._emit(job_id, 'job_completed', {'revision': project['project_revision'], 'preview': project['preview'],'execution':execution}, drafts=parser.files)
         except BaseException as exc:
             if acquired:
                 self.coordinator.lock.release()

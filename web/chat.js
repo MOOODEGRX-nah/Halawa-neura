@@ -5,12 +5,16 @@
   async function settle(result,signal,session){for(let tries=0;result.kind==='pending'&&tries<120;tries++){await sleep(400);result=await call('/chat/requests/'+result.request_id+'?session_id='+encodeURIComponent(session),undefined,signal);}return result;}
   async function save(){if(!TOKEN)return;try{const r=await api('/vault/save',{method:'POST',body:JSON.stringify({session:sid,messages:hist})});if(!r.ok)note('تعذر حفظ الجلسة؛ النتيجة ما زالت ظاهرة.');}catch(_){note('تعذر حفظ الجلسة؛ النتيجة ما زالت ظاهرة.');}}
   function remember(q,message,context){if(context.historyIndex===undefined){hist.push({role:'user',content:q});context.historyIndex=hist.length;hist.push({role:'assistant',content:message});}else hist[context.historyIndex]={role:'assistant',content:message};save();}
+  const receipts=new Map();
+  async function updateReceipt(job,message){const entry=receipts.get(job);if(!entry||sid!==entry.session)return;remember(entry.q,message,entry.context);}
+  async function restoreStatus(){const data=await call('/chat/status/'+encodeURIComponent(sid));if(data.job_id)bubble('n','Neura [حالة المهمة]','#81C784','code',data.message);}
   async function handleChat(q){
-    const context={id:newRequestId(),card:null,session:sid},body={text:q,request_id:context.id,session_id:context.session,active_project_id:window.NeuraWorkspace?.projectId||null,workspace_dirty:!!window.NeuraWorkspace?.dirty};
+    const context={id:newRequestId(),card:null,session:sid},body={text:q,request_id:context.id,session_id:context.session,active_project_id:null,workspace_dirty:!!window.NeuraWorkspace?.dirty};
     async function display(data){
       if(data.kind==='chat')return false;
       if(data.kind==='project'){
         await window.NeuraWorkspace.acceptCreated(data,q);
+        receipts.set(data.job.job_id,{session:context.session,q,context});
         remember(q,(data.operation==='edit'?'بدأ تعديل المشروع «':'أُنشئ المشروع «')+data.project.display_name+'». الملفات والتقدم في مساحة المبرمج.',context);
         return true;
       }
@@ -41,5 +45,5 @@
     if(['error','unavailable','unknown'].includes(result.status))throw Error(result.message);
     return result;
   }
-  window.NeuraChat={handleChat,executeManual,newRequestId};
+  window.NeuraChat={handleChat,executeManual,newRequestId,updateReceipt,restoreStatus};
 })();

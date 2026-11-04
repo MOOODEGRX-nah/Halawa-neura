@@ -1,0 +1,19 @@
+Case,Original N IDs,Status,Evidence,Actual outcome,Remaining
+AX01,N049 N052,Verified in recorded local composer run,real-exact-final,"Three distinct jobs, one project, revisions1/2/3; follow-ups no duplicate",Repeat on fixed snapshot
+AX02,N049,Verified in recorded local composer run,real-exact-final,Both Arabic spelling variants directly edit,Broader real paraphrase trials
+AX03,N073,Contract verified; real semantic acceptance not verified,contracts-reindex.xml,24 multi-turn fixtures include expiry/restart/cross-session/dedup,Real semantic proposal journey
+AX04,N052,Verified in recorded local composer run,real-exact-final,Complaint returns recorded job state,Mid-inference reconnect coverage
+AX05,N049 N073,Partially verified,real-exact-final; contracts-reindex.xml,Completed-job follow-up no duplicate; proposal tested with fake model,Real pending-proposal typo continuation
+AX06,N049,Implemented; partially verified,contracts-reindex.xml,Dispatcher runs before conversational inference,Real manual tier matrix
+AX07,N045 N054,Verified within sampled contract,real-preserve-gpu-05,"Four commits; Login preserved, theme changes, contrast/width pass",Not complete semantic equivalence or authentication
+AX08,N073 N098,Contract verified,contracts-reindex.xml,Negative/quoted/cross-session no unauthorized mutation,Broader real composer negative corpus
+AX09,N044 N045 N050 N054,Partially verified,contracts-reindex.xml; qt-targets; real-preserve-gpu-01..05,Rejected candidates preserve previous revision; restart hashes match,All interruption/native fault combinations
+AX10,N052 N054,Partially verified,acceptance-current.json; contracts-reindex.xml,Saved receipts match files/revisions; reindex clears stale receipt,Full real disconnect/cancellation matrix
+AX11,N042 N045,Verified for original local prompt and contract regressions,real-plan-final; contracts-reindex.xml,Three Arabic steps; no files; stop finish reason,Additional real no-code/mixed-language follow-ups
+AX12,N093,Not tested this delivery; prior failure unresolved,Historical evidence only,No new vision claim,Repeated paired UI/API vision matrix
+WX01,N049 N055,Not implemented as web-skill recipe,None,Core CV path exists; recipe not implemented,B0/B1 then offline motion/edit trial
+WX02,N049,Not implemented,None,No recipe claim,Business/dashboard implementations and E2E
+WX03,N064 N055,Partially implemented by core checks,candidate-repairs,480/1280 contrast/overflow; not keyboard/reduced-motion gate,Keyboard/RTL/motion checks
+WX04,N046 N055,Core restrictions verified; stack adapter not implemented,contracts-reindex.xml,Unsupported preview not claimed ready; no native generated code,Explicit supported stack capability boundary
+WX05,N065 N059,Not implemented,None,No modular web catalog yet,Bounded catalog/resolver/cache checks
+platform-package,N025 N026,Built; not installed or updated,package-build.log; package-candidate,Local archive/pacman build only,Isolated extracted runtime and administrative VM tests

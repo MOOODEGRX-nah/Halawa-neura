@@ -17,13 +17,14 @@ const meta={project_id:pid,display_name:'QA',project_revision:1,generation_statu
  preview:{supported:false,reason:'Python is not executed'},latest_job_id:jid};
 const response=value=>({ok:true,json:async()=>value});let finishJob;
 async function api(path){
+ if(path==='/chat/context')return response({});
  if(path==='/workspace/preferences')return response({swapped:false,ratio:50,last_project:null});
  if(path==='/projects/'+pid)return response(meta);
  if(path.endsWith('/file?path=main.py'))return response({path:'main.py',content:'pass\n',binary:false,sha256:'1'.repeat(64),project_revision:1});
  if(path==='/project-jobs/'+jid)return new Promise(resolve=>{finishJob=()=>resolve(response({job_id:jid,project_id:pid,state:'completed',last_seq:0,draft_files:{}}))});
  throw Error(path);
 }
-const window={addEventListener(){}},context={window,document:{getElementById:el,createElement:node,createTextNode:text=>({textContent:text}),body:node()},
+const window={addEventListener(){}},context={window,sid:'qa_session',document:{getElementById:el,createElement:node,createTextNode:text=>({textContent:text}),body:node()},
  api,esc:x=>x,showPage:p=>views.push(p),confirm:()=>true,TextEncoder,TextDecoder,URL,setTimeout,clearTimeout};
 vm.runInNewContext(fs.readFileSync('web/workspace.js','utf8'),context);
 (async()=>{

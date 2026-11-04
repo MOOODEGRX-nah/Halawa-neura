@@ -54,6 +54,8 @@ class JobSnapshot(BaseModel):
     stage_results:list[dict[str,Any]]=Field(default_factory=list)
     saved_files:list[dict[str,Any]]=Field(default_factory=list)
     validation:dict[str,Any]|None=None
+    execution:dict[str,Any]|None=None
+    attempts:list[dict[str,Any]]=Field(default_factory=list)
 
 
 class JobEvent(BaseModel):

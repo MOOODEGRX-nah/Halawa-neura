@@ -275,7 +275,7 @@ class ProjectStore:
             if not assets.issubset(files):raise Conflict('تغير فهرس أصول المعاينة؛ أعد تحميل المشروع')
             return meta,{path:files[path] for path in assets}
 
-    def commit(self, project_id, files, expected_revision):
+    def commit(self, project_id, files, expected_revision, *, accepted_requirements=None, execution_receipt=None):
         bounded_files(files)
         languages, preview, validation = inspect_files(files)
         if validation['errors']:
@@ -294,6 +294,11 @@ class ProjectStore:
             meta.update(project_revision=revision, summary_revision=revision, languages=languages,
                         preview=preview, validation=validation, entry_point=preview['entry_point'], updated_at=now())
             meta.update(source_observations(files,preview))
+            if accepted_requirements is not None:meta['accepted_requirements']=accepted_requirements
+            meta.pop('last_execution',None)
+            if execution_receipt is not None:meta['last_execution']=execution_receipt
+            from src.core.edit_preservation import contract_summary
+            meta['preserve_contract']=contract_summary(files,meta.get('accepted_requirements',[]))
             meta['type'] = 'static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'
             with SafeTree(self.directory(project_id)) as tree:
                 tree.write(f'.neura/revisions/{revision}.json', snapshot_json(files), internal=True)
@@ -398,6 +403,11 @@ class ProjectStore:
             meta.update(project_revision=revision,summary_revision=revision,languages=languages,
                 preview=preview,validation=validation,entry_point=preview['entry_point'],updated_at=now(),index_valid=True)
             meta.update(source_observations(files,preview))
+            # External changes are a new source revision, not the old job's
+            # verified result. Derive preservation facts from the current files.
+            from src.core.edit_preservation import contract_summary
+            meta['preserve_contract']=contract_summary(files,meta.get('accepted_requirements',[]))
+            meta.pop('last_execution',None)
             meta.pop('source_freshness',None);meta.pop('summary',None)
             meta['type']='static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'
             meta['files']=[{'path':p,'role':LANGUAGES.get(Path(p).suffix.lower(),'Asset')+' source',**info,'sha256':digest(files[p])} for p,info in inventory.items()]

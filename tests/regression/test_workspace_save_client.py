@@ -23,6 +23,7 @@ const base={project_id:'p_'+'a'.repeat(32),display_name:'QA',type:'other',projec
 const revision=n=>({...base,project_revision:n,files:base.files.map(f=>f.path==='index.html'?{...f,sha256:String(n).repeat(64)}:f)});
 let pending=null,puts=[];
 async function api(path,options){
+ if(path==='/chat/context')return {ok:true,json:async()=>({})};
  if(path==='/workspace/preferences')return {ok:true,json:async()=>({swapped:false,ratio:50,last_project:null})};
  if(options.method==='PUT'){
   puts.push(JSON.parse(options.body));
@@ -33,7 +34,7 @@ async function api(path,options){
  throw Error('Unexpected request: '+path);
 }
 const window={addEventListener(){}};
-const context={window,document:{getElementById:el,createElement:node,createTextNode:text=>({textContent:text}),body:node()},api,
+const context={window,sid:'qa_session',document:{getElementById:el,createElement:node,createTextNode:text=>({textContent:text}),body:node()},api,
  esc:text=>text,showPage(){},confirm(){throw Error('Unexpected discard dialog')},TextEncoder,TextDecoder,setTimeout,clearTimeout,URL};
 vm.runInNewContext(fs.readFileSync('web/workspace.js','utf8'),context);
 (async()=>{
