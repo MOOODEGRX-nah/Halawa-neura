@@ -9,6 +9,8 @@ p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a
 body='<h1>QA CV</h1><p>Original content</p><a href="#" id="login">Login</a>'
 base='<html><body style="color:#111;background:white">'+body+'</body></html>'
 cases=[('readable',base,True),
+ ('uppercase_visible',base.replace('color:#111;background:white','color:#111;background:white;text-transform:uppercase'),True),
+ ('uppercase_hidden',base.replace('color:#111;background:white','color:#111;background:white;text-transform:uppercase').replace('id="login"','id="login" style="display:none"'),False),
  ('black_on_dark',base.replace('color:#111;background:white','color:black;background:#222'),False),
  ('hidden_login',base.replace('id="login"','id="login" style="display:none"'),False),
  ('overflow',base.replace('<h1>','<h1 style="width:1500px">'),False),
@@ -19,7 +21,7 @@ results=[]
 for name,html,accepted in cases:
  files={'index.html':html};preview=inspect_files(files)[1]
  try:
-  report=check_candidate(files,preview,threading.Event(),time.monotonic()+35,required={'controls':[{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content']})
+  report=check_candidate(files,preview,threading.Event(),time.monotonic()+35,required={'controls':[{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content','Login']})
   actual=True
  except ProjectError as exc:
   report={'error':str(exc)};actual=False
@@ -27,7 +29,7 @@ for name,html,accepted in cases:
   if corrected:
    fixed,receipt=corrected
    report['repair']=receipt
-   report['rechecked']=check_candidate(fixed,inspect_files(fixed)[1],threading.Event(),time.monotonic()+35,required={'controls':[{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content']})
+   report['rechecked']=check_candidate(fixed,inspect_files(fixed)[1],threading.Event(),time.monotonic()+35,required={'controls':[{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content','Login']})
  results.append({'case':name,'expected_accepted':accepted,'accepted':actual,'passed':actual==accepted,'report':report})
  (a.output/'results.json').write_text(json.dumps({'environment':'actual Qt offscreen, sandboxed static JavaScript; synthetic source; no inference','results':results},ensure_ascii=False,indent=2))
  print(name,actual==accepted,flush=True)

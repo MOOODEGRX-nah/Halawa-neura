@@ -50,6 +50,15 @@
         }
       }
     }catch(_){}
+    // An unmatched historical start message is an observation from the past,
+    // not evidence that a job is still running now. Do not attach an arbitrary job.
+    let migrated=false;
+    for(let i=0;i<hist.length;i++)if(hist[i].role==='assistant'&&!hist[i].project_job_id&&/^(?:أُنشئ المشروع|بدأ تعديل المشروع)/.test(hist[i].content)){
+      const text='سجل بدء قديم؛ لم تُطابق حالته بمهمة محفوظة. افتح المشروع للتحقق من المراجعة الحالية.';
+      hist[i]={...hist[i],content:text};migrated=true;
+      for(const card of document.querySelectorAll('[data-history-index]'))if(Number(card.dataset.historyIndex)===i){const body=card.querySelector('.t');if(body)body.textContent=text;card.dataset.jobState='unknown';}
+    }
+    if(migrated)save();
     const ids=new Set(hist.map(m=>m.project_job_id).filter(Boolean));
     for(const card of document.querySelectorAll('[data-project-job-id]'))ids.add(card.dataset.projectJobId);
     for(const id of ids){if(session!==sid)return;try{await reconcile(id,session);}catch(_){}}

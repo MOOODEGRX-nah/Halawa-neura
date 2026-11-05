@@ -144,7 +144,9 @@ def main(source,destination):
             for control in required.get('controls',[]):
                 if not any(all(item.get(k)==v for k,v in control.items()) for item in sample['controls']):report['errors'].append('Required visible control missing: '+str(control))
             for text in required.get('text',[]):
-                if len(text)>1 and text not in sample['visible_text']:report['errors'].append('Required visible content missing: '+text[:80])
+                # CSS text-transform may change rendered casing without changing source.
+                # Source/controls remain checked exactly by the preservation contract.
+                if len(text)>1 and text.casefold() not in sample['visible_text'].casefold():report['errors'].append('Required visible content missing: '+text[:80])
             if sample['overflow']:report['errors'].append(str(sample['width'])+'px horizontal overflow')
             failures=[x for x in sample['checks'] if x['ratio']+.02<x['minimum']]
             if failures:report['errors'].append(sample['mode']+' low text contrast: '+json.dumps(failures[:3],ensure_ascii=False))
