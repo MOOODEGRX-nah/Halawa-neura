@@ -165,3 +165,18 @@ def test_user_feature_requirements_follow_successful_requests_and_explicit_remov
     assert requested_web_features(history,'حسن واجهة الموقع')=={'login':True,'theme':True}
     assert requested_web_features(history,'احذف Login')=={'theme':True}
     assert requested_web_features([], 'Explain dark mode')=={}
+
+
+def test_worker_row_reads_share_the_store_lock(system):
+    store,jobs,pid=fixture(system);entered=threading.Event();finished=threading.Event();rows=[]
+    # Insert a queued fixture without starting an inference worker.
+    jid='j_'+'a'*32
+    store.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?)',(jid,pid,'queued','{}','{}',0,0,None,'QA','QA'));store.db.commit()
+    def read():
+        entered.set();rows.append(jobs._row(jid));finished.set()
+    try:
+        with store.lock:
+            thread=threading.Thread(target=read);thread.start();assert entered.wait(1)
+            assert not finished.wait(.03)
+        thread.join(1);assert finished.is_set() and rows[0]['draft']=='{}'
+    finally:jobs.shutdown();store.close()

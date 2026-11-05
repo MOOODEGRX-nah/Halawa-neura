@@ -61,12 +61,13 @@ class ProjectJobs:
             self._emit(row['id'], 'job_failed', {'code': 'interrupted'})
 
     def _row(self, job_id):
-        if not re.fullmatch(r'j_[a-f0-9]{32}', job_id):
-            raise ProjectError('معرّف المهمة غير صالح')
-        row = self.store.db.execute('SELECT * FROM jobs WHERE id=?', (job_id,)).fetchone()
-        if not row:
-            error=ProjectError('المهمة غير موجودة');error.status=404;raise error
-        return row
+        with self.store.lock:
+            if not re.fullmatch(r'j_[a-f0-9]{32}', job_id):
+                raise ProjectError('معرّف المهمة غير صالح')
+            row = self.store.db.execute('SELECT * FROM jobs WHERE id=?', (job_id,)).fetchone()
+            if not row:
+                error=ProjectError('المهمة غير موجودة');error.status=404;raise error
+            return row
 
     def get(self, job_id):
         with self.store.lock:
