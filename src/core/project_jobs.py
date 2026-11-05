@@ -30,6 +30,7 @@ class WorkspaceRequest(ProjectRequest):
     project_id: str | None = None
     expected_revision: int | None = Field(default=None, ge=0)
     context_files: list[str] = Field(default_factory=list, max_length=8)
+    source_hashes: dict[str,str] = Field(default_factory=dict)
 
     def legacy(self):
         return ProjectRequest.model_validate({key: getattr(self, key) for key in ProjectRequest.model_fields})
@@ -175,6 +176,9 @@ class ProjectJobs:
                     raise ProjectError('يجب تحديد ملفات فعلية ذات صلة للتعديل؛ الملخص وحده لا يكفي')
                 for path in request.context_files:
                     self.store.read(request.project_id, path)
+                captured={p:digest(v) for p,v in self.store.committed_files(request.project_id).items()}
+                if request.source_hashes and request.source_hashes!=captured:raise Conflict('بصمات مصدر التعديل قديمة')
+                request.source_hashes=captured
             else:
                 title = request.title or request.user_request.split('\n')[0][:80]
                 project = self.store.create(title, request.user_request, request.project_type)
@@ -232,6 +236,7 @@ class ProjectJobs:
             expected = request.expected_revision if request.project_id else 0
             if project['project_revision'] != expected or project['source_freshness'] != 'current':
                 raise Conflict('تغير المشروع أثناء الانتظار')
+            if request.project_id and {p:digest(v) for p,v in self.store.committed_files(project_id).items()}!=request.source_hashes:raise Conflict('تغيرت بصمات المصدر أثناء الانتظار')
             context = ''
             if request.project_id:
                 context = project['summary'] + '\nActual relevant source:\n'
@@ -239,8 +244,7 @@ class ProjectJobs:
                     actual = self.store.read(project_id, path)
                     if actual['binary']:raise ProjectError('اختر ملف مصدر نصيًا للسياق')
                     context += '\nFILE ' + path + '\n' + actual['content']
-                if len(context) > 60_000:
-                    raise ProjectError('الملفات المختارة تتجاوز حد السياق؛ اختر ملفات أقل')
+                # Full source remains available to bounded per-file operations.
             actual_invoice=self.invoice.make_invoice(request.legacy(),project_id=project_id,task_id=job_id,context=context)
             with self.store.lock:
                 self.store.db.execute('UPDATE job_contracts SET invoice=? WHERE job_id=?',(actual_invoice.model_dump_json(),job_id));self.store.db.commit()
@@ -279,16 +283,29 @@ class ProjectJobs:
                 else:
                     candidate_request=request.legacy()
                     candidate_request.max_tokens=max(64,request.max_tokens-remaining_tokens)
-                    with closing(self.invoice.stream_files(candidate_request,context=context+repair,project_id=project_id,task_id=job_id,cancel=cancel,deadline=deadline)) as stream:
+                    if request.project_id:
+                        from src.core.bounded_edits import BoundedEditor
+                        iterator=BoundedEditor(self.invoice).generate(candidate_request,before,request.context_files,expected,
+                            context+repair,project_id,job_id,cancel,deadline,accepted=accepted)
+                    else:iterator=self.invoice.stream_files(candidate_request,context=context+repair,project_id=project_id,task_id=job_id,cancel=cancel,deadline=deadline)
+                    with closing(iterator) as stream:
                         for item in stream:
                             if item['kind']=='stage':
                                 self._state(job_id,item['stage']);self._emit(job_id,'stage_changed',{'stage':item['stage'],'attempt':attempt})
                             elif item['kind']=='delta':parser.feed(item['text'])
+                            elif item['kind']=='candidate_file':
+                                path,content=item['path'],item['content']
+                                parser.files[path]={'content':'','complete':False}
+                                self._emit(job_id,'file_started',{'path':path,'mode':'applied_candidate_patch'},drafts=parser.files)
+                                parser.files[path]={'content':content,'complete':False}
+                                self._emit(job_id,'file_delta',{'path':path,'delta':content,'offset':0},drafts=parser.files)
+                                parser.files[path]['complete']=True
+                                self._emit(job_id,'file_draft_complete',{'path':path},drafts=parser.files)
                             elif item['kind'] in ('stage_result','finished'):
                                 result={key:value for key,value in item.items() if key not in ('kind','stage')}
                                 if item['kind']=='finished':result['filename_resolutions']=parser.resolutions
                                 self._stage_result(job_id,item.get('stage','generating'),result)
-                    generated=parser.finish()
+                    generated={p:v['content'] for p,v in parser.files.items()} if request.project_id else parser.finish()
                 self.coordinator._check(cancel,deadline)
                 self._state(job_id,'validating');self._emit(job_id,'stage_changed',{'stage':'validating','attempt':attempt})
                 files={**before,**generated}
@@ -333,6 +350,7 @@ class ProjectJobs:
                 'base_hashes':{path:digest(value) for path,value in before.items()},
                 'result_hashes':{path:digest(files[path]) for path in changed},
                 'preservation':preserved,'browser':{key:value for key,value in browser.items() if key!='samples'},'preview_checked_revision':expected+1 if changed and browser['status']=='passed' else None}
+            if request.project_id and {p:digest(v) for p,v in self.store.committed_files(project_id).items()}!=request.source_hashes:raise Conflict('تغير المصدر قبل ترقية المرشح؛ لم يُحفظ تعديل جزئي')
             if changed:
                 project=self.store.commit(project_id,files,expected,execution_receipt=execution,
                     accepted_requirements=[*accepted,{'origin':'user_request','job_id':job_id,'text':request.user_request}][-30:])

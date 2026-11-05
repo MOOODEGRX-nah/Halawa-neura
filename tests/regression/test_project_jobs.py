@@ -114,7 +114,7 @@ def test_edit_cannot_overwrite_existing_file_from_summary_alone(system):
         'project_id':p,'expected_revision':1,'context_files':['main.py']})
     result=wait(jobs,created['job']['job_id'])
     assert result['state']=='failed' and 'other.py' in result['error']
-    assert result['draft_files']['other.py']['content']=='original=2\n'
+    assert 'other.py' not in result['draft_files']  # Rejected before applying any unseen-file patch.
     assert store.get(p)['project_revision']==1
     assert store.read(p,'other.py')['content']=='original=1\n'
     jobs.shutdown();store.close()

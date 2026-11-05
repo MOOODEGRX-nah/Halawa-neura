@@ -52,7 +52,7 @@ def observed(*args,**options):
     save()
     result=original(*args,**options)
     if not options.get('stream'):
-        record.update(finished_at=time.time(),finish_reason=result['choices'][0].get('finish_reason'),output=result['choices'][0]['message'],usage=result.get('usage'));save();return result
+        record.update(finished_at=time.time(),finish_reason=result['choices'][0].get('finish_reason'),output=result['choices'][0]['message'],usage=result.get('usage'),token_metrics=getattr(backend,'last_metrics',None));save();return result
     def chunks():
         record['output']=''
         try:
@@ -63,7 +63,7 @@ def observed(*args,**options):
                 yield chunk
         finally:
             if hasattr(result,'close'):result.close()
-            record['finished_at']=time.time();save()
+            record['finished_at']=time.time();record['token_metrics']=getattr(backend,'last_metrics',None);save()
     return chunks()
 backend.generate=observed
 uvicorn.run(app,host='127.0.0.1',port=a.port,log_level='warning',proxy_headers=False)

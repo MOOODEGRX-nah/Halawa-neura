@@ -79,6 +79,10 @@ class FakeBackend:
     def health_check(self):
         return {'status': 'loaded' if self.model is not None else 'unloaded'}
 
+    def measure_messages(self,messages,max_tokens=1024,**options):
+        return {'prompt_tokens':200,'context_size':4096,'requested_output_limit':max_tokens,
+                'effective_output_limit':min(max_tokens,3896),'measurement':'controlled fixed token fixture, NOT native metrics'}
+
     def generate(self, *, messages, stream=False, **kwargs):
         self.calls.append({'messages': copy.deepcopy(messages), 'stream': stream, **kwargs})
         self.entered.set()
@@ -106,6 +110,25 @@ class FakeBackend:
                 'files': paths})
         else:
             text = self.replies.pop(0) if self.replies else self.text
+        if messages[0]['content'].startswith('Return a bounded file patch'):
+            import re
+            packet=json.loads(messages[1]['content']);path=packet['path'];scope=packet['source_scope']
+            from src.core.project_stream import FileStream
+            supplied={}
+            if '```' in text:
+                parser=FileStream(lambda *a:None,filename_hints=[i['path'] for i in packet['inventory']])
+                try:parser.feed(text);supplied=parser.finish()
+                except Exception:pass
+            if path in supplied:
+                replacement=supplied[path]
+                text=json.dumps({'base_revision':packet['base_revision'],'path':path,'source_sha256':packet['source_sha256'],
+                    'edits':[] if packet['new_file'] or replacement==scope.rstrip('\n') else [{'before':scope,'after':replacement}],
+                    'new_content':replacement if packet['new_file'] else None})
+            elif supplied and all(any(i['path']==p and i['selected'] for i in packet['inventory']) for p in supplied):
+                text=json.dumps({'base_revision':packet['base_revision'],'path':path,'source_sha256':packet['source_sha256'],'edits':[],'new_content':None})
+            elif supplied:
+                wrong=next(iter(supplied))
+                text=json.dumps({'base_revision':packet['base_revision'],'path':wrong,'source_sha256':packet['source_sha256'],'edits':[],'new_content':None})
         finish = self.plan_finish if planning and self.plan_finish is not None else self.finish
         if stream:
             def chunks():

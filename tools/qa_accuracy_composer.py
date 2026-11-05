@@ -5,7 +5,8 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--baseline',action='store_true')
 p.add_argument('--real-model',action='store_true')
-p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke'],default='exact')
+p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large'],default='exact')
+p.add_argument('--seed-project',type=Path,help='Synthetic QA source JSON for large existing-site edit')
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--gpu',default=None,help='Observed unique device description; no numeric GPU index')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
@@ -21,6 +22,13 @@ from src.desktop.paths import DesktopSettings
 from src.desktop.app import MainWindow
 qt=QApplication(['neura-accuracy-qa']);settings=DesktopSettings()
 settings.values.update(models_dir='/opt/neura-ai/models',n_gpu_layers=-1 if a.gpu else 0,gpu_device=a.gpu or 'auto',n_ctx=4096,dedicated_coder=True,check_updates=False);settings.save()
+seed_id=None
+if a.workflow=='large':
+ if not a.seed_project:raise ValueError('large workflow needs explicit QA seed')
+ from src.core.project_store import ProjectStore
+ seed=json.loads(a.seed_project.read_text());seed_store=ProjectStore(profile/'data/workspace')
+ seed_id=seed_store.create('Existing large CV','Synthetic QA existing website')['project_id']
+ seed_store.commit(seed_id,seed['files'],0,accepted_requirements=seed['accepted_requirements']);seed_store.close()
 w=MainWindow(settings)
 if a.real_model:
  from verification.live import foreign_instances
@@ -78,13 +86,19 @@ def send(text):
 try:
  wait(lambda:w.loaded,40);wait(lambda:js('!!window.NeuraChat'))
  js('window.__qaDispatch=[];window.__qaFetch=window.fetch;window.fetch=async(...args)=>{const r=await window.__qaFetch(...args);if(String(args[0]).includes("/chat/dispatch")){window.__qaDispatch.push(await r.clone().json());}return r;};true;')
+ if a.workflow=='large':
+  js('document.querySelector("#coding-workspace").click();true;')
+  wait(lambda:js('document.querySelector("#ws-project-list button")!==null'))
+  js('document.querySelector("#ws-project-list button").click();true;')
+  wait(lambda:js('window.NeuraWorkspace.projectId==='+json.dumps(seed_id)))
  if a.workflow=='plan':
   send('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.')
  else:
-  send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
+  if a.workflow=='large':send('هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا')
+  else:send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
   texts=['هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا','نعم','لم تفعل شي حتى الان؟','فل تبرمج','هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا'] if a.workflow=='exact' else ['أضف زر تسجيل دخول','أضف الوضع الداكن إلى هذا المشروع','هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
   if a.workflow=='proposal':texts=['واجهة مميزة تناسب العرض',a.approval,a.approval]
-  if a.workflow=='smoke':texts=[]
+  if a.workflow in ('smoke','large'):texts=[]
   for text in texts:send(text)
   js('document.querySelector("#ws-return").click();true;')
   wait(lambda:js('Array.from(document.querySelectorAll("[data-project-job-id]")).every(e=>["completed","failed","cancelled"].includes(e.dataset.jobState))'))

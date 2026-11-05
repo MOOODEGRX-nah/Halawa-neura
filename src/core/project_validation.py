@@ -24,9 +24,11 @@ class References(HTMLParser):
         self.pending=None
         self.build_required=False
         self.tags={}
+        self.raw_elements=[]
 
     def handle_starttag(self, tag, attrs):
         self.tags[tag]=self.tags.get(tag,0)+1
+        if tag in ('style','script'):self.raw_elements.append(tag)
         attrs = dict(attrs)
         for name,value in attrs.items():
             if value and name.startswith('on'):self.inline.append(('javascript',value,False))
@@ -47,12 +49,14 @@ class References(HTMLParser):
         if self.pending:self.pending[2].append(data)
 
     def handle_endtag(self,tag):
+        if tag in ('style','script'):
+            if not self.raw_elements or self.raw_elements.pop()!=tag:raise ValueError('Unmatched script/style closing element')
         if self.pending and self.pending[0]==tag:
             self.inline.append((self.pending[1],''.join(self.pending[2]),False));self.pending=None
 
     def close(self):
         super().close()
-        if self.pending:raise ValueError('Unclosed script/style element')
+        if self.pending or self.raw_elements:raise ValueError('Unclosed script/style element')
 
 
 def source_observations(files, preview):
@@ -168,7 +172,8 @@ def inspect_files(files):
                 visit(target)
 
     if entry and not build_required:
-        visit(entry)
+        try:visit(entry)
+        except ValueError as exc:errors.append(entry+': '+str(exc)[:300])
     preview = {'supported': bool(entry and not build_required and not errors),
                'kind': 'static_web' if entry and not build_required else 'unsupported',
                'entry_point': entry, 'assets': sorted(assets), 'external_resources': sorted(set(warnings)),

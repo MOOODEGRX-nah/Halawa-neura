@@ -21,9 +21,17 @@ class LlamaCppBackend:
         self.selected_device={k:v for k,v in selected.items() if k!='_pointer'} if selected else {'description':'CPU'}
         class CancellableLlama(Llama):
             neura_criteria = None
-            def generate(self, *args, stopping_criteria=None, **kwargs):
+            neura_token_metrics = None
+            def generate(self, tokens, *args, stopping_criteria=None, **kwargs):
                 criteria = list(stopping_criteria or []) + list(self.neura_criteria or [])
-                return super().generate(*args, stopping_criteria=StoppingCriteriaList(criteria), **kwargs)
+                metrics=self.neura_token_metrics
+                if metrics is not None:
+                    metrics.update(prompt_tokens=len(tokens),context_size=self.n_ctx(),
+                        effective_output_limit=min(metrics['requested_output_limit'],max(0,self.n_ctx()-len(tokens))),
+                        completion_tokens=0,measurement='native prompt token IDs and yielded non-EOG token IDs')
+                for token in super().generate(tokens,*args,stopping_criteria=StoppingCriteriaList(criteria),**kwargs):
+                    if metrics is not None and not __import__('llama_cpp').llama_vocab_is_eog(self._model.vocab,token):metrics['completion_tokens']+=1
+                    yield token
         handler = None
         try:
             if projector:
@@ -65,7 +73,14 @@ class LlamaCppBackend:
         if messages is None:
             messages = [{'role': 'user', 'content': prompt}]
         self.model.neura_criteria = kwargs.pop('stopping_criteria', None)
+        import time
+        deadline=kwargs.pop('_neura_deadline',None)
+        self.last_metrics={'requested_output_limit':kwargs.get('max_tokens') or self.model.n_ctx(),
+            'deadline_monotonic':deadline,'deadline_remaining_s':max(0,deadline-time.monotonic()) if deadline else None}
+        self.model.neura_token_metrics=self.last_metrics
         result = self.model.create_chat_completion(messages=messages, stream=stream, **kwargs)
+        if not stream:result['neura_token_metrics']=dict(self.last_metrics)
+        else:result=self._measured_stream(result)
         marker = getattr(self, 'reasoning_end_token', None)
         if not marker:
             return result
@@ -78,6 +93,40 @@ class LlamaCppBackend:
                 message['reasoning_content'] = reasoning
             return result
         return self._answer_stream(result, marker)
+
+    def _measured_stream(self,iterator):
+        try:
+            for chunk in iterator:
+                if any(c.get('finish_reason') for c in chunk.get('choices',[])):chunk['neura_token_metrics']=dict(self.last_metrics)
+                yield chunk
+        finally:
+            if hasattr(iterator,'close'):iterator.close()
+
+    def measure_messages(self,messages,max_tokens=1024,**options):
+        """Use the installed chat handler/tokenizer; abort before native generation.
+
+        Supported GGUF handlers pass the final special-token-inclusive ID list to
+        create_completion. Unsupported handler shapes fail, never estimate chars.
+        Caller owns the coordinator lock while temporarily intercepting this call.
+        """
+        if self.model is None:raise RuntimeError('Model not loaded')
+        class Measured(Exception):pass
+        result={}
+        original=self.model.create_completion
+        def capture(*args,**kwargs):
+            prompt=kwargs.get('prompt',args[0] if args else None)
+            if not isinstance(prompt,list):raise ValueError('Handler does not expose final prompt token IDs')
+            count=len(prompt);ctx=self.model.n_ctx()
+            result.update(prompt_tokens=count,context_size=ctx,requested_output_limit=max_tokens,
+                effective_output_limit=max(0,min(max_tokens,ctx-count)),measurement='installed formatter final token IDs')
+            raise Measured()
+        self.model.create_completion=capture
+        try:
+            try:self.model.create_chat_completion(messages=messages,stream=False,max_tokens=max_tokens,**options)
+            except Measured:pass
+            if not result:raise ValueError('Handler token measurement unavailable')
+            return result
+        finally:self.model.create_completion=original
 
     @staticmethod
     def _answer_stream(iterator, marker):

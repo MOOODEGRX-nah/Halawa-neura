@@ -142,6 +142,15 @@ class NeuraLoop:
         self.current_model_id = model_id
         self.residency.register_load(model_id)
 
+    def measure_messages(self,messages,*,tier='coder',max_tokens=1024,cancel,deadline,**options):
+        with self.exclusive():
+            self._check(cancel,deadline)
+            chosen,model_id,_,_=self.select(messages,tier,None)
+            self._load(model_id,chosen)
+            if not hasattr(self.backend,'measure_messages'):
+                raise InferenceError('المحرك لا يوفّر عدّ رموز القالب؛ لا يمكن تقسيم التعديل بأمان',422,'token_measurement_unavailable')
+            return self.backend.measure_messages(messages,max_tokens=max_tokens,**options)
+
     def _options(self, cancel, deadline, options):
         def stop(*_):
             return cancel.is_set() or time.monotonic() >= deadline
@@ -149,7 +158,7 @@ class NeuraLoop:
         class StopCriteria(list):
             def __call__(self, *args):
                 return any(check(*args) for check in self)
-        return {**options, 'stopping_criteria': StopCriteria([stop])}
+        return {**options, '_neura_deadline':deadline, 'stopping_criteria': StopCriteria([stop])}
 
     @staticmethod
     def _check(cancel, deadline):

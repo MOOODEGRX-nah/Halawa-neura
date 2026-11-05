@@ -22,6 +22,8 @@ class Backend:
  def load(self,*args,**kwargs):self.loads+=1;self.model=object()
  def unload(self):self.model=None
  def health_check(self):return {'status':'loaded' if self.model else 'unloaded'}
+ def measure_messages(self,messages,max_tokens=1024,**options):
+  return {'prompt_tokens':200,'context_size':4096,'effective_output_limit':min(max_tokens,3896),'measurement':'controlled Qt token fixture, not native'}
  def generate(self,*,messages,stream=False,**options):
   self.calls+=1;text=WEB if 'complete named files' in messages[0]['content'] else MARKDOWN
   if messages[0]['content'].startswith('Return ONLY a compact JSON implementation plan'):
@@ -31,6 +33,10 @@ class Backend:
   if 'complete named files' in messages[0]['content']:
    invoice=json.loads(messages[1]['content'].split('\nValidated implementation plan:')[0])
    if invoice.get('context_summary'):text='```css style.css\nbody{background:blue;color:white;font-family:sans-serif}\n```'
+  if messages[0]['content'].startswith('Return a bounded file patch'):
+   packet=json.loads(messages[1]['content']);path=packet['path'];scope=packet['source_scope']
+   edits=[{'before':scope,'after':'body{background:blue;color:white;font-family:sans-serif}'}] if path.endswith('.css') else []
+   text=json.dumps({'base_revision':packet['base_revision'],'path':path,'source_sha256':packet['source_sha256'],'edits':edits,'new_content':None})
   if not stream:return {'choices':[{'message':{'content':text},'finish_reason':'stop'}]}
   def chunks():
    for offset in range(0,len(text),13):

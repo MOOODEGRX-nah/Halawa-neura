@@ -14,7 +14,7 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not (directory/'failure.json').exists(),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
@@ -54,6 +54,26 @@ def check_run(directory):
             require(bool(planning),label+': validated planning absent')
             require(job['state']=='completed' and receipt.get('outcome')=='saved',label+': edit not saved')
             require(bool(receipt.get('changed_files')),label+': no changed files')
+            if receipt.get('base_revision',0)>0 and 'src/core/bounded_edits.py' in identity.get('runtime_hashes',{}):
+                operations=[o for stage in job.get('stage_results',[]) for o in stage.get('result',{}).get('operations',[])]
+                require(bool(operations),label+': bounded edit operations absent')
+                require(sum(o['output_limit'] for o in operations)<=3072,label+': operation budget overflow')
+                scopes={}
+                for op in operations:
+                    native=op.get('token_metrics') or {};usage=op.get('usage') or {};pre=op.get('preflight') or {}
+                    require(op.get('finish_reason')=='stop',label+': incomplete patch accepted')
+                    require(native.get('prompt_tokens')==pre.get('prompt_tokens')==usage.get('prompt_tokens'),label+': prompt metrics mismatch')
+                    require(native.get('completion_tokens')==usage.get('completion_tokens'),label+': completion metrics mismatch')
+                    require(native.get('effective_output_limit')==op['output_limit'],label+': output silently clipped')
+                    require(native.get('prompt_tokens',99999)+op['output_limit']<=native.get('context_size',0),label+': context overflow')
+                    scopes.setdefault(op['path'],[]).append(op)
+                for path,parts in scopes.items():
+                    cursor=0
+                    for op in sorted(parts,key=lambda o:o['source_start_char']):
+                        require(op['source_start_char']==cursor,label+': skipped/overlapping source segment '+path)
+                        cursor=op['source_end_char']
+                    require(cursor==parts[0]['source_size_chars'],label+': incomplete source coverage '+path)
+
             require(receipt.get('result_revision')==rev==receipt.get('base_revision',-2)+1,label+': revision mismatch')
         else:
             require(job['job_id'] in seen_jobs,label+': follow-up launched another job')
