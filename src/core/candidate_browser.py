@@ -57,15 +57,15 @@ INSPECT=r'''(()=>{
  let checks=[],unknown=0;
  for(const e of Array.from(document.querySelectorAll('body *')).filter(visible).slice(0,400)){
   if(!Array.from(e.childNodes).some(n=>n.nodeType===3&&n.textContent.trim()))continue;
-  const style=getComputedStyle(e);let p=e,layers=[],complex=false;
+  const style=getComputedStyle(e);let p=e,layers=[],complex=false,backgroundSelector=null;
   while(p){const s=getComputedStyle(p);if(s.backgroundImage!=='none'||Number(s.opacity)<1||s.filter!=='none'||s.mixBlendMode!=='normal'){complex=true;break;}
-   const color=rgba(s.backgroundColor);if(color.length>=3){layers.push(color);if(color.length===3||color[3]===1)break;}p=p.parentElement;}
+   const color=rgba(s.backgroundColor);if(color.length>=3){layers.push(color);if(color.length===3||color[3]===1){backgroundSelector=selector(p);break;}}p=p.parentElement;}
   let bg=[255,255,255];for(const c of layers.reverse()){const a=c.length===4?c[3]:1;bg=bg.map((v,i)=>c[i]*a+v*(1-a));}
   const foreground=rgba(style.color),a=foreground.length===4?foreground[3]:1,fg=foreground.slice(0,3).map((v,i)=>v*a+bg[i]*(1-a));
   if(complex){unknown++;continue;}
   if(fg.length===3&&bg.length===3){const l1=lum(fg),l2=lum(bg),ratio=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);
    const large=parseFloat(style.fontSize)>=24||(parseFloat(style.fontSize)>=18.66&&Number(style.fontWeight)>=700);
-   checks.push({selector:selector(e),text:e.textContent.trim().slice(0,80),ratio,foreground:fg,background:bg,minimum:large?3:4.5});}
+   checks.push({selector:selector(e),text:e.textContent.trim().slice(0,80),ratio,foreground:fg,background:bg,background_selector:backgroundSelector,minimum:large?3:4.5});}
  }
  const dark=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
  const controls=Array.from(document.querySelectorAll('a,button,input,select,textarea')).filter(visible).map(e=>({tag:e.tagName.toLowerCase(),label:e.textContent.trim().replace(/\s+/g,' '),id:e.getAttribute('id'),href:e.getAttribute('href'),name:e.getAttribute('name'),type:e.getAttribute('type')}));

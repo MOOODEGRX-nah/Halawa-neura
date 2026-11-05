@@ -28,7 +28,26 @@ def repair_contrast(files,entry,report,user_request):
             if not value.get('selector') or not re.fullmatch(r'body(?: > [a-z][a-z0-9-]*:nth-of-type\([1-9][0-9]*\))*',value['selector']):return None
             grouped[value['selector']].append((sample,value))
     rules=[];observations=[]
+    # If a requested dark theme changes text to light but leaves an opaque light
+    # content surface unchanged, repair that measured surface, not its text back
+    # to black (which would erase the theme). No fixture names or DOM IDs.
+    surfaces={};theme=None
+    initial=[s for s in report['samples'] if s['mode']=='initial']
+    toggled=[s for s in report['samples'] if s['mode']=='toggled']
+    if re.search(r'dark|داكن|مظلم',user_request,re.I) and not re.search(r'#[0-9a-f]{3,8}\b|لون الخلفية|background colo[u]?r',user_request,re.I) and initial and toggled:
+        added=set(toggled[0]['body_classes'])-set(initial[0]['body_classes'])
+        if len(added)==1 and re.fullmatch(r'[a-zA-Z_][a-zA-Z0-9_-]*',next(iter(added))):
+            theme=next(iter(added));old={v['selector']:v for v in initial[0]['checks']}
+            for sample in toggled:
+                for value in sample['checks']:
+                    prev=old.get(value['selector']);owner=value.get('background_selector')
+                    if owner and re.fullmatch(r'body(?: > [a-z][a-z0-9-]*:nth-of-type\([1-9][0-9]*\))*',owner) and prev and value['ratio']<value['minimum'] and luminance(value['foreground'])>.65 and luminance(value['background'])>.65 and value['background']==prev['background'] and luminance(prev['foreground'])<.3:
+                        surfaces[owner]=[23,23,23]
+            for owner in surfaces:
+                rules.append('body.'+theme+owner[4:]+'{background-color:#171717!important}')
+                observations.append({'selector':owner,'reason':'requested dark theme has light text on unchanged opaque light surface','method':'measured theme-scoped surface correction'})
     for selector,values in grouped.items():
+        values=[(sample,{**value,'background':surfaces[value['background_selector']],'ratio':contrast(value['foreground'],surfaces[value['background_selector']])}) if sample['mode']=='toggled' and value.get('background_selector') in surfaces else (sample,value) for sample,value in values]
         if all(v['ratio']+.02>=v['minimum'] for _,v in values):continue
         eligible=[rgb for rgb in ([0,0,0],[255,255,255]) if all(contrast(rgb,v['background'])>=v['minimum'] for _,v in values)]
         if eligible:

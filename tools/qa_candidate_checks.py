@@ -16,6 +16,7 @@ cases=[('readable',base,True),
  ('overflow',base.replace('<h1>','<h1 style="width:1500px">'),False),
  ('noop_theme',base.replace('</body>','<button id="theme">Dark mode</button></body>'),False),
  ('complex_background',base.replace('background:white','background:linear-gradient(white,black)'),False),
+ ('dark_white_surface',base.replace('color:#111;background:white','color:#111;background:white').replace('<h1>','<div style="background:white"><h1>').replace('</body>',"</div><style>body.dark{color:#eee!important}</style><button id='theme'>Dark mode</button><script>document.querySelector('#theme').onclick=()=>document.body.classList.toggle('dark')</script></body>"),False),
  ('working_theme',base.replace('</body>',"<button id='theme'>Toggle theme</button><script>document.querySelector('#theme').onclick=()=>{document.body.style.color='white';document.body.style.background='#111';document.querySelector('#login').style.color='#aaf'}</script></body>"),True)]
 results=[]
 for name,html,accepted in cases:
@@ -25,11 +26,12 @@ for name,html,accepted in cases:
   actual=True
  except ProjectError as exc:
   report={'error':str(exc)};actual=False
-  corrected=repair_contrast(files,'index.html',getattr(exc,'browser_report',None),'Improve readability')
+  corrected=repair_contrast(files,'index.html',getattr(exc,'browser_report',None),'Improve readability and preserve dark mode')
   if corrected:
    fixed,receipt=corrected
    report['repair']=receipt
    report['rechecked']=check_candidate(fixed,inspect_files(fixed)[1],threading.Event(),time.monotonic()+35,required={'controls':[{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content','Login']})
+ if name=='dark_white_surface':assert report.get('rechecked',{}).get('status')=='passed' and report['rechecked'].get('theme_changed'),report
  results.append({'case':name,'expected_accepted':accepted,'accepted':actual,'passed':actual==accepted,'report':report})
  (a.output/'results.json').write_text(json.dumps({'environment':'actual Qt offscreen, sandboxed static JavaScript; synthetic source; no inference','results':results},ensure_ascii=False,indent=2))
  print(name,actual==accepted,flush=True)
