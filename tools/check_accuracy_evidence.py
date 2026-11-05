@@ -99,7 +99,9 @@ def check_run(directory):
                 for operation in stage.get('result',{}).get('operations',[]):
                     try:patch=json.loads(operation.get('output','{}'))
                     except ValueError:continue
-                    css.append(patch.get('css_rules') or '')
+                    rules=patch.get('css_rules') or ''
+                    if isinstance(rules,list):css.extend(rule['selector']+'{'+''.join(p['name']+':'+p['value']+';' for p in rule['declarations'])+'}' for rule in rules)
+                    else:css.append(rules)
                     if operation.get('path','').endswith('.css'):css.extend(e.get('after','') for e in patch.get('edits',[]))
             text='\n'.join(css)
             properties=set(re.findall(r'(?:^|[;{])\s*([a-zA-Z-]+)\s*:',text))

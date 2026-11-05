@@ -50,6 +50,9 @@ def test_multiple_related_files_promote_once(system):
         assert len(ops)==3 and sum(x['output_limit'] for x in ops)<=3072
         calls=[c for c in system.backend.calls if c['messages'][0]['content'].startswith('Return a bounded file patch')]
         assert all(c['response_format']['schema']['properties']['new_content']=={'type':'null'} for c in calls)
+        css_shapes=[c['response_format']['schema']['properties']['css_rules'] for c in calls]
+        arrays=[shape['anyOf'][0] for shape in css_shapes if 'anyOf' in shape]
+        assert arrays and all(shape['maxItems']==6 for shape in arrays)
     finally:jobs.shutdown();store.close()
 
 
@@ -200,3 +203,18 @@ def test_measured_contrast_repair_scopes_dark_host_without_changing_light():
     assert 'color:#fff!important' in receipt['rules'][0]
     assert all(c['color_scheme']=='dark' for c in receipt['changes'])
     assert 'Original' in fixed['index.html']
+
+
+def test_structured_css_serializes_bounded_rules_and_rejects_duplicates():
+    from src.core.bounded_edits import FilePatch,css_text,apply_sections
+    from pydantic import ValidationError
+    source='<html><head></head><body><p>Original</p></body></html>'
+    rule={'selector':'body','declarations':[{'name':'color','value':'#eee'},{'name':'background-color','value':'#111'}],'scheme':'dark'}
+    patch=FilePatch(base_revision=1,path='index.html',source_sha256=digest(source),edits=[],css_rules=[rule])
+    changed=apply_sections({'index.html':source},'index.html',patch,source,True)
+    assert '@media (prefers-color-scheme: dark){body{color:#eee;background-color:#111;}}' in changed['index.html']
+    assert 'Original' in changed['index.html']
+    with pytest.raises(ProjectError):css_text([rule,rule])
+    with pytest.raises(ValidationError):FilePatch(base_revision=1,path='index.html',source_sha256=digest(source),edits=[],css_rules=[rule]*7)
+    with pytest.raises(ValidationError):css_text([{**rule,'declarations':[{'name':'color','value':'red'},{'name':'COLOR','value':'blue'}]}])
+    with pytest.raises(ProjectError):css_text([{**rule,'declarations':[{'name':'color','value':'red; background: black'}]}])
