@@ -157,3 +157,11 @@ def test_appending_css_requires_exact_end_of_file_operation():
     patch=FilePatch(base_revision=1,path='style.css',source_sha256=digest(source),edits=[],css_rules='body { padding: 1rem; }')
     with pytest.raises(ProjectError):apply_sections({'style.css':source},'style.css',patch,source,False)
     assert apply_sections({'style.css':source},'style.css',patch,source,True)['style.css'].startswith(source)
+
+
+def test_user_feature_requirements_follow_successful_requests_and_explicit_removal():
+    from src.core.edit_preservation import requested_web_features
+    history=[{'origin':'user_request','text':'أضف زر تسجيل دخول'},{'origin':'user_request','text':'أضف الوضع الداكن إلى هذا المشروع'}]
+    assert requested_web_features(history,'حسن واجهة الموقع')=={'login':True,'theme':True}
+    assert requested_web_features(history,'احذف Login')=={'theme':True}
+    assert requested_web_features([], 'Explain dark mode')=={}

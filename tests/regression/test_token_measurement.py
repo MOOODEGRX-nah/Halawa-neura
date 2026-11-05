@@ -13,6 +13,7 @@ def test_formatter_token_measurement_restores_completion_method():
     measured=backend.measure_messages([{'role':'user','content':'Not counted as characters'}],max_tokens=4096)
     assert measured['prompt_tokens']==3 and measured['effective_output_limit']==4093
     assert backend.model.create_completion==original
+    assert 'create_completion' not in vars(backend.model)
 
 
 def test_unsupported_handler_does_not_estimate_from_text():
@@ -20,3 +21,4 @@ def test_unsupported_handler_does_not_estimate_from_text():
     backend.model.create_chat_completion=lambda **kwargs:backend.model.create_completion(prompt='unsupported')
     with pytest.raises(ValueError):backend.measure_messages([],max_tokens=1024)
     assert backend.model.create_completion==original
+    assert 'create_completion' not in vars(backend.model)

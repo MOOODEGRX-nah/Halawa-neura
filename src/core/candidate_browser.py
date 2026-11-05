@@ -5,6 +5,7 @@ The only executable generated content is static web JavaScript inside the same
 CSP sandbox as the normal preview, in a separate disposable renderer process.
 """
 import json
+import re
 import os
 import signal
 import subprocess
@@ -139,6 +140,14 @@ def main(source,destination):
             report['theme_changed']=any([(x['foreground'],x['background']) for x in report['samples'][i]['checks']]!=[(x['foreground'],x['background']) for x in report['samples'][i+2]['checks']] for i in (0,1))
             if not report['theme_changed']:report['errors'].append('Theme control did not change observed appearance')
         required=payload.get('required') or {}
+        report['required_features']=[name for name in ('theme','login') if required.get(name)]
+        if required.get('theme'):
+            if not report['samples'][0]['dark_available']:report['errors'].append('Required theme control did not initialize; preview persistent storage is unavailable')
+            else:
+                initial={v['selector']:v['background'] for s in report['samples'] if s['mode']=='initial' and s['width']==1280 for v in s['checks']}
+                toggled={v['selector']:v['background'] for s in report['samples'] if s['mode']=='toggled' and s['width']==1280 for v in s['checks']}
+                if not any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()):report['errors'].append('Required theme did not change observed content surface backgrounds')
+        if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in s['controls']) for s in report['samples']):report['errors'].append('Required Login placeholder is not visible')
         for sample in report['samples']:
             if sample['unknown_backgrounds']:report['errors'].append('Complex backgrounds require rendered visual review; readability not verified')
             for control in required.get('controls',[]):

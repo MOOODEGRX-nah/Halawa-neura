@@ -112,7 +112,8 @@ class LlamaCppBackend:
         if self.model is None:raise RuntimeError('Model not loaded')
         class Measured(Exception):pass
         result={}
-        original=self.model.create_completion
+        had_override='create_completion' in vars(self.model)
+        previous_override=vars(self.model).get('create_completion')
         def capture(*args,**kwargs):
             prompt=kwargs.get('prompt',args[0] if args else None)
             if not isinstance(prompt,list):raise ValueError('Handler does not expose final prompt token IDs')
@@ -126,7 +127,9 @@ class LlamaCppBackend:
             except Measured:pass
             if not result:raise ValueError('Handler token measurement unavailable')
             return result
-        finally:self.model.create_completion=original
+        finally:
+            if had_override:self.model.create_completion=previous_override
+            else:del self.model.create_completion
 
     @staticmethod
     def _answer_stream(iterator, marker):

@@ -15,7 +15,7 @@ from src.core.project_store import now, digest
 from src.core.project_stream import FileStream
 from src.core.project_contracts import JobEvent
 from src.core.project_validation import inspect_files
-from src.core.edit_preservation import require_preserved, html_contract, contract_summary
+from src.core.edit_preservation import require_preserved, html_contract, contract_summary, requested_web_features
 from src.core.candidate_browser import check_candidate
 from src.core.contrast_repair import repair_contrast
 
@@ -257,9 +257,11 @@ class ProjectJobs:
                 context+='Accepted user requirements: '+requirements_context
             attempts=[];browser={'status':'not_run'};preserved={'status':'not_applicable'}
             repair='';generated={};files={};browser_failure=None
-            # One corrective attempt, same deadline and a shared output budget.
+            # One model correction and at most two corrective validation passes.
+            # Measured CSS correction spends no model output; deadline is shared.
             remaining_tokens=request.max_tokens//4
-            for attempt in range(2):
+            model_repairs=0
+            for attempt in range(3):
                 parser=FileStream(lambda kind,data:self._emit(job_id,kind,data,drafts=parser.files),
                                   expected_files=request.required_files,filename_hints=request.filename_hints or request.context_files)
                 if attempt:
@@ -267,8 +269,11 @@ class ProjectJobs:
                     try:
                         corrected=repair_contrast(generated,preview.get('entry_point'),browser_failure,request.user_request+' '+json.dumps(accepted,ensure_ascii=False))
                         if corrected:generated,repair_result=corrected
-                        else:generated,repair_result=self.invoice.repair_candidate(generated,request,repair,contract_summary(before),
-                            cancel=cancel,deadline=deadline,max_tokens=remaining_tokens)
+                        else:
+                            if model_repairs:raise ProjectError('استُنفدت محاولة الإصلاح بالنموذج؛ بقيت المراجعة السابقة')
+                            model_repairs+=1
+                            generated,repair_result=self.invoice.repair_candidate(generated,request,repair,contract_summary(before),
+                                cancel=cancel,deadline=deadline,max_tokens=remaining_tokens)
                         self._stage_result(job_id,'generating',repair_result)
                         for path,content in generated.items():
                             parser.files[path]={'content':'','complete':False};self._emit(job_id,'file_started',{'path':path},drafts=parser.files)
@@ -332,7 +337,8 @@ class ProjectJobs:
                         required=html_contract(before).get(preview.get('entry_point'),{})
                         resulting=html_contract(files).get(preview.get('entry_point'),{})
                         required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[])],
-                                  'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))]}
+                                  'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))],
+                                  **requested_web_features(accepted,request.user_request)}
                         browser=check_candidate(files,preview,cancel,deadline,required=required)
                     attempts.append({'attempt':attempt,'status':'accepted' if changed else 'no_change','preservation':preserved,'browser':browser})
                     break
@@ -341,7 +347,7 @@ class ProjectJobs:
                     attempts.append({'attempt':attempt,'status':'rejected','error':str(error),'draft_files':dict(generated),'browser':browser_failure})
                     with self.store.lock:
                         self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',(json.dumps({'attempts':attempts},ensure_ascii=False),job_id));self.store.db.commit()
-                    if attempt or remaining_tokens<256:raise
+                    if attempt>=2 or remaining_tokens<256:raise
                     repair=str(error)[:1800]
             self.coordinator._check(cancel,deadline)
             # Receipt and project metadata share the SAME durable SQLite commit.
