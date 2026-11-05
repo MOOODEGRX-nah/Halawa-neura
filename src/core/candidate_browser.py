@@ -68,11 +68,11 @@ INSPECT=r'''(()=>{
    const large=parseFloat(style.fontSize)>=24||(parseFloat(style.fontSize)>=18.66&&Number(style.fontWeight)>=700);
    checks.push({selector:selector(e),text:e.textContent.trim().slice(0,80),ratio,foreground:fg,background:bg,background_selector:backgroundSelector,minimum:large?3:4.5});}
  }
- const dark=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
+ const dark=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
  const controls=Array.from(document.querySelectorAll('a,button,input,select,textarea')).filter(visible).map(e=>({tag:e.tagName.toLowerCase(),label:e.textContent.trim().replace(/\s+/g,' '),id:e.getAttribute('id'),href:e.getAttribute('href'),name:e.getAttribute('name'),type:e.getAttribute('type')}));
- return JSON.stringify({body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark});
+ return JSON.stringify({body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark,prefers_dark:matchMedia('(prefers-color-scheme: dark)').matches});
 })()'''
-TOGGLE=r'''(()=>{const e=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox]')).find(e=>/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));if(e){e.click();return true;}return false;})()'''
+TOGGLE=r'''(()=>{const e=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||''));});if(e){e.click();return true;}return false;})()'''
 
 
 def main(source,destination):
@@ -93,12 +93,14 @@ def main(source,destination):
     class Parent(BaseHTTPRequestHandler):
         def log_message(self,*_):pass
         def do_GET(self):
-            if self.path!='/':self.send_error(404);return
-            body=('<!doctype html><style>html,body{margin:0;width:100%;height:100%}iframe{border:0;width:100%;height:100%}</style><iframe sandbox="allow-scripts" src="'+cap['url']+'"></iframe>').encode()
+            if self.path not in ('/?scheme=light','/?scheme=dark'):self.send_error(404);return
+            scheme=self.path.rsplit('=',1)[1]
+            body=('<!doctype html><style>html,body{margin:0;width:100%;height:100%;color-scheme:'+scheme+'}iframe{border:0;width:100%;height:100%}</style><iframe sandbox="allow-scripts" src="'+cap['url']+'"></iframe>').encode()
             self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Content-Length',str(len(body)))
             self.send_header('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-src "+cap['origin']);self.end_headers();self.wfile.write(body)
     parent=ThreadingHTTPServer(('127.0.0.1',0),Parent);parent.daemon_threads=True
     parent_origin='http://127.0.0.1:'+str(parent.server_port)
+    parent_urls=[parent_origin+'/?scheme='+scheme for scheme in ('light','dark')]
     cap=server.issue('candidate',parent_origin,0)
     threading.Thread(target=parent.serve_forever,daemon=True).start()
     prefix=cap['url'].rsplit('/',1)[0]+'/'
@@ -106,9 +108,9 @@ def main(source,destination):
     class Requests(QWebEngineUrlRequestInterceptor):
         def interceptRequest(self,info):
             url=info.requestUrl().toString()
-            if not (url.startswith(prefix) or url==parent_origin+'/' or url.startswith('data:')):info.block(True)
+            if not (url.startswith(prefix) or url in parent_urls or url.startswith('data:')):info.block(True)
     class Page(QWebEnginePage):
-        def acceptNavigationRequest(self,url,kind,main):return url.toString()==parent_origin+'/' if main else url.toString().startswith(prefix)
+        def acceptNavigationRequest(self,url,kind,main):return url.toString() in parent_urls if main else url.toString().startswith(prefix)
         def createWindow(self,*_):return None
     interceptor=Requests();profile.setUrlRequestInterceptor(interceptor)
     page=Page(profile);page.permissionRequested.connect(lambda permission:permission.deny());view=QWebEngineView();view.setPage(page);view.resize(1280,800);view.show()
@@ -122,32 +124,41 @@ def main(source,destination):
         while not out and time.monotonic()<end:pump(.01)
         if not out:raise TimeoutError('Renderer inspection timed out')
         return out[0]
-    report={'status':'failed','errors':[],'samples':[],'scope':'480/1280px overflow and sampled computed text contrast; optional dark control click',
+    report={'status':'failed','errors':[],'samples':[],'scope':'480/1280px, light/dark embedding color schemes, sampled computed text contrast and requested theme control',
             'native_code_executed':False,'javascript_executed':'CSP sandbox, separate Qt process','limitations':['Not full behavioral equivalence','Gradients/complex compositing require visual review','No authentication/payment/service verification']}
     try:
-        loaded=[];page.loadFinished.connect(lambda ok:loaded.append(ok));page.load(QUrl(parent_origin+'/'))
-        end=time.monotonic()+10
-        while not loaded and time.monotonic()<end:pump(.01)
-        if not loaded or not loaded[0]:raise ValueError('Candidate page did not load')
-        for width in (1280,480):
-            view.resize(width,800);pump(.25)
-            sample=json.loads(js(INSPECT));sample.update(width=width,mode='initial');report['samples'].append(sample)
-        if report['samples'][0]['dark_available']:
-            js(TOGGLE);pump(.4)
-            for width in (1280,480):
-                view.resize(width,800);pump(.2);sample=json.loads(js(INSPECT));sample.update(width=width,mode='toggled');report['samples'].append(sample)
-        if len(report['samples'])==4:
-            report['theme_changed']=any([(x['foreground'],x['background']) for x in report['samples'][i]['checks']]!=[(x['foreground'],x['background']) for x in report['samples'][i+2]['checks']] for i in (0,1))
-            if not report['theme_changed']:report['errors'].append('Theme control did not change observed appearance')
+        loaded=[];page.loadFinished.connect(lambda ok:loaded.append(ok))
         required=payload.get('required') or {}
+        report['color_schemes']=['light','dark']
         report['required_features']=[name for name in ('theme','login') if required.get(name)]
-        if required.get('theme'):
-            if not report['samples'][0]['dark_available']:report['errors'].append('Required theme control did not initialize; preview persistent storage is unavailable')
-            else:
-                initial={v['selector']:v['background'] for s in report['samples'] if s['mode']=='initial' and s['width']==1280 for v in s['checks']}
-                toggled={v['selector']:v['background'] for s in report['samples'] if s['mode']=='toggled' and s['width']==1280 for v in s['checks']}
-                if not any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()):report['errors'].append('Required theme did not change observed content surface backgrounds')
-        if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in s['controls']) for s in report['samples']):report['errors'].append('Required Login placeholder is not visible')
+        changes=[]
+        for scheme in ('light','dark'):
+            loaded.clear();page.load(QUrl(parent_origin+'/?scheme='+scheme))
+            end=time.monotonic()+10
+            while not loaded and time.monotonic()<end:pump(.01)
+            if not loaded or not loaded[0]:raise ValueError('Candidate page did not load in '+scheme+' scheme')
+            samples=[]
+            for width in (1280,480):
+                view.resize(width,800);pump(.25)
+                sample=json.loads(js(INSPECT));sample.update(width=width,mode='initial',color_scheme=scheme);samples.append(sample)
+            if any(s['prefers_dark']!=(scheme=='dark') for s in samples):raise ValueError('Embedding color-scheme did not reach isolated preview')
+            if samples[0]['dark_available']:
+                js(TOGGLE);pump(.4)
+                for width in (1280,480):
+                    view.resize(width,800);pump(.2);sample=json.loads(js(INSPECT));sample.update(width=width,mode='toggled',color_scheme=scheme);samples.append(sample)
+            if len(samples)==4:
+                changed=any([(x['foreground'],x['background']) for x in samples[i]['checks']]!=[(x['foreground'],x['background']) for x in samples[i+2]['checks']] for i in (0,1))
+                changes.append(changed)
+                if not changed:report['errors'].append(scheme+' theme control did not change observed appearance')
+            if required.get('theme'):
+                if not samples[0]['dark_available']:report['errors'].append('Required theme control did not initialize in '+scheme+' scheme; preview persistent storage is unavailable')
+                else:
+                    initial={v['selector']:v['background'] for sample in samples if sample['mode']=='initial' and sample['width']==1280 for v in sample['checks']}
+                    toggled={v['selector']:v['background'] for sample in samples if sample['mode']=='toggled' and sample['width']==1280 for v in sample['checks']}
+                    if not any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()):report['errors'].append('Required theme did not change observed content surface backgrounds in '+scheme+' scheme')
+            report['samples'].extend(samples)
+        if changes:report['theme_changed']=all(changes)
+        if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in sample['controls']) for sample in report['samples']):report['errors'].append('Required Login placeholder is not visible')
         for sample in report['samples']:
             if sample['unknown_backgrounds']:report['errors'].append('Complex backgrounds require rendered visual review; readability not verified')
             for control in required.get('controls',[]):
@@ -158,7 +169,7 @@ def main(source,destination):
                 if len(text)>1 and text.casefold() not in sample['visible_text'].casefold():report['errors'].append('Required visible content missing: '+text[:80])
             if sample['overflow']:report['errors'].append(str(sample['width'])+'px horizontal overflow')
             failures=[x for x in sample['checks'] if x['ratio']+.02<x['minimum']]
-            if failures:report['errors'].append(sample['mode']+' low text contrast: '+json.dumps(failures[:3],ensure_ascii=False))
+            if failures:report['errors'].append(sample['color_scheme']+' '+sample['mode']+' low text contrast: '+json.dumps(failures[:3],ensure_ascii=False))
         report['status']='failed' if report['errors'] else 'passed'
     except Exception as exc:report['errors'].append(str(exc))
     finally:

@@ -48,6 +48,8 @@ def test_multiple_related_files_promote_once(system):
         assert store.read(pid,'index.html')['content'].count('Login')==1
         ops=next(s for s in result['stage_results'] if s['stage']=='generating')['result']['operations']
         assert len(ops)==3 and sum(x['output_limit'] for x in ops)<=3072
+        calls=[c for c in system.backend.calls if c['messages'][0]['content'].startswith('Return a bounded file patch')]
+        assert all(c['response_format']['schema']['properties']['new_content']=={'type':'null'} for c in calls)
     finally:jobs.shutdown();store.close()
 
 
@@ -180,3 +182,21 @@ def test_worker_row_reads_share_the_store_lock(system):
             assert not finished.wait(.03)
         thread.join(1);assert finished.is_set() and rows[0]['draft']=='{}'
     finally:jobs.shutdown();store.close()
+
+
+def test_measured_contrast_repair_scopes_dark_host_without_changing_light():
+    from src.core.contrast_repair import repair_contrast
+    source='<html><body><p>Original</p></body></html>'
+    def sample(scheme,background):
+        return {'color_scheme':scheme,'mode':'initial','width':1280,'body_classes':[],
+            'checks':[{'selector':'body > p:nth-of-type(1)','foreground':[0,0,0],
+                'background':background,'background_selector':'body','minimum':4.5,
+                'ratio':21 if background==[255,255,255] else 1.112}]}
+    report={'errors':['dark initial low text contrast: fixture'],'samples':[sample('light',[255,255,255]),sample('dark',[17,17,17])]}
+    fixed,receipt=repair_contrast({'index.html':source},'index.html',report,'Improve readability')
+    assert source=='<html><body><p>Original</p></body></html>'
+    assert len(receipt['rules'])==1
+    assert receipt['rules'][0].startswith('@media (prefers-color-scheme: dark)')
+    assert 'color:#fff!important' in receipt['rules'][0]
+    assert all(c['color_scheme']=='dark' for c in receipt['changes'])
+    assert 'Original' in fixed['index.html']

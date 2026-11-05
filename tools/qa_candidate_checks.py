@@ -20,11 +20,15 @@ cases=[('readable',base,True),
  ('complex_background',base.replace('background:white','background:linear-gradient(white,black)'),False),
  ('dark_white_surface',base.replace('color:#111;background:white','color:#111;background:white').replace('<h1>','<div style="background:white"><h1>').replace('</body>',"</div><style>body.dark{color:#eee!important}</style><button id='theme'>Dark mode</button><script>document.querySelector('#theme').onclick=()=>document.body.classList.toggle('dark')</script></body>"),False),
  ('working_theme',base.replace('</body>',"<button id='theme'>Toggle theme</button><script>document.querySelector('#theme').onclick=()=>{document.body.style.color='white';document.body.style.background='#111';document.querySelector('#login').style.color='#aaf'}</script></body>"),True)]
+media='<html><head><style>body{color:#111;background:white}@media(prefers-color-scheme:dark){body{color:#111;background:#111}}</style></head><body>'+body+'</body></html>'
+cases += [('media_dark_contrast',media,False),
+ ('media_dark_readable',media.replace('body{color:#111;background:#111}','body{color:#eee;background:#111} a{color:#aaf}'),True),
+ ('anchor_theme_visible',base.replace('</body>',"<button style='display:none' id='dark-hidden'>Dark mode</button><a href='#' id='theme' style='color:inherit'>Dark mode</a><script>document.querySelector('#theme').onclick=e=>{e.preventDefault();document.body.style.color='white';document.body.style.background='#111';document.querySelector('#login').style.color='#aaf'}</script></body>"),True)]
 results=[]
 for name,html,accepted in cases:
  files={'index.html':html};preview=inspect_files(files)[1]
  try:
-  report=check_candidate(files,preview,threading.Event(),time.monotonic()+35,required={'controls':[] if name=='required_login_absent' else [{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content'],'theme':name=='required_theme_absent','login':name=='required_login_absent'})
+  report=check_candidate(files,preview,threading.Event(),time.monotonic()+35,required={'controls':[] if name=='required_login_absent' else [{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content'],'theme':name in ('required_theme_absent','anchor_theme_visible'),'login':name=='required_login_absent'})
   actual=True
  except ProjectError as exc:
   report={'error':str(exc)};actual=False
@@ -34,6 +38,8 @@ for name,html,accepted in cases:
    report['repair']=receipt
    report['rechecked']=check_candidate(fixed,inspect_files(fixed)[1],threading.Event(),time.monotonic()+35,required={'controls':[] if name=='required_login_absent' else [{'tag':'a','href':'#','id':'login','label':'Login'}],'text':['Original content'],'theme':name=='required_theme_absent','login':name=='required_login_absent'})
  if name=='dark_white_surface':assert report.get('rechecked',{}).get('status')=='passed' and report['rechecked'].get('theme_changed'),report
+ if name=='media_dark_contrast':assert report.get('rechecked',{}).get('status')=='passed',report
+ if actual:assert report.get('color_schemes')==['light','dark'] and {s['prefers_dark'] for s in report['samples']}=={False,True},report
  results.append({'case':name,'expected_accepted':accepted,'accepted':actual,'passed':actual==accepted,'report':report})
  (a.output/'results.json').write_text(json.dumps({'environment':'actual Qt offscreen, sandboxed static JavaScript; synthetic source; no inference','results':results},ensure_ascii=False,indent=2))
  print(name,actual==accepted,flush=True)

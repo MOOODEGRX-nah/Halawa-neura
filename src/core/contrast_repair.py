@@ -21,6 +21,24 @@ def repair_contrast(files,entry,report,user_request):
     if not report or not report.get('errors') or any('low text contrast:' not in e for e in report['errors']):return None
     if re.search(r'لون (?:النص|الخط)|text colo[u]?r|font colo[u]?r',user_request,re.I):return None
     if entry not in files or not isinstance(files[entry],str):return None
+    # The iframe inherits the app's color-scheme. Never use a light-only
+    # foreground correction in a dark media environment (or vice versa).
+    schemes={sample.get('color_scheme') for sample in report['samples']}
+    if schemes- {None}:
+        if not schemes <= {'light','dark'}:return None
+        scoped=[];observed=[];rule_count=0
+        for scheme in sorted(schemes):
+            samples=[{k:v for k,v in sample.items() if k!='color_scheme'} for sample in report['samples'] if sample.get('color_scheme')==scheme]
+            failed=any(value['ratio']+.02<value['minimum'] for sample in samples for value in sample['checks'])
+            if not failed:continue
+            correction=repair_contrast(files,entry,{**report,'samples':samples},user_request)
+            if not correction:return None
+            _,receipt=correction
+            rule_count+=len(receipt['rules'])
+            scoped.append('@media (prefers-color-scheme: '+scheme+') {\n'+'\n'.join(receipt['rules'])+'\n}')
+            observed.extend({**value,'color_scheme':scheme} for value in receipt['changes'])
+        if not scoped or rule_count>30:return None
+        return append_repair(files,entry,scoped,observed)
     grouped=defaultdict(list)
     for sample in report['samples']:
         if sample.get('unknown_backgrounds'):return None
@@ -67,8 +85,12 @@ def repair_contrast(files,entry,report,user_request):
                 rules.append(prefix+selector[4:]+'{color:'+('#000' if eligible[0]==[0,0,0] else '#fff')+'!important}')
         observations.append({'selector':selector,'reason':'measured text/background contrast','method':'bounded black/white foreground correction'})
     if not rules or len(rules)>30:return None
+    return append_repair(files,entry,rules,observations)
+
+
+def append_repair(files,entry,rules,observations):
     style='\n<style data-neura-contrast="measured">\n'+'\n'.join(rules)+'\n</style>\n'
     result=dict(files);source=result[entry]
     match=re.search(r'</body\s*>',source,re.I)
     result[entry]=source[:match.start()]+style+source[match.start():] if match else source+style
-    return result,{'mode':'measured_contrast_repair','changes':observations,'model_called':False,'scope':'solid backgrounds at measured viewports/states; candidate must be revalidated'}
+    return result,{'mode':'measured_contrast_repair','changes':observations,'rules':rules,'model_called':False,'scope':'solid backgrounds at measured viewports/states/color schemes; candidate must be revalidated'}
