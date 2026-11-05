@@ -26,7 +26,7 @@ seed_id=None
 if a.workflow=='large':
  if not a.seed_project:raise ValueError('large workflow needs explicit QA seed')
  from src.core.project_store import ProjectStore
- seed=json.loads(a.seed_project.read_text());seed_store=ProjectStore(profile/'data/workspace')
+ seed=json.loads(a.seed_project.read_text());seed_store=ProjectStore(profile/'data')
  seed_id=seed_store.create('Existing large CV','Synthetic QA existing website')['project_id']
  seed_store.commit(seed_id,seed['files'],0,accepted_requirements=seed['accepted_requirements']);seed_store.close()
 w=MainWindow(settings)
