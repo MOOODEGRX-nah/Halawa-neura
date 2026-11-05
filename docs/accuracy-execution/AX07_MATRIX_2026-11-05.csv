@@ -1,0 +1,10 @@
+Task ID,Status,Implementation location,Actual evidence,Remaining limitation
+AX07,Partially implemented,bounded_edits.py; project_jobs.py; llama_cpp_backend.py,520 automated pass; real preserve 0/3; large resource blocked,Theme repair reliability; final large acceptance
+AX09,Completed and verified (tested scope),project_jobs.py; bounded_edits.py,Strict ambiguous/length/stale rejection fixtures and real failed repairs preserve revision,Not a general semantic correctness proof
+AX10,Completed and verified (tested scope),web chat card reconciliation; project_jobs.py,Recorded restored cards match durable jobs,Other disconnect timing untested
+N041/N042,Completed and verified (tested scope),invoice_orchestrator.py,Mandatory measured planning; current real composer journeys,QA deadline900 differs from default180
+N054,Partially implemented,project_store.py; project_jobs.py,Atomic conflict guards automated; rejected real candidates retain revision,End-to-end theme journey fails
+N025,Partially implemented,extracted candidate; package_smoke.py,102 runtime files parity; real backend and Qt composer startup,No package inference or installed-app update
+N026,Implemented but not verified in this milestone,existing updater,Not run,Administrative verification separate
+N093,Not verified in this milestone,existing vision adapter,Not run,Separate real vision trial
+B0/B1,Not started,none,Gate A failed,Only after core Gate A passes

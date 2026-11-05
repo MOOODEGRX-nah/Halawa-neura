@@ -46,7 +46,8 @@ def project_intent(text):
 
 def active_edit_intent(text):
     q=command_text(text)
-    if edit_command(q):return True
+    from src.core.feature_intent import feature_intents
+    if feature_intents(text) or edit_command(q):return True
     return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',q) or
         re.match(r'^(?:اضف|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زر|الزر|ازرار|وضع|الوضع|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login button|dark mode|feature|input|function|bug)\b',q))
 

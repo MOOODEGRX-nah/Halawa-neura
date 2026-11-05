@@ -79,16 +79,5 @@ def require_preserved(before,after,request):
 
 
 def requested_web_features(requirements,current_request):
-    """User-origin feature requests are validation requirements, not tool grants."""
-    features={}
-    texts=[r.get('text','') for r in requirements if r.get('origin')=='user_request']+[current_request]
-    for text in texts:
-        q=normalize(text)
-        if not re.match(r'^(?:اضف|add\b|enable\b|فعل)',q):continue
-        if re.search(r'dark|theme|داكن|مظلم|ليلي',q):features['theme']=True
-        if re.search(r'login|sign.?in|دخول',q):features['login']=True
-    q=normalize(current_request)
-    if re.match(r'^(?:احذف|ازل|remove\b|delete\b)',q):
-        if re.search(r'dark|theme|داكن|مظلم|ليلي',q):features.pop('theme',None)
-        if re.search(r'login|sign.?in|دخول',q):features.pop('login',None)
-    return features
+    from src.core.feature_intent import required_features
+    return required_features(requirements,current_request)

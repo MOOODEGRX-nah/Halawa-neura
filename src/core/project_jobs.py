@@ -251,6 +251,8 @@ class ProjectJobs:
                 self.store.db.execute('UPDATE job_contracts SET invoice=? WHERE job_id=?',(actual_invoice.model_dump_json(),job_id));self.store.db.commit()
             before = self.store.committed_files(project_id) if request.project_id else {}
             accepted=project.get('accepted_requirements',[])
+            from src.core.feature_intent import intent_evidence
+            feature_intent=intent_evidence(request.user_request)
             if request.project_id:
                 context+='\nPreserve ALL existing visible content, control labels, IDs, links and behavior. Keep Login as a placeholder, not authentication. Dark mode must have readable foreground and background colors. Use local resources only.\n'
                 requirements_context=json.dumps(accepted,ensure_ascii=False)
@@ -282,7 +284,7 @@ class ProjectJobs:
                             self._emit(job_id,'file_delta',{'path':path,'delta':content,'offset':0},drafts=parser.files)
                             parser.files[path]['complete']=True;self._emit(job_id,'file_draft_complete',{'path':path},drafts=parser.files)
                     except (ProjectError,InferenceError) as error:
-                        attempts.append({'attempt':attempt,'status':'rejected','error':str(error),'mode':'candidate_patch'})
+                        attempts.append({'attempt':attempt,'status':'rejected','error':str(error),'mode':'candidate_patch','repair_receipt':getattr(error,'repair_receipt',None)})
                         with self.store.lock:
                             self.store.db.execute('UPDATE job_contracts SET result=? WHERE job_id=?',(json.dumps({'attempts':attempts},ensure_ascii=False),job_id));self.store.db.commit()
                         raise
@@ -340,6 +342,9 @@ class ProjectJobs:
                         required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[])],
                                   'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))],
                                   **requested_web_features(accepted,request.user_request)}
+                        from src.core.required_interactions import present_contract
+                        interaction=present_contract(files,preview.get('entry_point'))
+                        if required.get('theme') and interaction:required['interaction']=interaction
                         browser=check_candidate(files,preview,cancel,deadline,required=required)
                     attempts.append({'attempt':attempt,'status':'accepted' if changed else 'no_change','preservation':preserved,'browser':browser})
                     break
@@ -352,7 +357,7 @@ class ProjectJobs:
                     repair=str(error)[:1800]
             self.coordinator._check(cancel,deadline)
             # Receipt and project metadata share the SAME durable SQLite commit.
-            execution={'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
+            execution={'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
                 'base_revision':expected,'result_revision':expected+1 if changed else expected,'changed_files':changed,
                 'base_hashes':{path:digest(value) for path,value in before.items()},
                 'result_hashes':{path:digest(files[path]) for path in changed},

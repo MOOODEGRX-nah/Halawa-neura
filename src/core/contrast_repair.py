@@ -39,6 +39,19 @@ def repair_contrast(files,entry,report,user_request):
             observed.extend({**value,'color_scheme':scheme} for value in receipt['changes'])
         if not scoped or rule_count>30:return None
         return append_repair(files,entry,scoped,observed)
+    states={sample.get('interaction_state') for sample in report['samples']}
+    if states <= {'light','dark'} and states:
+        scoped=[];observed=[]
+        for state in sorted(states):
+            samples=[{k:v for k,v in sample.items() if k!='interaction_state'} for sample in report['samples'] if sample.get('interaction_state')==state]
+            if not any(v['ratio']+.02<v['minimum'] for sample in samples for v in sample['checks']):continue
+            correction=repair_contrast(files,entry,{**report,'samples':samples},user_request)
+            if not correction:return None
+            _,receipt=correction
+            scoped.extend(rule.replace('body','body[data-neura-theme="'+state+'"]',1) for rule in receipt['rules'])
+            observed.extend({**value,'interaction_state':state} for value in receipt['changes'])
+        if not scoped or len(scoped)>30:return None
+        return append_repair(files,entry,scoped,observed)
     grouped=defaultdict(list)
     for sample in report['samples']:
         if sample.get('unknown_backgrounds'):return None

@@ -98,7 +98,8 @@ def test_preservation_rejects_login_loss_and_keeps_revision(system):
         system.backend.text='```html index.html\n<h1>QA CV</h1><button>Dark mode</button>\n```'
         result=dispatch.dispatch('أضف الوضع الداكن',request_id(),session_id='qa')
         job=wait(app.state.project_jobs,result['job']['job_id'])
-        assert job['state']=='failed' and len(job['attempts'])==2
+        assert job['state']=='failed'
+        assert 'عقد التفاعل' in job['error']  # Rejected before candidate validation/repair, not silently rewritten.
         assert app.state.project_store.get(pid)['project_revision']==1
         assert app.state.project_store.read(pid,'index.html')['content']==BASE
         assert all(x['status']=='rejected' for x in job['attempts'])
@@ -167,7 +168,7 @@ def test_plan_is_structured_read_only_and_rejects_wrong_step_count(system):
 
 
 @pytest.mark.parametrize('replacement,accepted',[
- ({'path':'index.html','before':'color:white;background:blue','after':'color:black;background:blue'},True),
+ ({'path':'index.html','before':'color:white;background:blue','after':'color:black;background:blue'},False),
  ({'path':'../outside.html','before':'color:white','after':'color:black'},False),
  ({'path':'other.html','before':'color:white','after':'color:black'},False),
  ({'path':'index.html','before':'missing','after':'color:black'},False),

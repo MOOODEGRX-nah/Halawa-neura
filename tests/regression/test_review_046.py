@@ -35,8 +35,13 @@ def test_current_project_additions_use_actual_source(system,text):
     app,desktop,dispatch=application(system);store=app.state.project_store
     try:
         pid=store.create('QA site','Owned current source')['project_id']
-        store.commit(pid,{'index.html':'<h1 id="actual-source">Current source</h1>'},0)
-        system.backend.text='```html index.html\n<h1 id="actual-source">Current source</h1><button>Login</button>\n```'
+        source='<html><head></head><body><h1 id="actual-source">Current source</h1></body></html>'
+        store.commit(pid,{'index.html':source},0)
+        from src.core.feature_intent import required_features
+        from src.core.project_store import digest
+        if required_features([],text).get('theme'):
+            system.backend.text=json.dumps({'base_revision':1,'path':'index.html','source_sha256':digest(source),'edits':[],'new_content':None,'interaction':'theme'})
+        else:system.backend.text='```html index.html\n'+source.replace('</body>','<button>Login</button></body>')+'\n```'
         rid=request_id();value=dispatch.dispatch(text,rid,pid)
         assert value['kind']=='project' and value['operation']=='edit' and value['project']['project_id']==pid
         assert dispatch.dispatch(text,rid,pid)['job']['job_id']==value['job']['job_id']
@@ -46,6 +51,9 @@ def test_current_project_additions_use_actual_source(system,text):
             if job['state'] in ('completed','failed','cancelled'):break
             time.sleep(.005)
         assert job['state']=='completed',job
+        if required_features([],text).get('theme'):
+            assert 'data-neura-theme' in store.read(pid,'index.html')['content']
+            assert job['execution']['validated_feature_intent'][0]['feature']=='theme'
         assert 'actual-source' in str(system.backend.calls[0]['messages'])
         assert len(store.list())==1 and not desktop.calls
     finally:app.state.project_jobs.shutdown();store.close()

@@ -68,11 +68,12 @@ INSPECT=r'''(()=>{
    const large=parseFloat(style.fontSize)>=24||(parseFloat(style.fontSize)>=18.66&&Number(style.fontWeight)>=700);
    checks.push({selector:selector(e),text:e.textContent.trim().slice(0,80),ratio,foreground:fg,background:bg,background_selector:backgroundSelector,minimum:large?3:4.5});}
  }
- const dark=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
+ const compiledControl=document.getElementById('neura-theme-toggle');
+ const dark=compiledControl||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
  const controls=Array.from(document.querySelectorAll('a,button,input,select,textarea')).filter(visible).map(e=>({tag:e.tagName.toLowerCase(),label:e.textContent.trim().replace(/\s+/g,' '),id:e.getAttribute('id'),href:e.getAttribute('href'),name:e.getAttribute('name'),type:e.getAttribute('type')}));
- return JSON.stringify({body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark,prefers_dark:matchMedia('(prefers-color-scheme: dark)').matches});
+ return JSON.stringify({interaction_state:document.body.getAttribute('data-neura-theme'),interaction_pressed:compiledControl?.getAttribute('aria-pressed'),interaction_control_count:document.querySelectorAll('#neura-theme-toggle').length,interaction_surfaces:Array.from(document.querySelectorAll('body,body div,body header,body nav,body main,body section,body article,body aside,body footer')).filter(visible).map(e=>({selector:selector(e),background:getComputedStyle(e).backgroundColor})),body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark,prefers_dark:matchMedia('(prefers-color-scheme: dark)').matches});
 })()'''
-TOGGLE=r'''(()=>{const e=Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||''));});if(e){e.click();return true;}return false;})()'''
+TOGGLE=r'''(()=>{const e=document.getElementById('neura-theme-toggle')||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||''));});if(e){e.click();return true;}return false;})()'''
 
 
 def main(source,destination):
@@ -129,6 +130,7 @@ def main(source,destination):
     try:
         loaded=[];page.loadFinished.connect(lambda ok:loaded.append(ok))
         required=payload.get('required') or {}
+        report['required_interaction']=required.get('interaction')
         report['color_schemes']=['light','dark']
         report['required_features']=[name for name in ('theme','login') if required.get(name)]
         changes=[]
@@ -156,6 +158,23 @@ def main(source,destination):
                     initial={v['selector']:v['background'] for sample in samples if sample['mode']=='initial' and sample['width']==1280 for v in sample['checks']}
                     toggled={v['selector']:v['background'] for sample in samples if sample['mode']=='toggled' and sample['width']==1280 for v in sample['checks']}
                     if not any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()):report['errors'].append('Required theme did not change observed content surface backgrounds in '+scheme+' scheme')
+            if required.get('interaction'):
+                from src.core.required_interactions import theme_contract
+                if required['interaction']!=theme_contract():raise ValueError('Unsupported required interaction contract')
+                for sample in samples:
+                    expected='light' if sample['mode']=='initial' else 'dark'
+                    if sample['interaction_control_count']!=1 or sample['interaction_state']!=expected or sample['interaction_pressed']!=str(expected=='dark').lower():
+                        report['errors'].append('Required interaction control/state mismatch in '+scheme)
+                if len(samples)!=4:report['errors'].append('Required interaction has no complete toggle samples')
+                else:
+                    for i in (0,1):
+                        initial={v['selector']:v['background'] for v in samples[i]['interaction_surfaces']}
+                        toggled={v['selector']:v['background'] for v in samples[i+2]['interaction_surfaces']}
+                        if not initial or initial.keys()!=toggled.keys() or any(initial[p]==toggled[p] for p in initial):
+                            report['errors'].append('Required interaction did not change every declared visible surface in '+scheme)
+                js(TOGGLE);pump(.2)
+                restored=json.loads(js(INSPECT))
+                if restored['interaction_state']!='light' or restored['interaction_pressed']!='false':report['errors'].append('Required interaction did not restore its initial state')
             report['samples'].extend(samples)
         if changes:report['theme_changed']=all(changes)
         if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in sample['controls']) for sample in report['samples']):report['errors'].append('Required Login placeholder is not visible')
