@@ -69,7 +69,8 @@ def test_edit_without_unique_current_project_does_not_create_job(system):
 
 @pytest.mark.parametrize('legacy',[False,True])
 def test_truncated_required_plan_never_reaches_coder(system,legacy):
-    system.backend.replies=[PLAN,GOOD]
+    system.backend.plan_replies=[PLAN]
+    system.backend.replies=[GOOD]
     original=system.complete
     def completion(*args,**options):
         system.backend.finish='length'

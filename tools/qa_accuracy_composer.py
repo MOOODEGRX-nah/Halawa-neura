@@ -5,7 +5,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--baseline',action='store_true')
 p.add_argument('--real-model',action='store_true')
-p.add_argument('--workflow',choices=['exact','preserve','plan','proposal'],default='exact')
+p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke'],default='exact')
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--gpu',default=None,help='Observed unique device description; no numeric GPU index')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
@@ -51,7 +51,8 @@ def save():
 def state():
  projects=api('/projects')['projects']
  return {'session':js('sid'),'projects':[{k:v for k,v in item.items() if k in ('project_id','project_revision','files','latest_job_id','generation_status')} for item in projects],
-  'preview':js('document.querySelector("#ws-preview-rev").textContent'),'active_project':js('window.NeuraWorkspace.projectId||null')}
+  'preview':js('document.querySelector("#ws-preview-rev").textContent'),'active_project':js('window.NeuraWorkspace.projectId||null'),
+  'cards':js('JSON.stringify(Array.from(document.querySelectorAll("[data-project-job-id]")).map(e=>({job_id:e.dataset.projectJobId,state:e.dataset.jobState,text:e.textContent})))')}
 def send(text):
  wait(lambda:not js('busy'),930)
  if js('location.hash==="#workspace"'):js('document.querySelector("#ws-return").click();true;')
@@ -80,14 +81,27 @@ try:
  if a.workflow=='plan':
   send('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.')
  else:
-  send('برمج لي موقع للcv')
+  send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
   texts=['هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا','نعم','لم تفعل شي حتى الان؟','فل تبرمج','هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا'] if a.workflow=='exact' else ['أضف زر تسجيل دخول','أضف الوضع الداكن إلى هذا المشروع','هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
   if a.workflow=='proposal':texts=['واجهة مميزة تناسب العرض',a.approval,a.approval]
+  if a.workflow=='smoke':texts=[]
   for text in texts:send(text)
+  js('document.querySelector("#ws-return").click();true;')
+  wait(lambda:js('Array.from(document.querySelectorAll("[data-project-job-id]")).every(e=>["completed","failed","cancelled"].includes(e.dataset.jobState))'))
+  (out/'cards-before-restart.json').write_text(json.dumps(state(),ensure_ascii=False,indent=2))
+  w.grab().save(str(out/'cards-before-restart.png'))
   # Restore the SAME conversation and reopen from the saved project drawer.
   prior=state();session=prior['session'];pid=prior['active_project'];w._restart_backend()
   wait(lambda:w.loaded,40);wait(lambda:js('!!window.NeuraChat'))
-  js('sid='+json.dumps(session)+';true;')
+  js('sessionButton.click();true;')
+  wait(lambda:js('Array.from(document.querySelectorAll("#log button")).some(e=>e.textContent.startsWith('+json.dumps(session)+'))'))
+  js('Array.from(document.querySelectorAll("#log button")).find(e=>e.textContent.startsWith('+json.dumps(session)+')).click();true;')
+  wait(lambda:js('sid==='+json.dumps(session)))
+  wait(lambda:js('document.querySelector("[data-project-job-id]")!==null'))
+  end=time.monotonic()+2
+  while time.monotonic()<end:pump()
+  (out/'cards-restored.json').write_text(json.dumps(state(),ensure_ascii=False,indent=2))
+  w.grab().save(str(out/'cards-restored.png'))
   js('document.querySelector("#coding-workspace").click();true;')
   wait(lambda:js('document.querySelector("#ws-project-list button")!==null'))
   js('document.querySelector("#ws-project-list button").click();true;')

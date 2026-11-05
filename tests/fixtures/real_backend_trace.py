@@ -11,6 +11,28 @@ import uvicorn
 from src.backend.api import app
 from src.runtime import ROOT
 backend=app.state.coordinator.backend;original=backend.generate
+# QA-only lifecycle observations, never overrides resource or load policy.
+lifecycle=run/'artifacts/model-lifecycle.jsonl'
+def lifecycle_record(kind,**values):
+    with lifecycle.open('a') as f:f.write(json.dumps({'time':time.time(),'kind':kind,**values},default=str)+'\n')
+residency=app.state.coordinator.residency
+original_guard=residency.can_load
+from src.backends.residency import gpu_memory
+def guarded(model_id,context_length=4096,tier=None):
+    result=original_guard(model_id,context_length,tier)
+    lifecycle_record('memory_guard',model_id=model_id,tier=tier,selected_device=getattr(backend,'selected_device',None),device_requested=app.state.coordinator.settings.gpu_device,available_memory=gpu_memory(),estimate_gb=residency.estimate_vram_usage_gb(model_id,context_length),allowed=result[0],reason=result[1])
+    return result
+residency.can_load=guarded
+original_load,original_unload=backend.load,backend.unload
+def load(*args,**options):
+    lifecycle_record('load_start',path=args[0],options=options)
+    try:return original_load(*args,**options)
+    finally:lifecycle_record('load_end',selected_device=getattr(backend,'selected_device',None),memory=gpu_memory())
+def unload():
+    lifecycle_record('unload_start',path=backend.model_path)
+    try:return original_unload()
+    finally:lifecycle_record('unload_end',memory=gpu_memory())
+backend.load,backend.unload=load,unload
 def digest(value):return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 def observed(*args,**options):
     messages=options['messages'];plain={k:v for k,v in options.items() if k not in ('messages','stopping_criteria') and isinstance(v,(str,int,float,bool,list,dict,type(None)))}

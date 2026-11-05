@@ -60,7 +60,7 @@ def test_durable_events_reconnection_does_not_duplicate(system):
     job_id=created['job']['job_id'];p=created['project']['project_id']
     assert wait(jobs,job_id)['state']=='completed'
     a=jobs.events(job_id,0);b=jobs.events(job_id,0)
-    assert a==b and len(system.backend.calls)==1
+    assert a==b and len(system.backend.calls)==2
     assert [event['seq'] for event in a]==list(range(1,len(a)+1))
     assert all(event['job_id']==job_id and event['project_id']==p for event in a)
     assert any(e['type']=='file_delta' for e in a)
@@ -68,7 +68,7 @@ def test_durable_events_reconnection_does_not_duplicate(system):
     jobs.shutdown();store.close()
     store=ProjectStore(system.settings.data_dir);jobs=ProjectJobs(store,system)
     assert jobs.get(job_id)['state']=='completed'
-    assert len(system.backend.calls)==1
+    assert len(system.backend.calls)==2
     jobs.shutdown();store.close()
 
 

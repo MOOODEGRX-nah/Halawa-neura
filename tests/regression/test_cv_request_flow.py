@@ -28,7 +28,7 @@ def test_exact_creation_requests_enter_workspace_job_not_chat(system,text):
         pid=created['project']['project_id'];job=created['job']['job_id']
         assert dispatch.dispatch(text,rid,session_id='cv_chat')['job']['job_id']==job
         result=terminal(jobs,job);assert result['state']=='completed',result
-        assert len(store.list())==1 and len(system.backend.calls)==1
+        assert len(store.list())==1 and len(system.backend.calls)==2
         assert result['invoice']['user_request']==text and text in result['invoice']['requirements']
         assert store.get(pid)['validation']['executed'] is False
         assert store.get(pid)['preview']['supported']==('موقع' in text)
@@ -129,7 +129,7 @@ def test_invalid_first_generation_is_failed_without_chat_tutorial_fallback(syste
         job=terminal(jobs,created['job']['job_id']);assert job['state']=='failed' and job['error']
         project=store.get(created['project']['project_id'])
         assert project['project_revision']==0 and not project['files'] and not project['preview']['supported']
-        assert len(system.backend.calls)==1 and not desktop.calls
+        assert len(system.backend.calls)==2 and not desktop.calls
     finally:jobs.shutdown();store.close()
 
 

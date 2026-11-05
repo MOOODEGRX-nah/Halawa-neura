@@ -47,7 +47,7 @@ def capability_messages(messages, instructions):
     keep the actual conversation and image parts unchanged. The model's own chat
     template still formats inference, never a hand-built generic prompt.
     """
-    values=[message.model_dump() for message in messages]
+    values=[message.model_dump(include={'role','content'}) for message in messages]
     leading=[];index=0
     while index<len(values) and values[index]['role']=='system':
         content=values[index]['content']
@@ -381,7 +381,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     @app.post('/vault/save')
     async def save_session(req: VaultSave):
         try:
-            return vault.save(req.session, [m.model_dump() for m in req.messages])
+            return vault.save(req.session, [m.model_dump(exclude_none=True) for m in req.messages])
         except ValueError as exc:
             raise HTTPException(413, str(exc)) from exc
 

@@ -20,7 +20,7 @@ def test_n041_invoice_identity_constraints_expected_files_and_stage_results(syst
     assert invoice['task_id']==job and invoice['project_id']==project
     assert invoice['user_request']=='Build answer' and 'offline only' in invoice['constraints']
     assert invoice['expected_files']==['result.py'] and invoice['required_python_symbols']==['answer']
-    sent=json.loads(system.backend.calls[0]['messages'][1]['content'].split('\nOptional implementation plan:')[0])
+    sent=json.loads(system.backend.calls[1]['messages'][1]['content'].split('\nValidated implementation plan:')[0])
     assert sent['task_id']==job and sent['project_id']==project and sent['expected_files']==['result.py']
     assert sent['constraints']==invoice['constraints']
     assert any(stage['stage']=='generating' and stage['status']=='completed' for stage in result['stage_results'])
@@ -35,7 +35,7 @@ def test_n045_explicit_verdict_and_deterministic_checks_cannot_be_overridden(sys
     assert InvoiceParser.parse_review('GRADE: B','qa').verdict=='NEEDS_FIX'
     system.backend.text='GRADE: A\nVERDICT: APPROVED\nEverything is good.'
     result=InvoiceOrchestrator(system,max_fix_retries=50).process_request({'user_request':'Build a file','requirements':['main.py'],'required_files':['main.py']})
-    assert not result['success'] and result['files']==[] and len(system.backend.calls)==2
+    assert not result['success'] and result['files']==[] and len(system.backend.calls)==3
     assert 'No named code files' in result['error'] and result['executed'] is False
 
 
@@ -54,7 +54,8 @@ def test_n041_plan_contract_preserved_and_legacy_rows_are_not_fabricated(system)
     from src.core.project_jobs import ProjectJobs
     app,desktop,dispatch=application(system);store=app.state.project_store;jobs=app.state.project_jobs
     plan=json.dumps({'steps':['Define inputs','Implement addition','Check source syntax'],'files':['main.py']})
-    system.backend.replies=[plan,'```python main.py\ndef add(a,b):return a+b\n```']
+    system.backend.plan_replies=[plan]
+    system.backend.replies=['```python main.py\ndef add(a,b):return a+b\n```']
     created=jobs.create({'user_request':'Create add','requirements':['addition'],'required_files':['main.py'],'plan':True,'background':True})
     job=created['job']['job_id'];project=created['project']['project_id']
     for _ in range(300):
@@ -64,7 +65,7 @@ def test_n041_plan_contract_preserved_and_legacy_rows_are_not_fabricated(system)
     assert result['state']=='completed' and len(system.backend.calls)==2
     planning=next(s for s in result['stage_results'] if s['stage']=='planning')['result']
     assert planning['output']==plan and planning['accepted'] is True
-    sent=[json.loads(c['messages'][1]['content'].split('\nOptional implementation plan:')[0]) for c in system.backend.calls]
+    sent=[json.loads(c['messages'][1]['content'].split('\nValidated implementation plan:')[0]) for c in system.backend.calls]
     assert all(i['expected_files']==['main.py'] and i['project_id']==project and i['task_id']==job for i in sent)
     recorded=jobs.get(job)['saved_files'];opened=store.read(project,'main.py')
     store.save_file(project,'main.py',opened['content']+'\n# saved later\n',1,opened['sha256'])

@@ -14,7 +14,7 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not (directory/'failure.json').exists(),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
@@ -50,6 +50,8 @@ def check_run(directory):
         if action:
             require(job['job_id'] not in seen_jobs,label+': reused old job')
             seen_jobs.add(job['job_id'])
+            planning=[s for s in job.get('stage_results',[]) if s['stage']=='planning' and s.get('result',{}).get('accepted')]
+            require(bool(planning),label+': validated planning absent')
             require(job['state']=='completed' and receipt.get('outcome')=='saved',label+': edit not saved')
             require(bool(receipt.get('changed_files')),label+': no changed files')
             require(receipt.get('result_revision')==rev==receipt.get('base_revision',-2)+1,label+': revision mismatch')
@@ -60,7 +62,9 @@ def check_run(directory):
         require(receipt.get('browser',{}).get('status')=='passed',label+': browser checks failed')
         require(str(rev) in turn['after']['preview'],label+': UI preview revision absent')
         hashes={f['path']:f['sha256'] for f in project['files']}
-        require(receipt.get('result_hashes')==hashes,label+': committed hashes differ')
+        require(receipt.get('result_hashes')=={name:hashes.get(name) for name in receipt.get('changed_files',[])},label+': committed hashes differ')
+        for name,old_hash in receipt.get('base_hashes',{}).items():
+            if name not in receipt.get('changed_files',[]):require(hashes.get(name)==old_hash,label+': unrelated file changed '+name)
         for name,source in turn.get('files',{}).get(pid,{}).items():
             if not source.get('binary'):
                 require(hashlib.sha256(source['content'].encode()).hexdigest()==hashes.get(name),label+': saved content hash mismatch '+name)
@@ -68,6 +72,13 @@ def check_run(directory):
             require(receipt.get('browser',{}).get('theme_changed') is True,label+': theme not demonstrated')
             require(receipt.get('preservation',{}).get('status')=='passed',label+': preservation not checked')
     if workflow!='plan':
+        for name in ['cards-before-restart.json','cards-restored.json']:
+            path=directory/name
+            require(path.exists(),'Missing terminal card evidence '+name)
+            if path.exists():
+                cards=json.loads(json.loads(path.read_text()).get('cards','[]'))
+                require(bool(cards),'No correlated conversation cards')
+                require(all(c.get('state') in ('completed','failed','cancelled') for c in cards),'Stale generating card')
         restart_path=directory/'restart.json'
         require(restart_path.exists(),'Restart evidence absent')
         if restart_path.exists():

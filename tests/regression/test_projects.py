@@ -22,8 +22,8 @@ def test_invalid_artifacts_are_rejected(text):
 def test_handoff_and_bounded_retry(system):
     system.backend.replies=['```python main.py\ndef broken(:\n```',GOOD]
     result=InvoiceOrchestrator(system).process_request(REQUEST)
-    assert result['success'] and len(system.backend.calls)==2
-    assert len(result['stages'])==2
+    assert result['success'] and len(system.backend.calls)==3
+    assert len(result['stages'])==3
     assert not result['executed']
     root=Path(result['project_dir'])
     assert (root/'files/main.py').is_file()
@@ -31,15 +31,16 @@ def test_handoff_and_bounded_retry(system):
     assert json.loads((root/'execution_1.json').read_text())['finish_reason']=='stop'
 
 
-def test_no_extra_models_for_simple_task(system):
+def test_simple_task_plans_and_reuses_the_same_resident_model(system):
     system.backend.text=GOOD
     result=InvoiceOrchestrator(system).process_request(REQUEST)
-    assert result['success'] and len(system.backend.calls)==1
+    assert result['success'] and len(system.backend.calls)==2
+    assert result['stages'][0]['stage']=='plan'
     assert len(system.backend.loads)==1
 
 
 def test_truncation_never_passes(system):
-    system.backend.text=GOOD;system.backend.finish='length'
+    system.backend.text=GOOD;system.backend.finish='length';system.backend.plan_finish='stop'
     result=InvoiceOrchestrator(system,max_fix_retries=0).process_request(REQUEST)
     assert not result['success'] and result['files']==[]
     assert 'truncated' in result['error']

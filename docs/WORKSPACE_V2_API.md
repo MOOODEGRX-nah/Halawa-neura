@@ -41,9 +41,9 @@ Desktop content and model output cannot authorize actions. No shell, messages, i
 
 ## Additive job invoice/result contract (0.4.4, N041)
 
-`ProjectRequest` accepts optional `constraints` (up to 28 user constraints; server safety constraints are appended). The shared TaskInvoice carries `task_id`, `project_id`, original `user_request`, requirements, constraints, `expected_files`, `required_python_symbols`, selected source context and target model. Both optional planning and generation receive the same identity/requirements.
+`ProjectRequest` accepts optional `constraints` (up to 28 user constraints; server safety constraints are appended). The shared TaskInvoice carries `task_id`, `project_id`, original `user_request`, requirements, constraints, `expected_files`, `required_python_symbols`, selected source context and target model. Both mandatory planning and generation receive the same identity/requirements.
 
-`GET /project-jobs/{id}` adds `invoice`, `invoice_provenance`, `stage_results`, `saved_files`, and `validation`. Stage results record actual stage transitions, model/finish reasons where returned, and optional plan output. File references contain project ID, path, committed revision and SHA256 and do not change after later edits. Recorded invoices may contain selected actual source for an edit; this remains an authenticated private endpoint, not preview data or unrestricted logs.
+`GET /project-jobs/{id}` adds `invoice`, `invoice_provenance`, `stage_results`, `saved_files`, and `validation`. Stage results record actual stage transitions, model/finish reasons where returned, and validated plan output. File references contain project ID, path, committed revision and SHA256 and do not change after later edits. Recorded invoices may contain selected actual source for an edit; this remains an authenticated private endpoint, not preview data or unrestricted logs.
 
 Old records have `invoice: null`, `invoice_provenance: unavailable_legacy`, and empty unrecorded stage/file result lists. Their saved projects remain available. The additive `job_contracts` table does not replace the existing projects/jobs/catalog. No model grade bypasses deterministic file validation.
 
@@ -69,3 +69,22 @@ and `limitations`. These describe saved source facts, not claimed behavioral tes
 Existing valid catalogs are enriched additively from current source without
 changing source revision; stale catalogs require explicit reindex first. Summary
 maintenance and basic metadata questions do not require a model pass.
+
+## Mandatory planning policy — 2026-11-05
+
+Every project creation and model-generated edit requires a validated EXPERT
+steps/files plan before CODER, in both legacy and streaming orchestrators.
+The compatibility `plan:false` input is normalized, and runtime execution does
+not branch on that flag. A failed/truncated plan stops coding and retains the
+last good revision. Planner output is capped at768 tokens within the shared
+cancellation/deadline; coder and candidate-repair budgets remain bounded.
+Grammar schema, semantic file validation, preservation, isolated preview,
+revision guards and receipts still apply. Manual saves and ordinary explanations
+do not invoke planning. This supersedes the prior optional planning policy.
+
+`Message.project_job_id` is optional UI correlation stored with vault messages.
+It never authorizes a job/tool and is removed from messages sent to inference.
+Cards fetch authenticated durable job snapshots after terminal events, returning
+to chat, reconnect and session restoration. Matching legacy request/start-card
+pairs can be correlated with the session's latest durable job; unmatched text is
+not attributed to arbitrary jobs.

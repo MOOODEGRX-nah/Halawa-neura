@@ -42,6 +42,8 @@ class ImagePart(Contract):
 
 
 class Message(Contract):
+    # UI correlation only; never sent to the inference template.
+    project_job_id: str | None = Field(default=None,pattern=r'^j_[a-f0-9]{32}$')
     role: Literal['system', 'user', 'assistant']
     content: str | list[TextPart | ImagePart]
 

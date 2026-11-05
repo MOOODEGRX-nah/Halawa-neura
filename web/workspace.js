@@ -56,7 +56,7 @@ if(typeof document!=='undefined')(()=>{
       if(receipt.browser?.status==='passed')text+=' اجتاز فحوص المعاينة المحدودة؛ لا يثبت ذلك كل وظائف الموقع.';
       if(S.preview?.revision===receipt.result_revision)text+=' رابط المعاينة مرتبط بالمراجعة نفسها؛ تحميلها لا يثبت جودة التصميم.';
     }else text='انتهت المهمة القديمة دون إيصال تغيير موثق؛ راجع الملفات.';
-    message(text,S.job.state!=='completed');const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent='تفاصيل التنفيذ';pre.dir='ltr';pre.textContent=JSON.stringify({project:S.job.project_id,job:S.job.job_id,execution:receipt},null,2);details.append(summary,pre);el('ws-message').append(details);if(S.card)S.card.t.firstChild.textContent=text;
+    message(text,S.job.state!=='completed');const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent='تفاصيل التنفيذ';pre.dir='ltr';pre.textContent=JSON.stringify({project:S.job.project_id,job:S.job.job_id,execution:receipt},null,2);details.append(summary,pre);el('ws-message').append(details);
     await window.NeuraChat?.updateReceipt(S.job.job_id,text);
   }
   async function watchJob(id){S.watch?.abort();const controller=new AbortController();S.watch=controller;let retry=0;while(!controller.signal.aborted&&S.job?.job_id===id&&!terminal.has(S.job.state)){try{const r=await api('/project-jobs/'+id+'/events?after='+S.seq,{signal:controller.signal});if(!r.ok)throw Error('تعذر الاتصال بأحداث التوليد');let chain=Promise.resolve();const decoder=new NeuraSSEDecoder(item=>{chain=chain.then(()=>event(JSON.parse(item.data)));});const reader=r.body.getReader();for(;;){const value=await reader.read();if(value.done)break;decoder.feed(value.value);await chain;}decoder.finish();await chain;const job=await call('/project-jobs/'+id);if(!terminal.has(S.job?.state)){restoreJob(job);if(terminal.has(job.state)){await refreshProject();await refreshPreview();}}retry=0;}catch(e){if(controller.signal.aborted)return;message('انقطع عرض الأحداث؛ التوليد لا يتكرر. أستعيد الحالة…');await new Promise(r=>setTimeout(r,Math.min(4000,500*2**retry++)));try{const recovered=await call('/project-jobs/'+id);restoreJob(recovered);if(terminal.has(recovered.state)){await refreshProject();if(recovered.state==='completed'&&!S.dirty&&S.project.files.length)await selectFile(S.project.files[0].path,false);await refreshPreview();}}catch(_){}}}await showReceipt();setStatus();}
@@ -67,6 +67,8 @@ if(typeof document!=='undefined')(()=>{
   async function acceptCreated(result,request){
     setHas(true);bubble('u','You','#42A5F5','code',request);
     const card=bubble('n','Neura [Projects]','#81C784','code',result.operation==='edit'?'بدأ تعديل المشروع نفسه من ملفاته الفعلية.':'أُنشئ المشروع. يجري توليد الملفات في مساحة المبرمج.');
+    card.d.dataset.projectJobId=result.job.job_id;
+    const status=document.createElement('span');status.dataset.jobText='true';status.textContent=window.NeuraChat?.jobText(result.job)||'تحتاج الحالة إلى استعادة.';card.t.replaceChildren(status);
     const link=button('فتح مساحة المبرمج',()=>openProject(result.project.project_id));link.className='ws-card-link';card.t.append(document.createElement('br'),link);S.card=card;
     await call('/chat/context','POST',{session_id:sid,project_id:result.project.project_id});
     if(S.project?.project_id===result.project.project_id){

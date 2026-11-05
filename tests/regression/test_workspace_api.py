@@ -30,7 +30,7 @@ def test_project_api_events_revision_and_origin(system):
                 stream=await client.get('/project-jobs/'+job_id+'/events')
                 events=[json.loads(line[6:]) for line in stream.text.splitlines() if line.startswith('data: ')]
                 assert events[-1]['type']=='job_completed'
-                assert len(system.backend.calls)==1
+                assert len(system.backend.calls)==2
                 assert (await client.get('/project-jobs/'+job_id+'/events',headers={'Last-Event-ID':str(events[-1]['seq'])})).text==''
                 file=(await client.get('/projects/'+project_id+'/file',params={'path':'index.html'})).json()
                 saved=await client.put('/projects/'+project_id+'/file',json={'path':'index.html','content':'<h1>Edited</h1>','expected_revision':file['project_revision'],'expected_sha256':file['sha256']})
@@ -39,7 +39,7 @@ def test_project_api_events_revision_and_origin(system):
                 assert conflict.status_code==409
                 assert (await client.get('/projects/'+project_id+'/file',params={'path':'../escape'})).status_code==400
                 assert (await client.post('/projects/'+project_id+'/question',json={'question':'ما هو هذا المشروع؟'})).json()['model_called'] is False
-                assert len(system.backend.calls)==1
+                assert len(system.backend.calls)==2
                 for headers in [{'Origin':'null'},{'Origin':app.state.preview.origin},{'Sec-Fetch-Site':'cross-site'}]:
                     assert (await client.get('/projects',headers=headers)).status_code==403
                     assert (await client.post('/projects',json={'user_request':'bad','requirements':['bad']},headers=headers)).status_code==403

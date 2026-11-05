@@ -154,12 +154,12 @@ def test_restart_recovers_committed_receipt_without_model_replay(system):
 def test_plan_is_structured_read_only_and_rejects_wrong_step_count(system):
     app,desktop,dispatch,pid=setup(system)
     try:
-        system.backend.text=json.dumps({'steps':['حدد أقسام السيرة','صمم واجهة HTML','افحص العرض المحلي'],'files':['index.html']})
+        system.backend.plan_replies=[json.dumps({'steps':['حدد أقسام السيرة','صمم واجهة HTML','افحص العرض المحلي'],'files':['index.html']})]
         result=dispatch.dispatch('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.',request_id(),session_id='qa')
         assert result['kind']=='plan' and len(result['planning']['plan']['steps'])==3
         assert app.state.project_store.get(pid)['project_revision']==1
         assert system.backend.calls[-1]['response_format']['type']=='json_object'
-        system.backend.text=json.dumps({'steps':['one','two','three','four'],'files':['index.html']})
+        system.backend.plan_replies=[json.dumps({'steps':['one','two','three','four'],'files':['index.html']})]
         result=dispatch.dispatch('ضع خطة',request_id(),session_id='qa')
         assert result['kind']=='action' and result['result']['status']!='launched'
         assert not desktop.calls

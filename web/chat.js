@@ -4,18 +4,66 @@
   async function call(path,body,signal){const r=await api(path,{...(body===undefined?{}:{method:'POST',body:JSON.stringify(body)}),signal});const result=await r.json();if(!r.ok)throw Error(result.error?.message||result.detail||'تعذر تنفيذ الطلب');return result;}
   async function settle(result,signal,session){for(let tries=0;result.kind==='pending'&&tries<120;tries++){await sleep(400);result=await call('/chat/requests/'+result.request_id+'?session_id='+encodeURIComponent(session),undefined,signal);}return result;}
   async function save(){if(!TOKEN)return;try{const r=await api('/vault/save',{method:'POST',body:JSON.stringify({session:sid,messages:hist})});if(!r.ok)note('تعذر حفظ الجلسة؛ النتيجة ما زالت ظاهرة.');}catch(_){note('تعذر حفظ الجلسة؛ النتيجة ما زالت ظاهرة.');}}
-  function remember(q,message,context){if(context.historyIndex===undefined){hist.push({role:'user',content:q});context.historyIndex=hist.length;hist.push({role:'assistant',content:message});}else hist[context.historyIndex]={role:'assistant',content:message};save();}
+  function remember(q,message,context){
+    if(sid!==context.session)return;
+    const value={role:'assistant',content:message,...(context.jobId?{project_job_id:context.jobId}:{})};
+    if(context.historyIndex===undefined){hist.push({role:'user',content:q});context.historyIndex=hist.length;hist.push(value);}else hist[context.historyIndex]=value;
+    save();
+  }
   const receipts=new Map();
-  async function updateReceipt(job,message){const entry=receipts.get(job);if(!entry||sid!==entry.session)return;remember(entry.q,message,entry.context);}
-  async function restoreStatus(){const data=await call('/chat/status/'+encodeURIComponent(sid));if(data.job_id)bubble('n','Neura [حالة المهمة]','#81C784','code',data.message);}
+  function jobText(job){
+    const r=job.execution;
+    if(job.state==='failed'||job.state==='cancelled')return 'لم يُحفظ التعديل: '+(job.error||'أُلغيت المهمة')+'. بقيت آخر مراجعة محفوظة.';
+    if(job.state!=='completed')return ({queued:'المهمة في قائمة الانتظار.',planning:'يجري التخطيط قبل توليد الملفات.',generating:'يجري توليد الملفات.',validating:'يجري فحص المرشح قبل الحفظ.'})[job.state]||'تعذر تأكيد حالة المهمة.';
+    if(r?.outcome==='no_change')return 'لم يتغير محتوى الملفات؛ لم تُنشأ مراجعة جديدة.';
+    if(r?.outcome==='saved'&&r.changed_files?.length)return 'حُفظت المراجعة '+r.result_revision+' بدل '+r.base_revision+'؛ الملفات المتغيرة: '+r.changed_files.join('، ')+'. اجتاز الفحص الساكن.'+(r.browser?.status==='passed'?' اجتاز فحوص المعاينة المحدودة؛ لا يثبت ذلك كل وظائف الموقع.':'');
+    return 'انتهت المهمة دون إيصال تغيير موثق؛ راجع الملفات.';
+  }
+  async function reconcile(jobId,session=sid){
+    const job=await call('/project-jobs/'+jobId);
+    if(session!==sid)return;
+    const text=jobText(job),entry=receipts.get(jobId);
+    if(entry?.session===session)remember(entry.q,text,entry.context);
+    else {let changed=false;for(const m of hist)if(m.role==='assistant'&&m.project_job_id===jobId&&m.content!==text){m.content=text;changed=true;}if(changed)save();}
+    for(const card of document.querySelectorAll('[data-project-job-id]'))if(card.dataset.projectJobId===jobId){
+      const body=card.querySelector('[data-job-text]');if(body)body.textContent=text;else {const body=card.querySelector('.t');if(body)body.textContent=text;}
+      card.dataset.jobState=job.state;
+    }
+  }
+  async function updateReceipt(job){try{await reconcile(job);}catch(_){/* Keep last observed state; reconnect reconciles from durable state. */}}
+  async function restoreStatus(){
+    const session=sid;
+    // Migrate only an exact legacy request/start-card pair for the durable latest
+    // job. Unmatched historical prose is not authority to attach another job.
+    try{
+      const status=await call('/chat/status/'+encodeURIComponent(session));
+      if(session!==sid)return;
+      if(status.job_id&&!hist.some(m=>m.project_job_id===status.job_id)){
+        const job=await call('/project-jobs/'+status.job_id);
+        if(session!==sid)return;
+        for(let i=hist.length-1;i>0;i--){
+          if(hist[i].role==='assistant'&&!hist[i].project_job_id&&/^(?:أُنشئ المشروع|بدأ تعديل المشروع)/.test(hist[i].content)&&hist[i-1].role==='user'&&hist[i-1].content===job.invoice?.user_request){
+            hist[i].project_job_id=status.job_id;
+            for(const card of document.querySelectorAll('[data-history-index]'))if(Number(card.dataset.historyIndex)===i)card.dataset.projectJobId=status.job_id;
+            break;
+          }
+        }
+      }
+    }catch(_){}
+    const ids=new Set(hist.map(m=>m.project_job_id).filter(Boolean));
+    for(const card of document.querySelectorAll('[data-project-job-id]'))ids.add(card.dataset.projectJobId);
+    for(const id of ids){if(session!==sid)return;try{await reconcile(id,session);}catch(_){}}
+  }
   async function handleChat(q){
     const context={id:newRequestId(),card:null,session:sid},body={text:q,request_id:context.id,session_id:context.session,active_project_id:null,workspace_dirty:!!window.NeuraWorkspace?.dirty};
     async function display(data){
       if(data.kind==='chat')return false;
       if(data.kind==='project'){
+        context.jobId=data.job.job_id;
+        receipts.set(context.jobId,{session:context.session,q,context});
+        remember(q,jobText(data.job),context);
         await window.NeuraWorkspace.acceptCreated(data,q);
-        receipts.set(data.job.job_id,{session:context.session,q,context});
-        remember(q,(data.operation==='edit'?'بدأ تعديل المشروع «':'أُنشئ المشروع «')+data.project.display_name+'». الملفات والتقدم في مساحة المبرمج.',context);
+        await updateReceipt(context.jobId);
         return true;
       }
       if(data.kind==='workspace'){
@@ -45,5 +93,6 @@
     if(['error','unavailable','unknown'].includes(result.status))throw Error(result.message);
     return result;
   }
-  window.NeuraChat={handleChat,executeManual,newRequestId,updateReceipt,restoreStatus};
+  window.addEventListener('online',()=>restoreStatus());
+  window.NeuraChat={jobText,handleChat,executeManual,newRequestId,updateReceipt,restoreStatus};
 })();

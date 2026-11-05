@@ -24,8 +24,12 @@ class Backend:
  def health_check(self):return {'status':'loaded' if self.model else 'unloaded'}
  def generate(self,*,messages,stream=False,**options):
   self.calls+=1;text=WEB if 'complete named files' in messages[0]['content'] else MARKDOWN
+  if messages[0]['content'].startswith('Return ONLY a compact JSON implementation plan'):
+   invoice=json.loads(messages[1]['content'])
+   text=json.dumps({'steps':['Inspect requirements and source.','Implement the requested files.','Check syntax and preserved behavior.'],
+                    'files':invoice['expected_files'] or invoice['filename_hints'] or ['index.html','style.css','script.js']})
   if 'complete named files' in messages[0]['content']:
-   invoice=json.loads(messages[1]['content'].split('\nOptional implementation plan:')[0])
+   invoice=json.loads(messages[1]['content'].split('\nValidated implementation plan:')[0])
    if invoice.get('context_summary'):text='```css style.css\nbody{background:blue;color:white;font-family:sans-serif}\n```'
   if not stream:return {'choices':[{'message':{'content':text},'finish_reason':'stop'}]}
   def chunks():

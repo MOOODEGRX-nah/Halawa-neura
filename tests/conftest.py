@@ -62,6 +62,8 @@ class FakeBackend:
         self.delay = 0
         self.failure = None
         self.replies = []
+        self.plan_replies = []
+        self.plan_finish = None
         self.entered = threading.Event()
         self.release = None
 
@@ -93,7 +95,18 @@ class FakeBackend:
                 if criteria and criteria(None, None):
                     break
                 time.sleep(.005)
-        text = self.replies.pop(0) if self.replies else self.text
+        planning = messages[0]['content'].startswith('Return ONLY a compact JSON implementation plan')
+        if planning:
+            invoice = json.loads(messages[1]['content'])
+            paths = invoice['expected_files'] or invoice['filename_hints'] or ['main.py']
+            text = self.plan_replies.pop(0) if self.plan_replies else json.dumps({
+                'steps': ['Inspect requirements and actual source.',
+                          'Implement the requested changes.',
+                          'Check source syntax and preserved requirements.'],
+                'files': paths})
+        else:
+            text = self.replies.pop(0) if self.replies else self.text
+        finish = self.plan_finish if planning and self.plan_finish is not None else self.finish
         if stream:
             def chunks():
                 yield {'id': 'test', 'object': 'chat.completion.chunk', 'choices': [{'index':0,'delta':{'role':'assistant'},'finish_reason':None}]}
@@ -101,10 +114,10 @@ class FakeBackend:
                     if criteria and criteria(None, None):
                         return
                     yield {'id': 'test', 'object': 'chat.completion.chunk', 'choices': [{'index':0,'delta':{'content':piece},'finish_reason':None}]}
-                yield {'id': 'test', 'object': 'chat.completion.chunk', 'choices': [{'index':0,'delta':{},'finish_reason':self.finish}]}
+                yield {'id': 'test', 'object': 'chat.completion.chunk', 'choices': [{'index':0,'delta':{},'finish_reason':finish}]}
             return chunks()
         return {'id':'test', 'object':'chat.completion', 'created':1, 'model':'internal',
-                'choices':[{'index':0,'message':{'role':'assistant','content':text},'finish_reason':self.finish}],
+                'choices':[{'index':0,'message':{'role':'assistant','content':text},'finish_reason':finish}],
                 'usage':{'prompt_tokens':5,'completion_tokens':3,'total_tokens':8}}
 
 

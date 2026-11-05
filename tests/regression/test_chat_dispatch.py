@@ -179,6 +179,6 @@ def test_cv_chat_request_creates_one_durable_job_with_real_events(system):
     assert snapshot['state']=='completed',snapshot
     meta=store.get(result['project']['project_id'])
     assert {f['path'] for f in meta['files']}=={'index.html','style.css','script.js'}
-    assert meta['preview']['supported'] and len(system.backend.calls)==1
+    assert meta['preview']['supported'] and len(system.backend.calls)==2
     events=jobs.events(job,0);assert any(e['type']=='file_delta' for e in events) and events[-1]['type']=='job_completed'
     jobs.shutdown();store.close()
