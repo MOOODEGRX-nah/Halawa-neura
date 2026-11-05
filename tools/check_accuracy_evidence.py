@@ -57,7 +57,7 @@ def check_run(directory):
             if receipt.get('base_revision',0)>0 and 'src/core/bounded_edits.py' in identity.get('runtime_hashes',{}):
                 operations=[o for stage in job.get('stage_results',[]) for o in stage.get('result',{}).get('operations',[])]
                 require(bool(operations),label+': bounded edit operations absent')
-                require(sum(o['output_limit'] for o in operations)<=3072,label+': operation budget overflow')
+                require(sum(o.get('output_tokens_charged',o['output_limit']) for o in operations)<=3072,label+': operation budget overflow')
                 scopes={}
                 for op in operations:
                     native=op.get('token_metrics') or {};usage=op.get('usage') or {};pre=op.get('preflight') or {}

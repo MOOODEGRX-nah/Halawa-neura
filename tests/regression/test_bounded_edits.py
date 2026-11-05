@@ -104,7 +104,7 @@ def test_large_source_is_partitioned_without_discarding_bytes(system):
     def measure(messages,max_tokens=1024,**options):
         # Deliberate toy word-token fixture, NOT an estimate of real inference.
         count=len(messages[1]['content'].split())
-        return {'prompt_tokens':count,'context_size':2600,'effective_output_limit':max(0,min(max_tokens,2600-count)),
+        return {'prompt_tokens':count,'context_size':4000,'effective_output_limit':max(0,min(max_tokens,4000-count)),
                 'measurement':'controlled toy vocabulary boundary'}
     system.backend.measure_messages=measure
     original=system.backend.generate
@@ -128,3 +128,32 @@ def test_opening_tag_replaced_with_closed_block_cannot_promote():
     source='<html><style>body{color:black}</style><body>CV</body></html>'
     broken=apply_exact({'index.html':source},'index.html',[{'before':'<style>','after':'<style>body{color:blue}</style>'}],source)
     assert any('Unmatched' in e for e in inspect_files(broken)[2]['errors'])
+
+
+def test_structured_html_insertions_have_valid_server_owned_wrappers():
+    from src.core.bounded_edits import FilePatch,apply_sections
+    from src.core.project_validation import inspect_files
+    source='<html><head></head><body><p>Original</p></body></html>'
+    patch=FilePatch(base_revision=1,path='index.html',source_sha256=digest(source),edits=[],
+        css_rules='p { color: #111; }',html_fragment='<button id="details">Details</button>',
+        script_code='document.getElementById("details").addEventListener("click",()=>{});')
+    result=apply_sections({'index.html':source},'index.html',patch,source,True)
+    assert not inspect_files(result)[2]['errors']
+    assert result['index.html'].count('</script>')==result['index.html'].count('<script>')==1
+    assert 'Original' in result['index.html']
+
+
+def test_structured_insert_cannot_guess_missing_or_ambiguous_boundary():
+    from src.core.bounded_edits import FilePatch,apply_sections
+    source='<head></head><head></head><body></body>'
+    patch=FilePatch(base_revision=1,path='index.html',source_sha256=digest(source),edits=[],css_rules='body { color: black; }')
+    with pytest.raises(ProjectError):apply_sections({'index.html':source},'index.html',patch,source,True)
+    with pytest.raises(ProjectError):apply_sections({'index.html':source},'index.html',patch,'<body>',False)
+
+
+def test_appending_css_requires_exact_end_of_file_operation():
+    from src.core.bounded_edits import FilePatch,apply_sections
+    source='body{color:black}'
+    patch=FilePatch(base_revision=1,path='style.css',source_sha256=digest(source),edits=[],css_rules='body { padding: 1rem; }')
+    with pytest.raises(ProjectError):apply_sections({'style.css':source},'style.css',patch,source,False)
+    assert apply_sections({'style.css':source},'style.css',patch,source,True)['style.css'].startswith(source)
