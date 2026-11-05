@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 
@@ -88,8 +89,28 @@ def check_run(directory):
         for name,source in turn.get('files',{}).get(pid,{}).items():
             if not source.get('binary'):
                 require(hashlib.sha256(source['content'].encode()).hexdigest()==hashes.get(name),label+': saved content hash mismatch '+name)
+        if workflow=='preserve' and index>=1:
+            samples=[sample for attempt in job.get('attempts',[]) if attempt.get('status')=='accepted' for sample in (attempt.get('browser') or {}).get('samples',[])]
+            require(bool(samples) and all(any(re.search(r'login|sign.?in|دخول',c.get('label',''),re.I) for c in sample.get('controls',[])) for sample in samples),label+': Login placeholder not visibly demonstrated')
+        if workflow=='preserve' and index==3:
+            css=[]
+            for stage in job.get('stage_results',[]):
+                for operation in stage.get('result',{}).get('operations',[]):
+                    try:patch=json.loads(operation.get('output','{}'))
+                    except ValueError:continue
+                    css.append(patch.get('css_rules') or '')
+                    if operation.get('path','').endswith('.css'):css.extend(e.get('after','') for e in patch.get('edits',[]))
+            text='\n'.join(css)
+            properties=set(re.findall(r'(?:^|[;{])\s*([a-zA-Z-]+)\s*:',text))
+            selectors=re.findall(r'([^{}]+)\{',text)
+            require(len(properties)>=5 and len(selectors)>=3,label+': substantial CSS redesign not demonstrated (5 properties / 3 selectors)')
         if workflow=='preserve' and index>=2:
             require(receipt.get('browser',{}).get('theme_changed') is True,label+': theme not demonstrated')
+            samples=[sample for attempt in job.get('attempts',[]) if attempt.get('status')=='accepted' for sample in (attempt.get('browser') or {}).get('samples',[])]
+            initial={c['selector']:c['background'] for sample in samples if sample.get('width')==1280 and sample.get('mode')=='initial' for c in sample.get('checks',[])}
+            toggled={c['selector']:c['background'] for sample in samples if sample.get('width')==1280 and sample.get('mode')=='toggled' for c in sample.get('checks',[])}
+            require(any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()),label+': actual theme surface change not demonstrated')
+
             require(receipt.get('preservation',{}).get('status')=='passed',label+': preservation not checked')
     if workflow!='plan':
         for name in ['cards-before-restart.json','cards-restored.json']:
