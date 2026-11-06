@@ -161,7 +161,7 @@ class ProjectJobs:
             self.coordinator._maintenance=False;self.update_reservation=None
             return {'status':'released'}
 
-    def create(self, request):
+    def create(self, request, *, validated_decision=None):
         request = WorkspaceRequest.model_validate(request)
         with self.store.lock:
             if self.update_reservation:raise Conflict('التحديث قيد التهيئة؛ لم تُنشأ مهمة جديدة.')
@@ -183,6 +183,16 @@ class ProjectJobs:
             else:
                 title = request.title or request.user_request.split('\n')[0][:80]
                 project = self.store.create(title, request.user_request, request.project_type)
+            from src.core.feature_intent import build_contract
+            intent='project.edit' if request.project_id else 'project.create'
+            decision=dict(validated_decision or {'intent':intent,'resolution_source':'validated_workspace_request'})
+            if decision.get('intent')!=intent:raise ProjectError('قرار المحادثة لا يطابق عملية المشروع')
+            if decision.get('project_id') not in (None,project['project_id']):raise Conflict('قرار الميزات يخص مشروعًا آخر')
+            if decision.get('base_revision') not in (None,project['project_revision']):raise Conflict('قرار الميزات يخص مراجعة أخرى')
+            decision.update(project_id=project['project_id'],base_revision=project['project_revision'])
+            # Ignore any client-supplied contract; only this admitted user request
+            # and committed user requirements may establish feature obligations.
+            request.required_feature_contract=build_contract(request.user_request,project.get('accepted_requirements',[]),decision)
             job_id = 'j_' + uuid.uuid4().hex
             self.store.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?,?,?,?)',
                 (job_id, project['project_id'], 'queued', request.model_dump_json(), '{}', 0, 0, None, now(), now()))
@@ -251,11 +261,13 @@ class ProjectJobs:
                 self.store.db.execute('UPDATE job_contracts SET invoice=? WHERE job_id=?',(actual_invoice.model_dump_json(),job_id));self.store.db.commit()
             before = self.store.committed_files(project_id) if request.project_id else {}
             accepted=project.get('accepted_requirements',[])
-            from src.core.feature_intent import intent_evidence
-            feature_intent=intent_evidence(request.user_request)
+            from src.core.feature_intent import validate_contract
+            feature_contract=validate_contract(request.required_feature_contract)
+            if feature_contract['source_request_sha256']!=digest(request.user_request):raise ProjectError('تغير مصدر عقد الميزات بعد اعتماد المهمة')
+            feature_intent=feature_contract['changes']
             if request.project_id:
                 context+='\nPreserve ALL existing visible content, control labels, IDs, links and behavior. Keep Login as a placeholder, not authentication. Dark mode must have readable foreground and background colors. Use local resources only.\n'
-                requirements_context=json.dumps(accepted,ensure_ascii=False)
+                requirements_context=json.dumps([{'origin':r.get('origin'),'text':r.get('text','')} for r in accepted],ensure_ascii=False)
                 if len(requirements_context)>8000:raise ProjectError('سجل متطلبات المشروع يتجاوز حد السياق؛ يلزم مراجعته قبل تعديل جديد')
                 context+='Accepted user requirements: '+requirements_context
             attempts=[];browser={'status':'not_run'};preserved={'status':'not_applicable'}
@@ -277,6 +289,7 @@ class ProjectJobs:
                             model_repairs+=1
                             generated,repair_result=self.invoice.repair_candidate(generated,request,repair,contract_summary(before),
                                 cancel=cancel,deadline=deadline,max_tokens=remaining_tokens)
+                        repair_result['required_feature_contract']=feature_contract
                         self._stage_result(job_id,'generating',repair_result)
                         for path,content in generated.items():
                             parser.files[path]={'content':'','complete':False};self._emit(job_id,'file_started',{'path':path},drafts=parser.files)
@@ -327,8 +340,9 @@ class ProjectJobs:
                         symbols={node.name for path,text in files.items() if path.endswith('.py') for node in ast.walk(ast.parse(text)) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef))}
                         if set(request.required_python_symbols)-symbols:raise ProjectError('رموز Python المطلوبة مفقودة')
                     languages,preview,validation=inspect_files(files)
+                    validation['required_feature_contract']=feature_contract
                     if validation['errors']:raise ProjectError('; '.join(validation['errors']))
-                    if before:preserved=require_preserved(before,files,request.user_request)
+                    if before:preserved=require_preserved(before,files,request.user_request,feature_contract)
                     def meaningful(value):
                         if not isinstance(value,str):return value
                         return value.replace('\r\n','\n').rstrip('\n')
@@ -341,7 +355,7 @@ class ProjectJobs:
                         resulting=html_contract(files).get(preview.get('entry_point'),{})
                         required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[])],
                                   'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))],
-                                  **requested_web_features(accepted,request.user_request)}
+                                  **requested_web_features(feature_contract),'feature_contract':feature_contract,'removed_features':[c['feature'] for c in feature_contract['changes'] if c['operation']=='remove']}
                         from src.core.required_interactions import present_contract
                         interaction=present_contract(files,preview.get('entry_point'))
                         if required.get('theme') and interaction:required['interaction']=interaction
@@ -357,7 +371,7 @@ class ProjectJobs:
                     repair=str(error)[:1800]
             self.coordinator._check(cancel,deadline)
             # Receipt and project metadata share the SAME durable SQLite commit.
-            execution={'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
+            execution={'required_feature_contract':feature_contract,'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
                 'base_revision':expected,'result_revision':expected+1 if changed else expected,'changed_files':changed,
                 'base_hashes':{path:digest(value) for path,value in before.items()},
                 'result_hashes':{path:digest(files[path]) for path in changed},
@@ -365,7 +379,7 @@ class ProjectJobs:
             if request.project_id and {p:digest(v) for p,v in self.store.committed_files(project_id).items()}!=request.source_hashes:raise Conflict('تغير المصدر قبل ترقية المرشح؛ لم يُحفظ تعديل جزئي')
             if changed:
                 project=self.store.commit(project_id,files,expected,execution_receipt=execution,
-                    accepted_requirements=[*accepted,{'origin':'user_request','job_id':job_id,'text':request.user_request}][-30:])
+                    accepted_requirements=[*accepted,{'origin':'user_request','job_id':job_id,'text':request.user_request,'feature_contract':feature_contract}][-30:])
             else:
                 project=self.store.get(project_id)
                 if project['project_revision']!=expected or project['source_freshness']!='current':raise Conflict('تغير المشروع قبل تأكيد عدم وجود تغييرات')

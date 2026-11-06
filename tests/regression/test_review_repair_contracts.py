@@ -7,7 +7,7 @@ from src.core.repair_targets import RepairTargets,RepairTarget,apply_spans
 from src.core.project_files import ProjectError
 from src.core.bounded_edits import apply_exact
 from src.core.feature_intent import feature_intents,required_features
-from src.core.required_interactions import compile_theme,needs_theme,theme_contract
+from src.core.required_interactions import compile_theme,theme_contract
 from src.core.edit_preservation import require_preserved
 from src.core.project_store import digest
 
@@ -35,12 +35,13 @@ def test_overlaps_and_sequential_anchor_chaining_are_rejected_before_changes():
     assert apply_spans(source,{'a.txt':[(0,3,'X'),(3,6,'Y')]})=={'a.txt':'XY'}
 
 
-@pytest.mark.parametrize('text', ['أضف الوضع الداكن إلى هذا المشروع','هل يمكنك أن تضيف الوضع الداكن؟','ممكن تضيف لي الوضع الليلي','أريد أن يدعم الموقع الوضع الداكن','الموقع يحتاج الوضع الداكن','فعل المظهر الداكن','Please enable dark mode','I want this website to support dark mode'])
+@pytest.mark.parametrize('text', ['أضف الوضع الداكن إلى هذا المشروع','هل يمكنك أن تضيف الوضع الداكن؟','ممكن تضيف لي الوضع الليلي','أريد أن يدعم الموقع الوضع الداكن','خل الموقع يدعم الوضع الداكن','فعل المظهر الداكن','Please enable dark mode','I want this website to support dark mode'])
 def test_natural_user_intent_shared_with_dispatch(text):
     from src.core.chat_dispatch import active_edit_intent
     assert required_features([],text)=={'theme':True}
     assert active_edit_intent(text)
-    assert needs_theme([],text)
+    from src.core.feature_intent import build_contract
+    assert build_contract(text,[],{'intent':'project.edit'})['required']['theme']
 
 
 @pytest.mark.parametrize('text',['لا تضف الوضع الداكن','ما ابغى الوضع الداكن','كيف أضيف الوضع الداكن؟','اشرح dark mode','"أضف الوضع الداكن"','مثال: أريد الوضع الداكن','```html\nأضف الوضع الداكن\n```','هل الوضع الداكن موجود؟'])

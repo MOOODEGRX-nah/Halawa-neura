@@ -47,14 +47,18 @@ def contract_summary(files,requirements=()):
             'requirements':list(requirements)[-20:],'html':summary}
 
 
-def preservation_errors(before,after,user_request):
+def preservation_errors(before,after,user_request,contract=None):
     old,new=html_contract(before),html_contract(after);errors=[]
     q=normalize(user_request)
+    from src.core.feature_intent import validate_contract
+    removals={c['feature'] for c in validate_contract(contract).get('changes',[]) if c['operation']=='remove'}
+    removable_labels={normalize(c['label']) for value in old.values() for c in value['controls'] if ('theme' in removals and re.search(r'theme|dark|داكن|ليلي|مظلم',c['label'],re.I)) or ('login' in removals and re.search(r'login|sign.?in|تسجيل الدخول|تسجيل دخول',c['label'],re.I))}
     removal=bool(re.match(r'^(?:احذف|ازل|remove|delete)\b',q))
     # Only an explicitly named label is removable. A generic removal request is
     # not permission to remove all content or every control.
     def waived(label):
         label=normalize(label)
+        if label in removable_labels:return True
         return bool(removal and len(label)>=3 and label in q)
     for path,contract in old.items():
         candidate=new.get(path)
@@ -71,13 +75,14 @@ def preservation_errors(before,after,user_request):
     return errors[:20]
 
 
-def require_preserved(before,after,request):
-    errors=preservation_errors(before,after,request)
+def require_preserved(before,after,request,contract=None):
+    errors=preservation_errors(before,after,request,contract)
     if errors:raise ProjectError('فشل الحفاظ على ميزات المشروع: '+'; '.join(errors)[:2000])
-    return {'status':'passed','scope':'HTML visible text and control identities/labels/references',
+    return {'status':'passed','required_feature_contract':contract,'scope':'HTML visible text and control identities/labels/references',
             'behavioral_equivalence':'not_proven'}
 
 
-def requested_web_features(requirements,current_request):
-    from src.core.feature_intent import required_features
-    return required_features(requirements,current_request)
+def requested_web_features(contract):
+    """Consume admission's contract; never reclassify conversation/source text."""
+    from src.core.feature_intent import contract_features
+    return contract_features(contract)

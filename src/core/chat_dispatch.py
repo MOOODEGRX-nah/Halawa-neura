@@ -29,12 +29,17 @@ def command_text(text):
     for _ in range(4):
         before=q
         q=re.sub(r'^(?:لو سمحت|من فضلك|ارجوك|رجاء|رجاءا|ممكن|please)\s+','',q)
-        q=re.sub(r'^(?:هل\s+(?:يمكنك|تستطيع|تقدر|بامكانك)|تقدر|تستطيع|يمكنك|بامكانك|اريد(?:\s+منك)?|ابي|ابغى|can you|could you|would you|i want you to)\s+(?:ان\s+)?','',q)
+        q=re.sub(r'^(?:هل\s+(?:يمكنك|تستطيع|تقدر|بامكانك)|تقدر|تستطيع|يمكنك|بامكانك|اريد(?:\s+منك)?|ابي|ابغى|can you|could you|would you|i want you to|i want)\s+(?:ان\s+)?','',q)
         if q==before:break
     if q!=normalize(text):
         q=re.sub(r'^فتح\s+','افتح ',q)
         q=re.sub(r'^(?:البحث|بحث)\s+','ابحث ',q)
         q=re.sub(r'^انشاء\s+','انشئ ',q)
+        q=re.sub(r'^(?:اضافة|تضيف(?:لي)?)\s+','اضف ',q)
+        if re.match(r'^(?:زرا?|button)\b',q):q='اضف '+q
+        q=re.sub(r'^(?:يدعم|تدعم)\s+(الموقع|المشروع|الصفحة)\s+',r'اجعل \1 يدعم ',q)
+        q=re.sub(r'^(this website|the site|it)\s+to\s+(support|include)\s+',r'make \1 \2 ',q)
+    q=re.sub(r'^(?:ضيف|حط)\s+','اضف ',q)
     if re.match(r'^(?:لا\b|لاتفتح|ما تفتح|ماتفتح|ليس\b|لم\b|ماذا\b|لو قلت\b|افترض\b|كيف\b|كيفية\b|اشرح\b|فسر\b|معنى\b|مثال\b|how\b|explain\b|do not\b|don.t\b|never\b)',q):return ''
     return q
 
@@ -46,10 +51,10 @@ def project_intent(text):
 
 def active_edit_intent(text):
     q=command_text(text)
-    from src.core.feature_intent import feature_intents
-    if feature_intents(text) or edit_command(q):return True
+    if edit_command(q):return True
+    if re.match(r'^(?:اجعل|خل|خلي|make)\s+(?:الموقع|المشروع|الصفحة|the site|this website|it)\s+(?:يدعم|تدعم|فيه|support|include)\b',q):return True
     return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',q) or
-        re.match(r'^(?:اضف|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زر|الزر|ازرار|وضع|الوضع|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login button|dark mode|feature|input|function|bug)\b',q))
+        re.match(r'^(?:اضف|تضيف|اضافة|فعل|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زرا?|الزر|ازرار|وضع|الوضع|المظهر|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login button|dark mode|feature|input|function|bug)\b',q))
 
 
 def metadata_intent(text):
@@ -145,6 +150,7 @@ class ChatDispatcher:
         result['decision']=IntentDecision(intent=intent,session_id=session['session_id'] if session else None,source_turn_id=request_id,
             project_id=project.get('project_id') or result.get('project_id'),base_revision=project.get('project_revision') if project else result.get('base_revision'),
             job_id=job.get('job_id') or result.get('job_id'),proposal_id=result.get('proposal_id')).model_dump()
+        if kind=='project':result['decision']['required_feature_contract']=(job.get('invoice') or {}).get('required_feature_contract',{})
         result['request_id']=request_id
         with self.store.lock:
             self.store.db.execute('UPDATE chat_requests SET state=?,response=?,options=? WHERE id=?',
@@ -203,7 +209,7 @@ class ChatDispatcher:
             return {'kind':'action','result':{'status':'unavailable','message':'أي تطبيق تقصد؟ اكتب مثلًا «افتح ديسكورد». لا يوجد هدف وحيد حديث في هذه المحادثة.'}}
         return self._applications(matches,'التطبيق السابق',session_id)
 
-    def _edit_current(self,text,project_id,dirty):
+    def _edit_current(self,text,project_id,dirty,provenance=None):
         project=self.store.get(project_id)
         if dirty:
             result=self._workspace({'project_id':project_id,'edit_request':text})
@@ -216,8 +222,10 @@ class ChatDispatcher:
         paths=[f['path'] for f in project['files'] if f['path'].lower().endswith(extensions)]
         if not paths or len(paths)>8:
             raise ProjectError('اختر ملفات المصدر ذات الصلة من مساحة المبرمج؛ لم يبدأ توليد مشروع جديد.')
+        provenance=provenance or {}
+        decision=IntentDecision(intent='project.edit',session_id=provenance.get('session_id'),source_turn_id=provenance.get('source_turn_id','validated_project_selection'),project_id=project_id,base_revision=project['project_revision'],proposal_id=provenance.get('proposal_id')).model_dump()
         created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],background=True,
-            project_id=project_id,expected_revision=project['project_revision'],context_files=paths,max_tokens=4096))
+            project_id=project_id,expected_revision=project['project_revision'],context_files=paths,max_tokens=4096),validated_decision=decision)
         return {'kind':'project','operation':'edit',**created}
 
     def _workspace(self,args):
@@ -230,7 +238,7 @@ class ChatDispatcher:
         if name=='project_edit':
             project=self.store.get(args['project_id'])
             if project['project_revision']!=args['expected_revision']:raise Conflict('تغير المشروع منذ اختيار الهدف؛ أعد طلب التعديل')
-            return self._edit_current(args['edit_request'],args['project_id'],args['workspace_dirty'])
+            return self._edit_current(args['edit_request'],args['project_id'],args['workspace_dirty'],args.get('decision'))
         return self._workspace(args) if name=='workspace' else self._skill(name,args)
 
     def _open_workspace(self,text,active_project_id):
@@ -329,6 +337,7 @@ class ChatDispatcher:
             self.targets.set(session_id,[])
             self.conversations.invalidate(session_id)
             return {'kind':'chat'}
+        provenance={'session_id':session_id,'source_turn_id':request_id}
         def operation():
             if not contextual:self.conversations.invalidate(session_id)
             if planning:return self._plan(text)
@@ -341,7 +350,7 @@ class ChatDispatcher:
                 if proposal:
                     if contextual=='amend':
                         return self.conversations.propose(session_id,proposal['project_id'],proposal['request']+'\nAdditional user constraint: '+text,request_id)
-                    result=self._edit_current(proposal['request'],proposal['project_id'],workspace_dirty)
+                    result=self._edit_current(proposal['request'],proposal['project_id'],workspace_dirty,{**provenance,'proposal_id':json.loads(proposal['details'])['proposal_id']})
                     result['proposal_id']=json.loads(proposal['details'])['proposal_id']
                     return result
                 return self.conversations.status(session_id,self.jobs)
@@ -359,15 +368,15 @@ class ChatDispatcher:
                 # a project choice, never a new project or a generic code reply.
                 candidates=[];named=[]
                 for project in self.store.list():
-                    args={'project_id':project['project_id'],'edit_request':text,'expected_revision':project['project_revision'],'workspace_dirty':workspace_dirty}
+                    args={'project_id':project['project_id'],'edit_request':text,'expected_revision':project['project_revision'],'workspace_dirty':workspace_dirty,'decision':provenance}
                     item=(project['display_name']+' — '+project['purpose'][:70],'project_edit',args)
                     candidates.append(item)
                     title=re.sub(r'^(?:موقع|مشروع|المشروع)\s+','',normalize(project['display_name']))
                     if len(title)>=3 and re.search(r'(?<!\w)'+re.escape(title)+r'(?!\w)',q):named.append(item)
-                if len(named)==1:return self._edit_current(text,named[0][2]['project_id'],workspace_dirty)
+                if len(named)==1:return self._edit_current(text,named[0][2]['project_id'],workspace_dirty,provenance)
                 named_other=bool(re.search(r'(?:الى|في|to|in)\s+(?:مشروع|project)\s+(?!هذا\b|الحالي\b|this\b|current\b)',q) or
                     re.search(r'(?<!\w)(?:موقع|مشروع)\s+(?!(?:الحالي|هذا|احترافي|اجمل|اسرع)\b)',q))
-                if active_project_id and not named_other and not named:return self._edit_current(text,active_project_id,workspace_dirty)
+                if active_project_id and not named_other and not named:return self._edit_current(text,active_project_id,workspace_dirty,provenance)
                 if not candidates:return {'kind':'action','result':{'status':'error','message':'اختر مشروعًا محفوظًا أو أنشئه أولًا؛ لم يبدأ تعديل أو مشروع جديد.'}}
                 return self._choice(named or candidates,'أي مشروع تريد تعديله؟ اختر الهدف لبدء الطلب نفسه من ملفاته المحفوظة.')
             if knowledge and not metadata:
@@ -396,7 +405,7 @@ class ChatDispatcher:
                     if re.search(r'موقع|صفحة|website|web ?app',q):hints=['index.html']
                     elif re.search(r'\bpython\b',q):hints=['main.py']
                 created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,
-                    filename_hints=hints,background=True,max_tokens=4096))
+                    filename_hints=hints,background=True,max_tokens=4096),validated_decision=IntentDecision(intent='project.create',session_id=session_id,source_turn_id=request_id).model_dump())
                 return {'kind':'project',**created}
             return result
         def tracked():

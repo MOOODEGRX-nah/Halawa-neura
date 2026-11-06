@@ -7,15 +7,10 @@ import json
 import re
 from src.core.project_files import ProjectError
 from src.core.project_store import digest
-from src.core.feature_intent import feature_intents,required_features
 
 THEME_ID='neura-theme-toggle'
 THEME_ATTRIBUTE='data-neura-theme'
 SURFACES='body,body div,body header,body nav,body main,body section,body article,body aside,body footer'
-
-
-def needs_theme(requirements,text):
-    return any(i.feature=='theme' and i.operation=='add' for i in feature_intents(text)) and not required_features(requirements,'').get('theme')
 
 
 def theme_contract():

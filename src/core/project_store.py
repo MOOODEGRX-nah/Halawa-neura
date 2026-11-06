@@ -278,6 +278,9 @@ class ProjectStore:
     def commit(self, project_id, files, expected_revision, *, accepted_requirements=None, execution_receipt=None):
         bounded_files(files)
         languages, preview, validation = inspect_files(files)
+        if execution_receipt and execution_receipt.get('required_feature_contract'):
+            from src.core.feature_intent import validate_contract
+            validation['required_feature_contract']=validate_contract(execution_receipt['required_feature_contract'])
         if validation['errors']:
             raise ProjectError('فشل الفحص الساكن: ' + '; '.join(validation['errors'])[:1000])
         with self.lock:

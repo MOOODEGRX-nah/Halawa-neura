@@ -17,7 +17,7 @@ class FeatureIntent:
 
 
 def feature_intents(text):
-    if not isinstance(text,str) or len(text)>16000:return []
+    if not isinstance(text,str) or len(text)>30000:return []
     q=normalize(text).strip()
     if not q or q.startswith(('"',"'",'«','“','`','>','<','~~~')) or '```' in q:return []
     # Quoted examples and source snippets cannot request a feature.
@@ -37,7 +37,7 @@ def feature_intents(text):
             if remove:operation='keep'
             else:continue
         elif remove:operation='remove'
-        elif re.search(r'\b(?:اضف|تضيف|اضافة|فعل|تفعيل|خل|خلي|اجعل|يكون|احتاج|نحتاج|يحتاج|اريد|ابغى|ابي|وفر|توفير|ممكن|يدعم|بدي|add|enable|implement|include|want|need|provide|support)\b',clause):operation='add'
+        elif re.search(r'\b(?:اضف|ضيف|حط|تضيف|تضيفلي|اضافة|فعل|تفعيل|خل|خلي|اجعل|يكون|احتاج|نحتاج|يحتاج|اريد|ابغى|ابي|وفر|توفير|ممكن|يدعم|بدي|add|enable|implement|include|want|need|provide|support)\b',clause):operation='add'
         elif re.search(r'\b(?:حافظ|ابق|keep|preserve)\b',clause):operation='keep'
         else:continue
         for feature in features:result.append(FeatureIntent(feature,operation,clause))
@@ -56,3 +56,57 @@ def required_features(requirements,current_request):
 
 
 def intent_evidence(text):return [asdict(item) for item in feature_intents(text)]
+
+
+def _fingerprint(value):
+    import hashlib,json
+    return hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+
+
+def validate_contract(contract):
+    from src.core.project_files import ProjectError
+    if not contract:return {}
+    content={k:v for k,v in contract.items() if k!='sha256'}
+    if contract.get('version')!=1 or contract.get('sha256')!=_fingerprint(content):raise ProjectError('بصمة عقد متطلبات المستخدم غير مطابقة')
+    if contract.get('provenance',{}).get('intent') not in ('project.create','project.edit'):raise ProjectError('عقد الميزات ليس قرار مشروع معتمدًا')
+    for states in (contract.get('required',{}),contract.get('prior_required',{})):
+        if not isinstance(states,dict) or any(k not in ('theme','login') or v is not True for k,v in states.items()):raise ProjectError('حالة ميزة غير مدعومة في العقد')
+    for change in contract.get('changes',[]):
+        if change.get('feature') not in ('theme','login') or change.get('operation') not in ('add','remove','keep') or change.get('provenance')!='validated_user_request':raise ProjectError('تغيير ميزة غير معتمد')
+    return contract
+
+
+def build_contract(text,accepted,decision):
+    """Called ONCE at validated job admission, not by downstream validators.
+
+    A decision can only come from the server's authenticated workspace admission
+    or conversational/project-selection/one-use-approval path. It is not a tool
+    permission. Old accepted user records are migrated at this boundary only.
+    """
+    from src.core.project_files import ProjectError
+    from src.core.project_store import digest
+    if decision.get('intent') not in ('project.create','project.edit'):raise ProjectError('لا يُشتق عقد تنفيذ من ذكر ميزة أو رد نموذج')
+    prior={};start=0;legacy=[]
+    for i in range(len(accepted)-1,-1,-1):
+        record=accepted[i]
+        if record.get('origin')!='user_request' or not record.get('feature_contract'):continue
+        saved=validate_contract(record['feature_contract'])
+        if saved['source_request_sha256']!=digest(record['text']):raise ProjectError('مصدر متطلبات المشروع لا يطابق العقد المحفوظ')
+        prior=dict(saved['required']);start=i+1;break
+    for record in accepted[start:]:
+        if record.get('origin')!='user_request':continue
+        legacy.append({'job_id':record.get('job_id'),'text_sha256':digest(record.get('text',''))})
+        for item in feature_intents(record.get('text','')):
+            if item.operation=='remove':prior.pop(item.feature,None)
+            else:prior[item.feature]=True
+    changes=intent_evidence(text);required=dict(prior)
+    for item in changes:
+        if item['operation']=='remove':required.pop(item['feature'],None)
+        else:required[item['feature']]=True
+    contract={'version':1,'source_request_sha256':digest(text),'provenance':dict(decision),
+              'prior_required':prior,'changes':changes,'required':required,'legacy_migration':legacy}
+    contract['sha256']=_fingerprint(contract)
+    return validate_contract(contract)
+
+
+def contract_features(contract):return dict(validate_contract(contract).get('required',{}))

@@ -4,6 +4,8 @@ import hashlib
 import json
 import re
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 
 
 def check_run(directory):
@@ -55,6 +57,22 @@ def check_run(directory):
             require(bool(planning),label+': validated planning absent')
             require(job['state']=='completed' and receipt.get('outcome')=='saved',label+': edit not saved')
             require(bool(receipt.get('changed_files')),label+': no changed files')
+            contract=(job.get('invoice') or {}).get('required_feature_contract')
+            if contract:
+                from src.core.feature_intent import validate_contract
+                try:validate_contract(contract)
+                except Exception as error:require(False,label+': invalid feature contract '+str(error))
+                require(contract==receipt.get('required_feature_contract'),label+': receipt feature contract mismatch')
+                require(contract==(job.get('validation') or {}).get('required_feature_contract'),label+': source-validation feature contract mismatch')
+                require(contract==receipt.get('browser',{}).get('required_feature_contract'),label+': independent browser feature contract mismatch')
+                require(contract==decisions[0].get('decision',{}).get('required_feature_contract'),label+': conversational feature contract mismatch')
+                for stage in job.get('stage_results',[]):
+                    if stage['stage'] in ('planning','generating'):
+                        require(contract==stage.get('result',{}).get('required_feature_contract'),label+': stage feature contract mismatch '+stage['stage'])
+                if workflow=='preserve' and index>=1:require(contract['required'].get('login'),label+': accepted Login requirement lost')
+                if workflow=='preserve' and index>=2:require(contract['required'].get('theme'),label+': accepted theme requirement lost')
+                require(any(r.get('job_id')==job['job_id'] and r.get('feature_contract')==contract for r in project.get('accepted_requirements',[])),label+': persisted feature contract mismatch')
+
             if receipt.get('base_revision',0)>0 and 'src/core/bounded_edits.py' in identity.get('runtime_hashes',{}):
                 operations=[o for stage in job.get('stage_results',[]) for o in stage.get('result',{}).get('operations',[])]
                 require(bool(operations),label+': bounded edit operations absent')

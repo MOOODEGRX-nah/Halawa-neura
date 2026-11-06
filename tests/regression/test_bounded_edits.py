@@ -166,10 +166,12 @@ def test_appending_css_requires_exact_end_of_file_operation():
 
 def test_user_feature_requirements_follow_successful_requests_and_explicit_removal():
     from src.core.edit_preservation import requested_web_features
+    from src.core.feature_intent import build_contract
+    def checked(history,text):return requested_web_features(build_contract(text,history,{'intent':'project.edit'}))
     history=[{'origin':'user_request','text':'أضف زر تسجيل دخول'},{'origin':'user_request','text':'أضف الوضع الداكن إلى هذا المشروع'}]
-    assert requested_web_features(history,'حسن واجهة الموقع')=={'login':True,'theme':True}
-    assert requested_web_features(history,'احذف Login')=={'theme':True}
-    assert requested_web_features([], 'Explain dark mode')=={}
+    assert checked(history,'حسن واجهة الموقع')=={'login':True,'theme':True}
+    assert checked(history,'احذف Login')=={'theme':True}
+    assert checked([], 'Explain dark mode')=={}
 
 
 def test_worker_row_reads_share_the_store_lock(system):

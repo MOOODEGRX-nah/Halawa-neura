@@ -130,6 +130,7 @@ def main(source,destination):
     try:
         loaded=[];page.loadFinished.connect(lambda ok:loaded.append(ok))
         required=payload.get('required') or {}
+        report['required_feature_contract']=required.get('feature_contract')
         report['required_interaction']=required.get('interaction')
         report['color_schemes']=['light','dark']
         report['required_features']=[name for name in ('theme','login') if required.get(name)]
@@ -179,6 +180,8 @@ def main(source,destination):
         if changes:report['theme_changed']=all(changes)
         if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in sample['controls']) for sample in report['samples']):report['errors'].append('Required Login placeholder is not visible')
         for sample in report['samples']:
+            if 'theme' in required.get('removed_features',[]) and sample['dark_available']:report['errors'].append('Explicitly removed theme control is still visible')
+            if 'login' in required.get('removed_features',[]) and any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in sample['controls']):report['errors'].append('Explicitly removed Login control is still visible')
             if sample['unknown_backgrounds']:report['errors'].append('Complex backgrounds require rendered visual review; readability not verified')
             for control in required.get('controls',[]):
                 if not any(all(item.get(k)==v for k,v in control.items()) for item in sample['controls']):report['errors'].append('Required visible control missing: '+str(control))

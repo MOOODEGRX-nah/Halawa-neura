@@ -6,15 +6,20 @@ from src.core.required_interactions import compile_theme,theme_contract
 from src.core.project_validation import inspect_files
 from src.core.project_files import ProjectError
 from src.core.contrast_repair import repair_contrast
+from src.core.feature_intent import build_contract,contract_features
 p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
 results=[]
-def run(name,files,expected,contract=False,repair=False):
-    required={'theme':True,'login':True}
+def run(name,files,expected,contract=False,repair=False,removed=False):
+    history=[{'origin':'user_request','text':'أضف زر تسجيل دخول'}]
+    if removed:history.append({'origin':'user_request','text':'أضف الوضع الداكن'})
+    feature_contract=build_contract('احذف الوضع الداكن' if removed else 'هل يمكنك أن تضيف الوضع الداكن؟',history,{'intent':'project.edit','resolution_source':'controlled renderer fixture'})
+    required={**contract_features(feature_contract),'feature_contract':feature_contract,'removed_features':['theme'] if removed else []}
     if contract:required['interaction']=theme_contract()
     reports=[];actual=False
     for attempt in range(2 if repair else 1):
         try:
             report=check_candidate(files,inspect_files(files)[1],threading.Event(),time.monotonic()+35,required=required);actual=True
+            assert report['required_feature_contract']==feature_contract
             reports.append(report);break
         except ProjectError as exc:
             report=getattr(exc,'browser_report',{'errors':[str(exc)]});reports.append(report)
@@ -32,4 +37,6 @@ for fixture in sorted((Path(__file__).parents[1]/'tests/fixtures/ax07_review').g
     run(fixture.stem+'-compiled',compiled,True,True,True)
     disconnected={p:s.replace('root.setAttribute(state,dark?"dark":"light")','root.setAttribute("unrelated-state",dark?"dark":"light")') for p,s in compiled.items()}
     run(fixture.stem+'-disconnected-state',disconnected,False,True)
+    run(fixture.stem+'-removed-but-visible',compiled,False,False,False,True)
+    run(fixture.stem+'-removed',data['base'],True,False,False,True)
 raise SystemExit(0 if all(r['passed'] for r in results) else 1)
