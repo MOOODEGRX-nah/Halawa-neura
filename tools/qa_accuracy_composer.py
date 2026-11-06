@@ -60,7 +60,7 @@ def save():
  (out/'composer.json').write_text(json.dumps({'environment':'Qt offscreen; '+('actual local inference; requested '+(a.gpu or 'CPU') if a.real_model else 'fake inference and desktop adapters')+'; actual composer/API/jobs/storage/preview','baseline':a.baseline,'turns':turns},ensure_ascii=False,indent=2))
 def state():
  projects=api('/projects')['projects']
- return {'session':js('sid'),'projects':[{k:v for k,v in item.items() if k in ('project_id','project_revision','files','latest_job_id','generation_status')} for item in projects],
+ return {'session':js('sid'),'projects':[{k:v for k,v in item.items() if k in ('project_id','project_revision','files','latest_job_id','generation_status','accepted_requirements')} for item in projects],
   'preview':js('document.querySelector("#ws-preview-rev").textContent'),'active_project':js('window.NeuraWorkspace.projectId||null'),
   'cards':js('JSON.stringify(Array.from(document.querySelectorAll("[data-project-job-id]")).map(e=>({job_id:e.dataset.projectJobId,state:e.dataset.jobState,text:e.textContent})))')}
 def send(text):
