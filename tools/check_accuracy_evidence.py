@@ -17,7 +17,7 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not any((directory/name).exists() for name in ('failure.json','interruption.json')),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
@@ -69,6 +69,14 @@ def check_run(directory):
                 for stage in job.get('stage_results',[]):
                     if stage['stage'] in ('planning','generating'):
                         require(contract==stage.get('result',{}).get('required_feature_contract'),label+': stage feature contract mismatch '+stage['stage'])
+                if workflow=='remove':
+                    require(contract['prior_required'].get('login') and contract['prior_required'].get('theme'),label+': removal seed requirements absent')
+                    require(contract['required']=={'theme':True},label+': removal did not retain only the accepted theme')
+                    require(any(c['feature']=='login' and c['operation']=='remove' for c in contract['changes']),label+': explicit removal absent from contract')
+                    require(turn.get('job_count')==1,label+': removal duplicated jobs')
+                    samples=[sample for attempt in job.get('attempts',[]) if attempt.get('status')=='accepted' for sample in (attempt.get('browser') or {}).get('samples',[])]
+                    require(bool(samples) and all(not any(re.search(r'login|sign.?in|دخول',c.get('label',''),re.I) for c in sample.get('controls',[])) for sample in samples),label+': removed Login still visible')
+                    require(receipt.get('browser',{}).get('theme_changed'),label+': removal broke the remaining theme')
                 if workflow=='preserve' and index>=1:require(contract['required'].get('login'),label+': accepted Login requirement lost')
                 if workflow=='preserve' and index>=2:require(contract['required'].get('theme'),label+': accepted theme requirement lost')
                 require(any(r.get('job_id')==job['job_id'] and r.get('feature_contract')==contract for r in project.get('accepted_requirements',[])),label+': persisted feature contract mismatch')

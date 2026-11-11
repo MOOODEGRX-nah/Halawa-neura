@@ -98,3 +98,29 @@ def test_repair_receives_the_same_user_contract(system):
     system.backend.text=json.dumps({'edits':[{'target_id':next(iter(targets.targets)),'after':'<p>CV</p>\n'}]})
     InvoiceOrchestrator(system).repair_candidate(files,ProjectRequest(user_request='أريد زرًا لتبديل الوضع الداكن',requirements=['Keep source'],required_feature_contract=contract),'fixture',{},cancel=threading.Event(),deadline=time.monotonic()+3,max_tokens=256)
     assert json.loads(system.backend.calls[-1]['messages'][1]['content'])['required_feature_contract']==contract
+
+
+@pytest.mark.parametrize('text',['احذف Login','هل يمكنك إزالة زر تسجيل الدخول؟','هل يمكنك حذف زر تسجيل الدخول؟','أزل زر تسجيل الدخول','Remove Login'])
+def test_explicit_removal_variants_use_validated_job_admission(system,text):
+    from src.core.chat_dispatch import active_edit_intent
+    assert active_edit_intent(text)
+    app,_,dispatch=application(system);store=app.state.project_store;jobs=app.state.project_jobs
+    source=SOURCE.replace('</body>','<button>Login</button></body>')
+    try:
+        pid=store.create('Owned','Fixture')['project_id']
+        store.commit(pid,{'index.html':source},0,accepted_requirements=[{'origin':'user_request','text':'أضف زر تسجيل دخول'}])
+        dispatch.bind_project('qa-removal',pid)
+        system.backend.text=json.dumps({'base_revision':1,'path':'index.html','source_sha256':digest(source),'edits':[{'before':'<button>Login</button>','after':''}],'new_content':None})
+        result=dispatch.dispatch(text,request_id(),session_id='qa-removal');assert result['kind']=='project'
+        job=wait(jobs,result['job']['job_id']);assert job['state']=='completed',job
+        contract=job['invoice']['required_feature_contract']
+        assert contract['prior_required']=={'login':True} and contract['required']=={}
+        assert contract['changes'][0]['operation']=='remove'
+        assert 'Login' not in store.read(pid,'index.html')['content']
+    finally:jobs.shutdown();store.close()
+
+
+@pytest.mark.parametrize('text',['لا تحذف Login','اشرح إزالة زر تسجيل الدخول','"هل يمكنك إزالة زر تسجيل الدخول؟"','هل حذف زر تسجيل الدخول آمن؟'])
+def test_removal_normalization_does_not_authorize_mentions_or_negation(text):
+    from src.core.chat_dispatch import active_edit_intent
+    assert not active_edit_intent(text)

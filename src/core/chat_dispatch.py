@@ -36,6 +36,7 @@ def command_text(text):
         q=re.sub(r'^(?:البحث|بحث)\s+','ابحث ',q)
         q=re.sub(r'^انشاء\s+','انشئ ',q)
         q=re.sub(r'^(?:اضافة|تضيف(?:لي)?)\s+','اضف ',q)
+        q=re.sub(r'^(?:ازالة|حذف)\s+','احذف ',q)
         if re.match(r'^(?:زرا?|button)\b',q):q='اضف '+q
         q=re.sub(r'^(?:يدعم|تدعم)\s+(الموقع|المشروع|الصفحة)\s+',r'اجعل \1 يدعم ',q)
         q=re.sub(r'^(this website|the site|it)\s+to\s+(support|include)\s+',r'make \1 \2 ',q)
@@ -54,7 +55,7 @@ def active_edit_intent(text):
     if edit_command(q):return True
     if re.match(r'^(?:اجعل|خل|خلي|make)\s+(?:الموقع|المشروع|الصفحة|the site|this website|it)\s+(?:يدعم|تدعم|فيه|support|include)\b',q):return True
     return bool(re.match(r'^(?:غير|بدل|اجعل|change|set)\s+(?:لي\s+)?(?:لون|خلفية|الخلفية|العنوان|حجم|خط|background|colou?r|title|font)\b',q) or
-        re.match(r'^(?:اضف|تضيف|اضافة|فعل|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زرا?|الزر|ازرار|وضع|الوضع|المظهر|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login button|dark mode|feature|input|function|bug)\b',q))
+        re.match(r'^(?:اضف|تضيف|اضافة|فعل|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زرا?|الزر|ازرار|وضع|الوضع|المظهر|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login(?: button)?|تسجيل الدخول|تسجيل دخول|dark mode|feature|input|function|bug)\b',q))
 
 
 def metadata_intent(text):
