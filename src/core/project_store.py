@@ -204,6 +204,7 @@ class ProjectStore:
                  'Preview available: ' + str(meta['preview']['supported']),
                  'Static checks: ' + meta['validation']['static_checks'] + '; behavioral tests: not_run',
                  'Source freshness: ' + (meta.get('source_freshness') or 'not_checked')]
+        if meta.get('generation_recipe'):lines.append('Creation recipe provenance: '+meta['generation_recipe']['id']+'; current behavior requires source/browser verification')
         lines.append('Observed source features (not behavioral claims): '+'; '.join(meta.get('features',[])[:6])[:600])
         lines.append('Known limitations: '+'; '.join(meta.get('limitations',[])[:3])[:500])
         for entry in meta['files'][:12]:
@@ -281,6 +282,9 @@ class ProjectStore:
         if execution_receipt and execution_receipt.get('required_feature_contract'):
             from src.core.feature_intent import validate_contract
             validation['required_feature_contract']=validate_contract(execution_receipt['required_feature_contract'])
+        if execution_receipt and execution_receipt.get('web_recipe'):
+            from src.tools.web_recipes import validate_source
+            validation['web_recipe']=validate_source(files,execution_receipt['web_recipe'])
         if validation['errors']:
             raise ProjectError('فشل الفحص الساكن: ' + '; '.join(validation['errors'])[:1000])
         with self.lock:
@@ -300,6 +304,9 @@ class ProjectStore:
             if accepted_requirements is not None:meta['accepted_requirements']=accepted_requirements
             meta.pop('last_execution',None)
             if execution_receipt is not None:meta['last_execution']=execution_receipt
+            if execution_receipt and execution_receipt.get('web_recipe'):
+                from src.tools.web_recipes import manifest
+                meta.setdefault('generation_recipe',{k:v for k,v in manifest().items() if k in ('id','version','sha256')})
             from src.core.edit_preservation import contract_summary
             meta['preserve_contract']=contract_summary(files,meta.get('accepted_requirements',[]))
             meta['type'] = 'static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'

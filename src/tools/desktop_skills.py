@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from src.core.project_files import ProjectError
 from src.core.project_store import now
 from src.desktop.actions import DesktopAdapter
+from src.tools.web_recipes import RecipeArguments,RecipeManifest,manifest as recipe_manifest
 
 
 class Arguments(BaseModel):
@@ -46,8 +47,9 @@ class Empty(Arguments):
 
 class SkillResult(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
-    status:Literal['launched','listed','error','unavailable','unknown']
+    status:Literal['launched','listed','selected','error','unavailable','unknown']
     message:str=Field(min_length=1,max_length=10000)
+    recipe:RecipeManifest|None=None
     application_id:str|None=Field(default=None,pattern=r'^[A-Za-z0-9_.-]+\.desktop$',max_length=160)
     application_name:str|None=Field(default=None,max_length=500)
     applications:list[dict]|None=Field(default=None,max_length=100)
@@ -57,6 +59,7 @@ NAMES = {'youtube':'https://www.youtube.com/','يوتيوب':'https://www.youtub
          'github':'https://github.com/','جيت هب':'https://github.com/',
          'brave':'https://search.brave.com/','برايف':'https://search.brave.com/'}
 DEFINITIONS = {
+    'prepare_static_cv': (RecipeArguments,'اختيار وصفة CV عربية محلية للتخطيط والتوليد؛ لا تنشئ ملفات وحدها',['project:recipe']),
     'open_website': (Website,'فتح موقع في Brave',['desktop:browser']),
     'search_web': (Search,'فتح نتائج بحث Brave',['desktop:browser']),
     'search_youtube': (Search,'فتح نتائج بحث YouTube في Brave',['desktop:browser']),
@@ -100,7 +103,7 @@ class DesktopSkills:
         disabled=getattr(self.adapter,'configuration',lambda:{})().get('disabled_skills',[])
         result=[]
         for name,(schema,description,permissions) in DEFINITIONS.items():
-            available=True if name=='list_recent_applications' else status['desktop_available'] and (status['brave_available'] if name in ('open_website','search_web','search_youtube') else True)
+            available=True if name in ('list_recent_applications','prepare_static_cv') else status['desktop_available'] and (status['brave_available'] if name in ('open_website','search_web','search_youtube') else True)
             if name=='open_file':available=available and status.get('text_viewer_available',True)
             if name=='open_folder':available=available and status.get('folder_viewer_available',True)
             if name in disabled:available=False
@@ -108,7 +111,7 @@ class DesktopSkills:
                 'output_schema':SkillResult.model_json_schema(),
                 'permissions':permissions,'timeout_s':8,'available':bool(available),
                 'unavailable_reason':'' if available else 'هذه المهارة معطلة في إعدادات Neura.' if name in disabled else status['reason'] or ('محرر النصوص الموثوق غير متاح.' if name=='open_file' else 'مدير الملفات الموثوق غير متاح.' if name=='open_folder' else 'Brave غير متاح.')})
-        return {'skills':result,'desktop':status,'recent_scope':'التطبيقات التي فتحها Neura فقط؛ ليست كل أنشطة KDE.'}
+        return {'web_skills':[{'skill':'prepare_static_cv',**recipe_manifest(),**{k:v for s in result if s['name']=='prepare_static_cv' for k,v in s.items() if k in ('available','unavailable_reason')}}],'skills':result,'desktop':status,'recent_scope':'التطبيقات التي فتحها Neura فقط؛ ليست كل أنشطة KDE.'}
 
     def validate(self,name,args):
         if name not in DEFINITIONS:
@@ -131,6 +134,7 @@ class DesktopSkills:
 
     @staticmethod
     def label(name,args):
+        if name=='prepare_static_cv':return 'وصفة CV عربية محلية v1'
         if name=='open_website': return urlsplit(args['destination']).hostname
         if name in ('search_web','search_youtube'): return 'نتائج بحث Brave' if name=='search_web' else 'نتائج بحث YouTube'
         if name=='open_application':return args['application_id']
@@ -173,7 +177,8 @@ class DesktopSkills:
                 self.store.db.execute('UPDATE skill_grants SET revoked=1 WHERE id=?',(permission_id,));self.store.db.commit()
         result=None
         try:
-            if name=='open_website':result=self.adapter.browser(args['destination'])
+            if name=='prepare_static_cv':result={'status':'selected','message':'اختيرت وصفة CV المحلية؛ لم يبدأ توليد أو حفظ ملفات بعد.','recipe':recipe_manifest()}
+            elif name=='open_website':result=self.adapter.browser(args['destination'])
             elif name=='search_web':result=self.adapter.browser('https://search.brave.com/search?'+urlencode({'q':args['query']}))
             elif name=='search_youtube':result=self.adapter.browser('https://www.youtube.com/results?'+urlencode({'search_query':args['query']}))
             elif name=='open_file':result=self.adapter.open_file(args)

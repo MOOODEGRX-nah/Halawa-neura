@@ -198,7 +198,20 @@ class ProjectJobs:
                 request.source_hashes=captured
             else:
                 title = request.title or request.user_request.split('\n')[0][:80]
-                project = self.store.create(title, request.user_request, request.project_type)
+                project = None
+            if request.project_id:
+                request.web_recipe=(project.get('generation_recipe') or {}).get('id')
+            if request.web_recipe:
+                from src.tools.web_recipes import manifest
+                recipe=manifest()
+                if project and project.get('generation_recipe') and project['generation_recipe']!={k:v for k,v in recipe.items() if k in ('id','version','sha256')}:raise Conflict('تغير عقد وصفة المشروع؛ راجع التوافق قبل التعديل')
+                request.web_recipe_sha256=recipe['sha256']
+                registry=getattr(self,'skill_registry',None)
+                if registry and not next(s for s in registry.describe()['skills'] if s['name']=='prepare_static_cv')['available']:raise ProjectError('وصفة CV معطلة؛ لم يبدأ التوليد')
+                request.required_files=list(dict.fromkeys([*request.required_files,*recipe['required_files']]))
+                request.constraints=list(dict.fromkeys([*request.constraints,*recipe['constraints']]))
+                if len(request.constraints)>28 or len(request.required_files)>30:raise ProjectError('عقد الوصفة مع متطلباتك يتجاوز الحد الآمن؛ لم تُنشأ مهمة')
+            if project is None:project=self.store.create(title,request.user_request,request.project_type)
             from src.core.feature_intent import build_contract
             intent='project.edit' if request.project_id else 'project.create'
             decision=dict(validated_decision or {'intent':intent,'resolution_source':'validated_workspace_request'})
@@ -290,6 +303,9 @@ class ProjectJobs:
                               expected_files=request.required_files,filename_hints=request.filename_hints or request.context_files)
             project_id = row['project_id']
             project = self.store.get(project_id)
+            if request.web_recipe:
+                from src.tools.web_recipes import manifest
+                if request.web_recipe_sha256!=manifest()['sha256']:raise Conflict('تغيرت وصفة المهمة أثناء الانتظار؛ لم يبدأ تنفيذ بعقد مختلف')
             expected = request.expected_revision if request.project_id else 0
             if project['project_revision'] != expected or project['source_freshness'] != 'current':
                 raise Conflict('تغير المشروع أثناء الانتظار')
@@ -389,6 +405,9 @@ class ProjectJobs:
                         symbols={node.name for path,text in files.items() if path.endswith('.py') for node in ast.walk(ast.parse(text)) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef))}
                         if set(request.required_python_symbols)-symbols:raise ProjectError('رموز Python المطلوبة مفقودة')
                     languages,preview,validation=inspect_files(files)
+                    if request.web_recipe:
+                        from src.tools.web_recipes import validate_source
+                        validation['web_recipe']=validate_source(files,request.web_recipe)
                     validation['required_feature_contract']=feature_contract
                     if validation['errors']:raise ProjectError('; '.join(validation['errors']))
                     if before:preserved=require_preserved(before,files,request.user_request,feature_contract)
@@ -407,6 +426,7 @@ class ProjectJobs:
                         required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[]) and normalize(c['label']) not in removed_labels],
                                   'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[])) and normalize(t) not in removed_labels],
                                   **requested_web_features(feature_contract),'feature_contract':feature_contract,'removed_features':sorted(set(feature_contract.get('excluded',{})) | {c['feature'] for c in feature_contract['changes'] if c['operation']=='remove'})}
+                        if request.web_recipe:required['web_recipe']=request.web_recipe
                         from src.core.required_interactions import present_contract
                         interaction=present_contract(files,preview.get('entry_point'))
                         if required.get('theme') and interaction:required['interaction']=interaction
@@ -422,7 +442,7 @@ class ProjectJobs:
                     repair=str(error)[:1800]
             self.coordinator._check(cancel,deadline)
             # Receipt and project metadata share the SAME durable SQLite commit.
-            execution={'resource_profile':profile,'required_feature_contract':feature_contract,'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
+            execution={'web_recipe':request.web_recipe,'resource_profile':profile,'required_feature_contract':feature_contract,'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
                 'base_revision':expected,'result_revision':expected+1 if changed else expected,'changed_files':changed,
                 'base_hashes':{path:digest(value) for path,value in before.items()},
                 'result_hashes':{path:digest(files[path]) for path in changed},

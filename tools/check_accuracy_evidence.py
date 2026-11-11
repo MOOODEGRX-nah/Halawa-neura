@@ -17,7 +17,7 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not any((directory/name).exists() for name in ('failure.json','interruption.json')),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1,'compound':1,'compound-clarify':1}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1,'compound':1,'compound-clarify':1,'resource-smoke':1,'web-recipe':3}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
@@ -44,7 +44,7 @@ def check_run(directory):
         project=projects[0];pid=project['project_id']
         if project_id is None:project_id=pid
         require(pid==project_id,label+': wrong project')
-        action=(index in (0,2)) if workflow=='proposal' else (workflow=='preserve' or index in (0,1,5))
+        action=(index in (0,2)) if workflow=='proposal' else (workflow in ('preserve','web-recipe') or index in (0,1,5))
         require(decisions[0]['kind']==('project' if action else 'proposal' if workflow=='proposal' and index==1 else 'status'),label+': unexpected routing')
         if workflow=='proposal':
             require(turn.get('job_count')==(1 if index<2 else 2),label+': duplicate or missing approval job')
@@ -70,7 +70,7 @@ def check_run(directory):
                 except Exception as error:require(False,label+': invalid feature contract '+str(error))
                 require(contract==receipt.get('required_feature_contract'),label+': receipt feature contract mismatch')
                 require(contract==(job.get('validation') or {}).get('required_feature_contract'),label+': source-validation feature contract mismatch')
-                require(contract==receipt.get('browser',{}).get('required_feature_contract'),label+': independent browser feature contract mismatch')
+                require(workflow=='resource-smoke' or contract==receipt.get('browser',{}).get('required_feature_contract'),label+': independent browser feature contract mismatch')
                 require(contract==decisions[0].get('decision',{}).get('required_feature_contract'),label+': conversational feature contract mismatch')
                 for stage in job.get('stage_results',[]):
                     if stage['stage'] in ('planning','generating'):
@@ -133,10 +133,12 @@ def check_run(directory):
         else:
             require(job['job_id'] in seen_jobs,label+': follow-up launched another job')
             require(turn['before']['projects']==projects,label+': status mutated project')
-        require(receipt.get('preview_checked_revision')==rev,label+': preview receipt mismatch')
-        require(receipt.get('browser',{}).get('status')=='passed',label+': browser checks failed')
-        require(receipt.get('browser',{}).get('color_schemes')==['light','dark'],label+': light/dark embedding schemes not verified')
-        require(str(rev) in turn['after']['preview'],label+': UI preview revision absent')
+        if workflow!='resource-smoke':
+            require(receipt.get('preview_checked_revision')==rev,label+': preview receipt mismatch')
+            require(receipt.get('browser',{}).get('status')=='passed',label+': browser checks failed')
+            require(receipt.get('browser',{}).get('color_schemes')==['light','dark'],label+': light/dark embedding schemes not verified')
+            require(str(rev) in turn['after']['preview'],label+': UI preview revision absent')
+        else:require(receipt.get('browser',{}).get('status')=='not_applicable',label+': Python falsely claimed web preview')
         hashes={f['path']:f['sha256'] for f in project['files']}
         require(receipt.get('result_hashes')=={name:hashes.get(name) for name in receipt.get('changed_files',[])},label+': committed hashes differ')
         for name,old_hash in receipt.get('base_hashes',{}).items():
@@ -144,6 +146,20 @@ def check_run(directory):
         for name,source in turn.get('files',{}).get(pid,{}).items():
             if not source.get('binary'):
                 require(hashlib.sha256(source['content'].encode()).hexdigest()==hashes.get(name),label+': saved content hash mismatch '+name)
+        if workflow=='web-recipe':
+            expected=identity.get('expected_recipe_manifest') or {}
+            require(turn.get('job_count')==index+1,label+': recipe request duplicated a job')
+            require((job.get('invoice') or {}).get('user_request')==turn['text'],label+': original recipe request changed')
+            require((job.get('invoice') or {}).get('web_recipe')=='arabic_cv_v1' and receipt.get('web_recipe')=='arabic_cv_v1',label+': recipe contract lost')
+            require((job.get('invoice') or {}).get('web_recipe_sha256')==expected.get('sha256')==(project.get('generation_recipe') or {}).get('sha256'),label+': recipe snapshot/persistence mismatch')
+            require({'index.html','style.css','script.js'}<=hashes.keys(),label+': required recipe files missing')
+            require((job.get('validation') or {}).get('web_recipe',{}).get('status')=='passed',label+': recipe source validation absent')
+            samples=(receipt.get('browser',{}).get('web_recipe') or {}).get('samples',[])
+            require({(s['width'],s['color_scheme']) for s in samples}=={(1280,'light'),(480,'light'),(1280,'dark'),(480,'dark')},label+': incomplete recipe browser observations')
+            for sample in samples:
+                a,b,c=sample['initial'],sample['enlarged'],sample['restored']
+                require(sample['clicked'] and sample['clicked_back'] and a['pressed']=='false' and b['pressed']=='true' and c['pressed']=='false' and b['font']>a['font'] and abs(a['font']-c['font'])<.1 and a['content']==b['content']==c['content'],label+': CV font behavior/content not preserved')
+            if index>=1:require(receipt.get('browser',{}).get('theme_changed') and receipt.get('preservation',{}).get('status')=='passed',label+': follow-up theme or preservation failed')
         if workflow=='preserve' and index>=1:
             samples=[sample for attempt in job.get('attempts',[]) if attempt.get('status')=='accepted' for sample in (attempt.get('browser') or {}).get('samples',[])]
             require(bool(samples) and all(any(re.search(r'login|sign.?in|دخول',c.get('label',''),re.I) for c in sample.get('controls',[])) for sample in samples),label+': Login placeholder not visibly demonstrated')

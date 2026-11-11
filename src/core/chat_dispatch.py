@@ -56,6 +56,7 @@ def workspace_intent(text):
 class ChatDispatcher:
     def __init__(self,store,skills,jobs):
         self.store,self.skills,self.jobs=store,skills,jobs
+        self.jobs.skill_registry=skills
         self.targets=TargetContext(store)
         self.conversations=ProjectConversation(store)
         with store.lock:
@@ -394,7 +395,12 @@ class ChatDispatcher:
                 if not re.search(r'\.(?:html?|py)\b',q):
                     if re.search(r'موقع|صفحة|website|web ?app',q):hints=['index.html']
                     elif re.search(r'\bpython\b',q):hints=['main.py']
-                created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,
+                from src.tools.web_recipes import select_for_request
+                recipe_id=select_for_request(text,'project.create')
+                if recipe_id:
+                    selected=self._skill('prepare_static_cv',{'recipe_id':recipe_id})
+                    if selected['result']['status']!='selected':return selected
+                created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,web_recipe=recipe_id,
                     filename_hints=hints,background=True,max_tokens=4096),validated_decision=IntentDecision(intent='project.create',session_id=session_id,source_turn_id=request_id).model_dump())
                 return {'kind':'project',**created}
             return result

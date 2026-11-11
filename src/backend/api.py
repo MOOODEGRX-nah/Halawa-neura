@@ -430,7 +430,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     async def skills():
         description=await asyncio.to_thread(desktop_skills.describe)
         return {'skills': actions.capabilities(), 'fail_soft': True,
-                'desktop_skills':description['skills'],'desktop':description['desktop'],'recent_scope':description['recent_scope']}
+                'web_skills':description.get('web_skills',[]),'desktop_skills':description['skills'],'desktop':description['desktop'],'recent_scope':description['recent_scope']}
 
     @app.post('/tool/call')
     async def tool_call(req: ToolRequest):

@@ -10,6 +10,7 @@ import threading
 import time
 import uuid
 from pathlib import Path, PurePosixPath
+from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator,ValidationError
 from src.core.neura_loop import InferenceError
 from src.core.project_files import safe_path
@@ -23,6 +24,8 @@ class TaskInvoice(BaseModel):
     user_request: str = Field(min_length=1, max_length=30_000)
     language: str = 'auto'
     requirements: list[str] = Field(min_length=1, max_length=30)
+    web_recipe:Literal['arabic_cv_v1']|None=None
+    web_recipe_sha256:str|None=Field(default=None,pattern=r'^[a-f0-9]{64}$')
     required_feature_contract: dict = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list, max_length=30)
     expected_files: list[str] = Field(default_factory=list, max_length=30)
@@ -37,6 +40,8 @@ class ProjectRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     user_request: str = Field(min_length=1, max_length=30_000)
     requirements: list[str] = Field(min_length=1, max_length=30)
+    web_recipe:Literal['arabic_cv_v1']|None=None
+    web_recipe_sha256:str|None=Field(default=None,pattern=r'^[a-f0-9]{64}$')
     required_feature_contract: dict = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list, max_length=28)
     required_files: list[str] = Field(default_factory=list, max_length=30)
@@ -146,7 +151,7 @@ class InvoiceOrchestrator:
     def make_invoice(self, request, *, project_id=None, task_id=None, context=''):
         request = ProjectRequest.model_validate(request)
         return TaskInvoice(task_id=task_id or 'workspace_' + uuid.uuid4().hex, project_id=project_id,
-            user_request=request.user_request, requirements=request.requirements, required_feature_contract=request.required_feature_contract,
+            user_request=request.user_request, requirements=request.requirements,web_recipe=request.web_recipe,web_recipe_sha256=request.web_recipe_sha256, required_feature_contract=request.required_feature_contract,
             constraints=list(dict.fromkeys(request.constraints + ['Do not execute code or install dependencies', 'Only return safe relative filenames'])),
             expected_files=request.required_files, filename_hints=request.filename_hints, required_python_symbols=request.required_python_symbols,
             context_summary=context, target_model=self.coordinator.router.get_model_id_for_tier('coder'))

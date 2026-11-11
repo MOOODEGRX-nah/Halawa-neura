@@ -89,6 +89,10 @@ TOGGLE=r'''(()=>{
 })()'''
 
 
+CV_STATE=r"""(()=>{const b=document.getElementById('cv-font-toggle'),m=document.getElementById('cv-content'),p=m?.querySelector('p');const visible=e=>{if(!e)return false;const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};return JSON.stringify({button_count:document.querySelectorAll('#cv-font-toggle').length,usable:visible(b)&&!b.disabled&&getComputedStyle(b).pointerEvents!=='none',pressed:b?.getAttribute('aria-pressed'),controls:b?.getAttribute('aria-controls'),font:p?parseFloat(getComputedStyle(p).fontSize):null,content:m?.innerText,text:document.body.innerText});})()"""
+CV_CLICK=r"""(()=>{const b=document.getElementById('cv-font-toggle');if(!b)return false;b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect(),hit=document.elementFromPoint(Math.max(0,Math.min(innerWidth-1,r.x+r.width/2)),Math.max(0,Math.min(innerHeight-1,r.y+r.height/2)));if(hit!==b&&!b.contains(hit))return false;b.click();return true;})()"""
+
+
 
 def main(source,destination):
     import base64
@@ -147,6 +151,10 @@ def main(source,destination):
         report['required_feature_contract']=required.get('feature_contract')
         report['required_interaction']=required.get('interaction')
         report['color_schemes']=['light','dark']
+        if required.get('web_recipe'):
+            from src.tools.web_recipes import ID
+            if required['web_recipe']!=ID:raise ValueError('Unsupported web recipe')
+            report['web_recipe']={'id':ID,'samples':[]}
         report['required_features']=[name for name in ('theme','login') if required.get(name)]
         changes=[]
         for scheme in ('light','dark'):
@@ -190,6 +198,14 @@ def main(source,destination):
                 js(TOGGLE);pump(.2)
                 restored=json.loads(js(INSPECT))
                 if restored['interaction_state']!='light' or restored['interaction_pressed']!='false':report['errors'].append('Required interaction did not restore its initial state')
+            if required.get('web_recipe'):
+                for width in (1280,480):
+                    view.resize(width,800);pump(.2)
+                    initial=json.loads(js(CV_STATE));clicked=js(CV_CLICK);pump(.2);enlarged=json.loads(js(CV_STATE));clicked_back=js(CV_CLICK);pump(.2);restored=json.loads(js(CV_STATE))
+                    proof={'width':width,'color_scheme':scheme,'initial':initial,'enlarged':enlarged,'restored':restored,'clicked':clicked,'clicked_back':clicked_back};report['web_recipe']['samples'].append(proof)
+                    if not clicked or not clicked_back or initial['button_count']!=1 or not initial['usable'] or initial['controls']!='cv-content' or initial['pressed']!='false' or enlarged['pressed']!='true' or restored['pressed']!='false' or not initial['font'] or not enlarged['font'] or enlarged['font']<=initial['font']+.1 or abs(restored['font']-initial['font'])>.1 or initial['content']!=enlarged['content'] or initial['content']!=restored['content']:
+                        report['errors'].append('Required CV font interaction failed in '+scheme+' '+str(width))
+                    if len(re.findall(r'[\u0600-\u06ff]{2,}',initial['text']))<4:report['errors'].append('Required Arabic CV is not visible')
             report['samples'].extend(samples)
         if changes:report['theme_changed']=all(changes)
         if required.get('login') and any(not any(re.search(r'login|sign.?in|دخول',c['label'],re.I) for c in sample['controls']) for sample in report['samples']):report['errors'].append('Required Login placeholder is not visible')

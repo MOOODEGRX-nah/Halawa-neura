@@ -5,7 +5,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--baseline',action='store_true')
 p.add_argument('--real-model',action='store_true')
-p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify','resource-smoke'],default='exact')
+p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify','resource-smoke','web-recipe'],default='exact')
 p.add_argument('--seed-project',type=Path,help='Declared existing-project source JSON for large/edit-removal QA')
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--login-request',default='أضف زر تسجيل دخول',help='Explicitly declared preservation journey variant')
@@ -20,6 +20,9 @@ a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
 if (out/'composer.json').exists():raise SystemExit('Refusing to overwrite an existing run')
 root=Path(__file__).resolve().parents[1]
 identity={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'runtime_hashes':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for base in ('src','web','configs') for p in (root/base).rglob('*') if p.is_file() and '__pycache__' not in str(p)},'started_at':time.time(),'workflow':a.workflow,'preservation_requests':{'login':a.login_request,'theme':a.theme_request},'removal_request':a.remove_request,'removed_feature':a.removed_feature,'compound_mode':a.compound_mode,'compound_request':a.compound_request,'device_requested':a.gpu or 'CPU','inference':'real' if a.real_model else 'fake'}
+if a.workflow=='web-recipe':
+ from src.tools.web_recipes import manifest
+ identity['expected_recipe_manifest']=manifest()
 (out/'identity.json').write_text(json.dumps(identity,indent=2))
 profile=out/'profile'
 os.environ.update(NEURA_SETTINGS_DIR=str(profile/'config'),NEURA_DATA_DIR=str(profile/'data'),NEURA_STATE_DIR=str(profile/'state'),NEURA_TIMEOUT_S='900')
@@ -69,7 +72,7 @@ def save():
  (out/'composer.json').write_text(json.dumps({'environment':'Qt offscreen; '+('actual local inference; requested '+(a.gpu or 'CPU') if a.real_model else 'fake inference and desktop adapters')+'; actual composer/API/jobs/storage/preview','baseline':a.baseline,'turns':turns},ensure_ascii=False,indent=2))
 def state():
  projects=api('/projects')['projects']
- return {'session':js('sid'),'projects':[{k:v for k,v in item.items() if k in ('project_id','project_revision','files','latest_job_id','generation_status','accepted_requirements')} for item in projects],
+ return {'session':js('sid'),'projects':[{k:v for k,v in item.items() if k in ('project_id','project_revision','files','latest_job_id','generation_status','accepted_requirements','generation_recipe')} for item in projects],
   'preview':js('document.querySelector("#ws-preview-rev").textContent'),'active_project':js('window.NeuraWorkspace.projectId||null'),
   'cards':js('JSON.stringify(Array.from(document.querySelectorAll("[data-project-job-id]")).map(e=>({job_id:e.dataset.projectJobId,state:e.dataset.jobState,text:e.textContent})))')}
 def send(text):
@@ -106,15 +109,19 @@ try:
  elif a.workflow=='plan':
   send('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.')
  else:
-  if a.workflow=='resource-smoke':send('برمج سكربت Python بسيط باسم main.py يطبع مرحبا دون أي اعتماد خارجي')
+  if a.workflow=='web-recipe':send('برمج لي موقع سيرة ذاتية عربي محلي يعمل بدون إنترنت مع بيانات تجريبية واضحة')
+  elif a.workflow=='resource-smoke':send('برمج سكربت Python بسيط باسم main.py يطبع مرحبا دون أي اعتماد خارجي')
   elif a.workflow=='compound':send(a.compound_request)
   elif a.workflow=='remove':send(a.remove_request)
   elif a.workflow=='large':send('هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا')
   else:send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
   texts=['هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا','نعم','لم تفعل شي حتى الان؟','فل تبرمج','هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا'] if a.workflow=='exact' else [a.login_request,a.theme_request,'هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
+  if a.workflow=='web-recipe':texts=['أضف الوضع الداكن إلى هذا المشروع','هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
   if a.workflow=='proposal':texts=['واجهة مميزة تناسب العرض',a.approval,a.approval]
   if a.workflow in ('smoke','resource-smoke','large','remove','compound'):texts=[]
-  for text in texts:send(text)
+  for text in texts:
+   if a.workflow=='web-recipe' and any(j['state']!='completed' for j in turns[-1]['jobs']):break
+   send(text)
   js('document.querySelector("#ws-return").click();true;')
   wait(lambda:js('Array.from(document.querySelectorAll("[data-project-job-id]")).every(e=>["completed","failed","cancelled"].includes(e.dataset.jobState))'))
   (out/'cards-before-restart.json').write_text(json.dumps(state(),ensure_ascii=False,indent=2))

@@ -71,7 +71,7 @@ class DesktopSettings:
 
     def validate(self):
         disabled=self.values['disabled_skills']
-        if not isinstance(disabled,list) or any(name not in ('open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications') for name in disabled):
+        if not isinstance(disabled,list) or any(name not in ('prepare_static_cv','open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications') for name in disabled):
             raise ValueError('قائمة المهارات المعطلة غير صالحة')
         if type(self.values['n_ctx']) is not int or not 512 <= self.values['n_ctx'] <= 32768:
             raise ValueError('Invalid context length')
