@@ -235,9 +235,15 @@ class ProjectJobs:
             return self.get(job_id)
 
     def _run(self):
-        from contextlib import nullcontext
-        scope=self.coordinator.protection.limits.scope(persistent=True) if hasattr(self.coordinator,'protection') else nullcontext()
-        with scope:self._work_loop()
+        from contextlib import nullcontext,ExitStack
+        with ExitStack() as stack:
+            scope=self.coordinator.protection.limits.scope(persistent=True) if hasattr(self.coordinator,'protection') else nullcontext()
+            try:stack.enter_context(scope)
+            except OSError as error:
+                policy=self.coordinator.protection;policy.blocked_reason='تعذر فرض حدود عامل المهام: '+str(error);policy.state='Resource Blocked'
+                # Keep the bounded queue/cancel/deadline loop alive. Native calls
+                # still require confirmed placement and cannot run in this state.
+            self._work_loop()
 
     def _work_loop(self):
         while not self.stopping.is_set():

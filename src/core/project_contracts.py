@@ -40,6 +40,7 @@ class DraftFile(BaseModel):
 
 
 class JobSnapshot(BaseModel):
+    blocked_reason:str|None=None
     job_id:str=Field(pattern=r'^j_[a-f0-9]{32}$')
     project_id:str=Field(pattern=r'^p_[a-f0-9]{32}$')
     state:Literal['queued','planning','generating','validating','completed','failed','cancelled']

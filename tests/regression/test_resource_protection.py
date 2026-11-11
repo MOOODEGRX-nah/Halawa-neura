@@ -212,3 +212,37 @@ def test_cancelled_wait_is_not_replayed_after_crash(system,tmp_path,monkeypatch)
         assert wait_terminal(recovered,key)['state']=='cancelled'
         assert not system.backend.calls
     finally:recovered.shutdown();store.close()
+
+
+def test_job_api_preserves_queued_resource_reason(system,monkeypatch):
+    import asyncio,httpx
+    from src.backend.api import create_app
+    monkeypatch.setattr(system,'project_resource_ready',lambda:(False,'Planner model cannot fit protected GPU'))
+    app=create_app(system.settings,system);jobs=app.state.project_jobs
+    created=jobs.create({'user_request':'create Python hello','requirements':['hello']});key=created['job']['job_id']
+    end=time.monotonic()+2
+    while not jobs.get(key)['blocked_reason'] and time.monotonic()<end:time.sleep(.01)
+    async def check():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://127.0.0.1',headers={'X-Neura-Token':'test-token'}) as client:
+            value=(await client.get('/project-jobs/'+key)).json()
+            assert value['state']=='queued' and value['blocked_reason']=='Planner model cannot fit protected GPU'
+    try:asyncio.run(check())
+    finally:jobs.cancel(key);jobs.shutdown();app.state.project_store.close()
+
+
+def test_cpu_placement_failure_keeps_queue_cancelable(system,tmp_path,monkeypatch):
+    from contextlib import contextmanager
+    @contextmanager
+    def denied(*a,**k):
+        raise OSError('affinity denied')
+        yield
+    monkeypatch.setattr(system.protection.limits,'scope',denied)
+    monkeypatch.setattr(system,'project_resource_ready',lambda:(False,'affinity denied'))
+    store=ProjectStore(tmp_path/'data');jobs=ProjectJobs(store,system)
+    try:
+        key=jobs.create({'user_request':'create Python hello','requirements':['hello']})['job']['job_id']
+        end=time.monotonic()+2
+        while not jobs.get(key)['blocked_reason'] and time.monotonic()<end:time.sleep(.01)
+        assert jobs.worker.is_alive() and jobs.get(key)['blocked_reason']=='affinity denied'
+        jobs.cancel(key);assert wait_terminal(jobs,key)['state']=='cancelled' and not system.backend.calls
+    finally:jobs.shutdown();store.close()
