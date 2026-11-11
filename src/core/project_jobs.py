@@ -163,6 +163,11 @@ class ProjectJobs:
 
     def create(self, request, *, validated_decision=None):
         request = WorkspaceRequest.model_validate(request)
+        # The shared pre-admission gate also protects manual API/project choices
+        # and old proposals. Reject before creating a project, ledger, or worker.
+        from src.core.feature_intent import interpret_features,execution_issue
+        issue=execution_issue(interpret_features(request.user_request))
+        if issue:raise ProjectError(issue)
         with self.store.lock:
             if self.update_reservation:raise Conflict('التحديث قيد التهيئة؛ لم تُنشأ مهمة جديدة.')
             if self.stopping.is_set() or self.queue.full():
@@ -357,7 +362,7 @@ class ProjectJobs:
                         from src.core.application_targets import normalize
                         required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[]) and normalize(c['label']) not in removed_labels],
                                   'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[])) and normalize(t) not in removed_labels],
-                                  **requested_web_features(feature_contract),'feature_contract':feature_contract,'removed_features':[c['feature'] for c in feature_contract['changes'] if c['operation']=='remove']}
+                                  **requested_web_features(feature_contract),'feature_contract':feature_contract,'removed_features':sorted(set(feature_contract.get('excluded',{})) | {c['feature'] for c in feature_contract['changes'] if c['operation']=='remove'})}
                         from src.core.required_interactions import present_contract
                         interaction=present_contract(files,preview.get('entry_point'))
                         if required.get('theme') and interaction:required['interaction']=interaction

@@ -17,13 +17,19 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not any((directory/name).exists() for name in ('failure.json','interruption.json')),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1,'compound':1,'compound-clarify':1}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
         decisions=turn['dispatch']
         require(len(decisions)==1,label+': expected one dispatch')
         if not decisions:continue
+        if workflow=='compound-clarify':
+            require(decisions[0]['kind']=='clarification',label+': unsafe compound did not ask clarification')
+            require(not turn['jobs'] and turn['job_count']==0,label+': clarification created a job')
+            require(turn['before']['projects']==turn['after']['projects'],label+': clarification changed project state')
+            require(not list((directory/'artifacts/model-traces').glob('*.json')),label+': clarification invoked a model')
+            continue
         if workflow=='plan':
             plan=decisions[0].get('planning',{})
             require(decisions[0]['kind']=='plan' and plan.get('accepted'),label+': plan rejected')
@@ -69,8 +75,13 @@ def check_run(directory):
                 for stage in job.get('stage_results',[]):
                     if stage['stage'] in ('planning','generating'):
                         require(contract==stage.get('result',{}).get('required_feature_contract'),label+': stage feature contract mismatch '+stage['stage'])
-                if workflow=='remove':
-                    require(contract['prior_required'].get('login') and contract['prior_required'].get('theme'),label+': removal seed requirements absent')
+                if workflow in ('remove','compound'):
+                    expected_prior={'login':True}
+                    if workflow=='remove' or identity['compound_mode']=='keep':expected_prior['theme']=True
+                    require(contract['prior_required']==expected_prior,label+': initial feature requirements differ from declared seed')
+                    if workflow=='compound':
+                        expected_changes={('login','remove'),('theme','add' if identity['compound_mode']=='add' else 'keep')}
+                        require({(c['feature'],c['operation']) for c in contract['changes']}==expected_changes and len(contract['changes'])==2,label+': compound binding differs from independently declared changes')
                     removed=identity.get('removed_feature','login');kept='theme' if removed=='login' else 'login'
                     require(contract['required']=={kept:True},label+': removal did not retain only the other accepted feature')
                     require(any(c['feature']==removed and c['operation']=='remove' for c in contract['changes']),label+': explicit removal absent from contract')
@@ -159,7 +170,7 @@ def check_run(directory):
                 require(any(initial[p]!=toggled[p] for p in initial.keys()&toggled.keys()),label+': actual theme surface change not demonstrated in '+scheme+' scheme')
 
             require(receipt.get('preservation',{}).get('status')=='passed',label+': preservation not checked')
-    if workflow!='plan':
+    if workflow not in ('plan','compound-clarify'):
         durable={job['job_id']:job['state'] for turn in turns for job in turn.get('jobs',[])}
         for name in ['cards-before-restart.json','cards-restored.json']:
             path=directory/name

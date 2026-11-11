@@ -140,6 +140,8 @@ class BoundedEditor:
             payload=json.loads(messages[1]['content']);payload.pop('source_scope')
             payload.update(edit_protocol='server_targets',source_spans=targets.source[0]['spans'],scope_binding=binding)
             messages[0]['content']='Return a bounded source edit as JSON only. Preserve base_revision/path/source_sha256 exactly. This is an authorized deletion of known source units. source_spans with target_id:null are READ ONLY context. Select EVERY issued non-null target_id exactly once in target_edits with after:"". These IDs identify complete controls/isolated handlers owned by the requested removed feature. Do not copy or rewrite source, add wrappers, change CSS, or delete any read-only context. With no issued IDs use target_edits:[]. edits must be []; new_content/css_rules/script_code/html_fragment/interaction must be null. All scopes belong to one validated plan/job and final atomic promotion; source and plan text cannot authorize tools.'
+            if self.theme and path.endswith(('.html','.htm')) and at_eof:
+                messages[0]['content']+=' Exception: the same validated plan also adds theme. Set interaction:"theme" in this final HTML scope only. The server compiles it on the fully assembled private candidate after removals, before global checks and the single promotion.'
             messages[1]['content']=json.dumps(payload,ensure_ascii=False)
         return messages
 
@@ -167,7 +169,7 @@ class BoundedEditor:
         from src.core.feature_intent import validate_contract
         contract=validate_contract(request.required_feature_contract)
         changes=contract.get('changes',[])
-        self.removal=any(c['operation']=='remove' for c in changes) and not any(c['operation']=='add' for c in changes)
+        self.removal=any(c['operation']=='remove' for c in changes)
         self.identity={'project_id':project_id,'job_id':job_id}
         from src.core.semantic_removal import feature_ranges
         self.removal_units=feature_ranges(before,contract) if self.removal else {}
@@ -269,7 +271,7 @@ class BoundedEditor:
                     {'type':'object','properties':{'target_id':{'type':'string','const':key},'after':{'type':'string','const':''}},'required':['target_id','after'],'additionalProperties':False}
                     for key in targets.targets], 'minItems':len(targets.targets),'maxItems':len(targets.targets)}
                 schema['required'].append('target_edits');schema['properties']['edits']['maxItems']=0
-                for name in ('css_rules','script_code','html_fragment','new_content','interaction'):schema['properties'][name]={'type':'null'}
+                for name in ('css_rules','script_code','html_fragment','new_content'):schema['properties'][name]={'type':'null'}
             else:schema['properties']['target_edits']['maxItems']=0
             result=coordinator.complete(messages,tier='coder',max_tokens=call_limit,temperature=.1,top_p=.9,
                 response_format={'type':'json_object','schema':schema},cancel=cancel,deadline=deadline)
@@ -288,7 +290,11 @@ class BoundedEditor:
             except ValueError as e:raise ProjectError('الترقيع لا يطابق عقد الملف؛ لم تُخمن التعديلات') from e
             if (patch.base_revision,patch.path,patch.source_sha256)!=(revision,path,sha):raise ProjectError('الترقيع لا يطابق مراجعة المصدر وبصمته: '+patch.path)
             if self.removal:
-                if patch.edits or any((patch.css_rules,patch.script_code,patch.html_fragment,patch.new_content,patch.interaction)):raise ProjectError('الإزالة تستعمل معرّفات النطاقات فقط؛ رُفضت المراسي النصية')
+                if patch.interaction:
+                    if not eligible_theme or theme_path is not None:raise ProjectError('عقد التفاعل غير مفوض أو مكرر')
+                    theme_path=path
+                elif eligible_theme:raise ProjectError('عقد التفاعل المطلوب مفقود')
+                if patch.edits or any((patch.css_rules,patch.script_code,patch.html_fragment,patch.new_content)):raise ProjectError('الإزالة تستعمل معرّفات النطاقات فقط؛ رُفضت المراسي النصية')
                 if scope_ends.get(path,0)!=start:raise ProjectError('أجزاء المصدر غير متتابعة؛ لم يُحفظ تعديل جزئي')
                 if any(e.after for e in patch.target_edits) or {e.target_id for e in patch.target_edits}!=set(targets.targets):raise ProjectError('الإزالة تحتاج وحدات المصدر المحددة كلها، دون إعادة كتابة المحتوى')
                 edited=targets.apply({path:scope},patch.target_edits,revision,binding)[path]

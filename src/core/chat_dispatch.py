@@ -30,6 +30,9 @@ def project_intent(text):
 
 
 def active_edit_intent(text):
+    from src.core.feature_intent import interpret_features
+    interpreted=interpret_features(text)
+    if not project_intent(text) and (interpreted.requests_edit or interpreted.issues):return True
     q=command_text(text)
     if edit_command(q):return True
     if re.match(r'^(?:اجعل|خل|خلي|make)\s+(?:الموقع|المشروع|الصفحة|the site|this website|it)\s+(?:يدعم|تدعم|فيه|support|include)\b',q):return True
@@ -190,6 +193,9 @@ class ChatDispatcher:
         return self._applications(matches,'التطبيق السابق',session_id)
 
     def _edit_current(self,text,project_id,dirty,provenance=None):
+        from src.core.feature_intent import interpret_features,execution_issue
+        issue=execution_issue(interpret_features(text))
+        if issue:return {'kind':'clarification','message':issue+' لم تُنشأ مهمة ولم تتغير الملفات.'}
         project=self.store.get(project_id)
         if dirty:
             result=self._workspace({'project_id':project_id,'edit_request':text})
@@ -339,6 +345,10 @@ class ChatDispatcher:
                 if decision.intent in ('edit','proposal') and active_project_id:
                     return self.conversations.propose(session_id,active_project_id,text,request_id)
                 return {'kind':'clarification','message':'هل تقصد تعديل المشروع الحالي أم شرح طريقة التحسين؟ اكتب التعديل المطلوب أو ابدأ طلبك بكلمة اشرح.'}
+            if edit or project_intent(text):
+                from src.core.feature_intent import interpret_features,execution_issue
+                issue=execution_issue(interpret_features(text))
+                if issue:return {'kind':'clarification','message':issue+' لم تُنشأ مهمة ولم تتغير الملفات.'}
             if not followup:self.targets.set(session_id,[])
             if metadata:
                 answer=self.store.answer(active_project_id,text)
