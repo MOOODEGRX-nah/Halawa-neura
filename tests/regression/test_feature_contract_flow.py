@@ -110,7 +110,10 @@ def test_explicit_removal_variants_use_validated_job_admission(system,text):
         pid=store.create('Owned','Fixture')['project_id']
         store.commit(pid,{'index.html':source},0,accepted_requirements=[{'origin':'user_request','text':'أضف زر تسجيل دخول'}])
         dispatch.bind_project('qa-removal',pid)
-        system.backend.text=json.dumps({'base_revision':1,'path':'index.html','source_sha256':digest(source),'edits':[{'before':'<button>Login</button>','after':''}],'new_content':None})
+        def targeted(messages,options):
+            packet=json.loads(messages[1]['content']);span=next(s for s in packet['source_spans'] if '<button>Login</button>' in s['source'])
+            return json.dumps({'base_revision':1,'path':'index.html','source_sha256':digest(source),'edits':[],'target_edits':[{'target_id':span['target_id'],'after':span['source'].replace('<button>Login</button>','')}],'new_content':None})
+        system.backend.text=targeted
         result=dispatch.dispatch(text,request_id(),session_id='qa-removal');assert result['kind']=='project'
         job=wait(jobs,result['job']['job_id']);assert job['state']=='completed',job
         contract=job['invoice']['required_feature_contract']

@@ -39,6 +39,12 @@ def html_contract(files):
     return result
 
 
+def removed_control_labels(contracts,feature_contract):
+    from src.core.feature_intent import validate_contract
+    removals={c['feature'] for c in validate_contract(feature_contract).get('changes',[]) if c['operation']=='remove'}
+    return {normalize(c['label']) for value in contracts.values() for c in value.get('controls',[]) if ('theme' in removals and re.search(r'theme|dark|داكن|ليلي|مظلم',c['label'],re.I)) or ('login' in removals and re.search(r'login|sign.?in|تسجيل الدخول|تسجيل دخول',c['label'],re.I))}
+
+
 def contract_summary(files,requirements=()):
     complete=html_contract(files)
     summary={path:{'text':value['text'][:100],'controls':value['controls'][:50],
@@ -50,9 +56,7 @@ def contract_summary(files,requirements=()):
 def preservation_errors(before,after,user_request,contract=None):
     old,new=html_contract(before),html_contract(after);errors=[]
     q=normalize(user_request)
-    from src.core.feature_intent import validate_contract
-    removals={c['feature'] for c in validate_contract(contract).get('changes',[]) if c['operation']=='remove'}
-    removable_labels={normalize(c['label']) for value in old.values() for c in value['controls'] if ('theme' in removals and re.search(r'theme|dark|داكن|ليلي|مظلم',c['label'],re.I)) or ('login' in removals and re.search(r'login|sign.?in|تسجيل الدخول|تسجيل دخول',c['label'],re.I))}
+    removable_labels=removed_control_labels(old,contract)
     removal=bool(re.match(r'^(?:احذف|ازل|remove|delete)\b',q))
     # Only an explicitly named label is removable. A generic removal request is
     # not permission to remove all content or every control.

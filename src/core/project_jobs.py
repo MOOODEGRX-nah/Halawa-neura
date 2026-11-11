@@ -15,7 +15,7 @@ from src.core.project_store import now, digest
 from src.core.project_stream import FileStream
 from src.core.project_contracts import JobEvent
 from src.core.project_validation import inspect_files
-from src.core.edit_preservation import require_preserved, html_contract, contract_summary, requested_web_features
+from src.core.edit_preservation import require_preserved, html_contract, contract_summary, requested_web_features, removed_control_labels
 from src.core.candidate_browser import check_candidate
 from src.core.contrast_repair import repair_contrast
 
@@ -353,8 +353,10 @@ class ProjectJobs:
                     if changed:
                         required=html_contract(before).get(preview.get('entry_point'),{})
                         resulting=html_contract(files).get(preview.get('entry_point'),{})
-                        required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[])],
-                                  'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[]))],
+                        removed_labels=removed_control_labels({'entry':required},feature_contract)
+                        from src.core.application_targets import normalize
+                        required={'controls':[c for c in required.get('controls',[]) if c in resulting.get('controls',[]) and normalize(c['label']) not in removed_labels],
+                                  'text':[t for t in required.get('text',[]) if t in ' '.join(resulting.get('text',[])) and normalize(t) not in removed_labels],
                                   **requested_web_features(feature_contract),'feature_contract':feature_contract,'removed_features':[c['feature'] for c in feature_contract['changes'] if c['operation']=='remove']}
                         from src.core.required_interactions import present_contract
                         interaction=present_contract(files,preview.get('entry_point'))

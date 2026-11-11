@@ -110,6 +110,7 @@ class FakeBackend:
                 'files': paths})
         else:
             text = self.replies.pop(0) if self.replies else self.text
+        if callable(text):text=text(messages,kwargs)
         if messages[0]['content'].startswith('Return a bounded file patch'):
             import re
             packet=json.loads(messages[1]['content']);path=packet['path'];scope=packet['source_scope']

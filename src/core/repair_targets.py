@@ -21,10 +21,11 @@ class RepairTargets:
     Every text byte is supplied once as bounded contiguous line groups. Coordinates refer to the
     original candidate, never to intermediate replacements. No fuzzy matching.
     """
-    def __init__(self, files, revision=None):
+    def __init__(self, files, revision=None, binding=None):
         self.hashes={p:digest(v) for p,v in files.items()}
         self.revision=revision
-        self.snapshot=hashlib.sha256(json.dumps({'revision':revision,'files':self.hashes},sort_keys=True).encode()).hexdigest()
+        self.binding=dict(binding or {})
+        self.snapshot=hashlib.sha256(json.dumps({'revision':revision,'files':self.hashes,'binding':self.binding},sort_keys=True).encode()).hexdigest()
         self.targets={};self.source=[]
         for path,value in files.items():
             safe_path(path)
@@ -46,8 +47,8 @@ class RepairTargets:
             self.source.append({'path':path,'spans':parts})
         if len(self.targets)>512:raise ProjectError('عدد نطاقات الإصلاح يتجاوز الحد الآمن')
 
-    def apply(self, files, edits, revision=None):
-        if revision!=self.revision or {p:digest(v) for p,v in files.items()}!=self.hashes:
+    def apply(self, files, edits, revision=None, binding=None):
+        if dict(binding or {})!=self.binding or revision!=self.revision or {p:digest(v) for p,v in files.items()}!=self.hashes:
             raise ProjectError('تغيرت مراجعة المرشح أو بصمته؛ رُفض الإصلاح القديم')
         scheduled={}
         for edit in edits:
@@ -61,7 +62,7 @@ class RepairTargets:
         return apply_spans(files,scheduled)
 
     def manifest(self):
-        return {'candidate_sha256':self.snapshot,'base_revision':self.revision,'source_hashes':self.hashes,
+        return {'candidate_sha256':self.snapshot,'base_revision':self.revision,'source_hashes':self.hashes,'binding':self.binding,
                 'targets':[vars(t) for t in self.targets.values()]}
 
 

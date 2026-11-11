@@ -93,6 +93,18 @@ def check_run(directory):
                     require(native.get('completion_tokens')==usage.get('completion_tokens'),label+': completion metrics mismatch')
                     require(native.get('effective_output_limit')==op['output_limit'],label+': output silently clipped')
                     require(native.get('prompt_tokens',99999)+op['output_limit']<=native.get('context_size',0),label+': context overflow')
+                    table=op.get('scope_targets')
+                    if table:
+                        binding=table['binding']
+                        require(binding.get('project_id')==pid and binding.get('job_id')==job['job_id'],label+': scoped IDs belong to another job/project')
+                        require(binding.get('base_file_sha256')==op['source_sha256']==receipt.get('base_hashes',{}).get(op['path']),label+': scoped IDs base hash mismatch')
+                        require(binding.get('scope_start_char')==op['source_start_char'] and binding.get('scope_end_char')==op['source_end_char'],label+': scoped IDs range mismatch')
+                        require(table['source_hashes'].get(op['path'])==op['source_scope_sha256'],label+': scoped IDs source hash mismatch')
+                        try:
+                            patch=json.loads(op['output']);ids=[e['target_id'] for e in patch.get('target_edits',[])]
+                            require(len(ids)==len(set(ids)) and set(ids)<=set(t['target_id'] for t in table['targets']),label+': duplicate or unissued scoped edit')
+                            require(not patch.get('edits'),label+': legacy anchors accepted for scoped removal')
+                        except (ValueError,KeyError,TypeError):require(False,label+': invalid scoped edit record')
                     scopes.setdefault(op['path'],[]).append(op)
                 for path,parts in scopes.items():
                     cursor=0
