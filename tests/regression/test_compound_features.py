@@ -119,3 +119,28 @@ def test_explicit_removal_persists_as_exclusion_until_explicit_user_add():
         history.append({'origin':'user_request','text':text,'feature_contract':contract})
     added=build_contract('أضف Login',history,decision)
     assert added['required']=={'theme':True,'login':True} and added['excluded']=={}
+
+
+def test_exclusion_survives_bounded_history_and_single_latest_record():
+    history=[{'origin':'user_request','text':'أضف Login والوضع الداكن'}];decision={'intent':'project.edit'}
+    for text in ['احذف Login ولا تحذف الوضع الداكن']+['حسن واجهة الموقع']*35:
+        contract=build_contract(text,history,decision)
+        assert contract['excluded']=={'login':True}
+        history=(history+[{'origin':'user_request','text':text,'feature_contract':contract}])[-30:]
+    assert build_contract('حسن واجهة الموقع',history[-1:],decision)['excluded']=={'login':True}
+
+
+def test_measured_legacy_surface_repair_accepts_only_recorded_contrast_pair():
+    from pathlib import Path
+    from src.core.contrast_repair import repair_contrast
+    from src.core.project_validation import inspect_files
+    fixture=json.loads((Path(__file__).parents[1]/'fixtures/compound_review/large-lost-theme-surface.json').read_text())
+    result=repair_contrast(fixture['candidate'],'index.html',fixture['browser_report'],'Preserve dark mode')
+    assert result is not None
+    corrected,receipt=result
+    assert receipt['model_called'] is False and 'body.dark-mode > div:nth-of-type(1){background-color:#171717!important}' in corrected['index.html']
+    assert corrected['style.css']==fixture['candidate']['style.css'] and corrected['script.js']==fixture['candidate']['script.js']
+    assert not inspect_files(corrected)[2]['errors']
+    for extra in ['Required Login placeholder is not visible','Explicitly removed Login control is still visible','Unknown custom failure']:
+        assert repair_contrast(fixture['candidate'],'index.html',{**fixture['browser_report'],'errors':fixture['browser_report']['errors']+[extra]},'Preserve dark mode') is None
+    assert repair_contrast(fixture['candidate'],'index.html',{'errors':['Required theme did not change observed content surface backgrounds in light scheme']},'Preserve dark mode') is None

@@ -194,6 +194,10 @@ def build_contract(text,accepted,decision):
         if record.get('origin')!='user_request':continue
         saved=record.get('feature_contract')
         changes=validate_contract(saved).get('changes',[]) if saved else intent_evidence(record.get('text',''))
+        if saved and 'excluded' in saved:
+            # The latest accepted state survives bounded history retention.
+            excluded=dict(saved['excluded'])
+            continue
         for item in changes:
             if item['operation']=='remove':excluded[item['feature']]=True
             elif item['operation']=='add':excluded.pop(item['feature'],None)

@@ -18,7 +18,13 @@ def contrast(foreground,background):
 
 
 def repair_contrast(files,entry,report,user_request):
-    if not report or not report.get('errors') or any('low text contrast:' not in e for e in report['errors']):return None
+    if not report or not report.get('errors'):return None
+    # A lost solid dark surface can cause BOTH contrast failure and the
+    # independent surface-change failure. Permit only that exact measured pair;
+    # absent controls/state, unknown backgrounds and unrelated errors stay fatal.
+    errors=report['errors']
+    if not any('low text contrast:' in e for e in errors):return None
+    if any('low text contrast:' not in e and not re.fullmatch(r'Required theme did not change observed content surface backgrounds in (?:light|dark) scheme',e) for e in errors):return None
     if re.search(r'لون (?:النص|الخط)|text colo[u]?r|font colo[u]?r',user_request,re.I):return None
     if entry not in files or not isinstance(files[entry],str):return None
     # The iframe inherits the app's color-scheme. Never use a light-only

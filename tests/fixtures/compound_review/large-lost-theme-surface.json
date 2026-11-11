@@ -1,0 +1,4539 @@
+{
+  "provenance": {
+    "snapshot": "cdd3d80f06248ebb032572709fb0685792b52c79",
+    "source": "/home/foxlinux/Documents/Codex/2026-10-27/files-mentioned-by-the-user-neura/outputs/compound-intent-20261111-r2/large-1/composer.json",
+    "job_id": "j_ee0e110c284b46eb9eeb2d20726a2090",
+    "scope": "Actual native rejected candidate; no reconstruction of model text"
+  },
+  "request": "هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا",
+  "contract": {
+    "version": 1,
+    "intent_grammar_version": 2,
+    "source_request_sha256": "2e0c38aa423ad0b03233b4540f0579020da65475ed3263853f80c436641d7e71",
+    "provenance": {
+      "schema_version": 1,
+      "intent": "project.edit",
+      "session_id": "s_895f8166f8d944df8917dcab38a9e31d",
+      "source_turn_id": "r_1794410041861_deeb2b93e5954005b1721809fcf9cd31",
+      "project_id": "p_b655ab8fe8c8444eab3a0910f4ec8eb4",
+      "base_revision": 1,
+      "job_id": null,
+      "proposal_id": null,
+      "resolution_source": "validated_user_dispatch"
+    },
+    "prior_required": {
+      "login": true,
+      "theme": true
+    },
+    "prior_excluded": {},
+    "changes": [],
+    "required": {
+      "login": true,
+      "theme": true
+    },
+    "excluded": {},
+    "legacy_migration": [
+      {
+        "job_id": null,
+        "text_sha256": "3000f85792526b5ac3d2e852da35fe7b208ff5dce125f0a63ec5b97de66c2427"
+      },
+      {
+        "job_id": null,
+        "text_sha256": "a2f3df64881803abe7ba5bb6b4bbe473a3acad7285a9fa1910658cbd7ef350b9"
+      },
+      {
+        "job_id": null,
+        "text_sha256": "d9cd2b066c48184d4941aebab1f2f5a46d94defa1946ea3e43e5977b56c7ce07"
+      }
+    ],
+    "sha256": "ab0b1cc16eb532852487f3cda138d4aeeaa72001acb36c2d5fc124f712a5f9b0"
+  },
+  "before": {
+    "style.css": "\n        body {\n            font-family: Arial, sans-serif;\n            background-color: #f4f4f9;\n            color: #333;\n            margin: 0;\n            padding: 0;\n            line-height: 1.6;\n            transition: background-color 0.3s, color 0.3s;\n        }\n        .container {\n            width: 80%;\n            margin: 0 auto;\n            padding: 20px;\n        }\n        .header {\n            background-color: #007bff;\n            color: #fff;\n            padding: 10px 0;\n            text-align: center;\n        }\n        .header button {\n            background-color: #fff;\n            color: #007bff;\n            border: none;\n            padding: 10px 20px;\n            cursor: pointer;\n            border-radius: 5px;\n            text-decoration: none;\n            margin-top: 10px;\n        }\n        .header button:hover {\n            background-color: #0056b3;\n            color: #fff;\n        }\n        .section {\n            margin-bottom: 20px;\n        }\n        .section-title {\n            background-color: #333;\n            color: #fff;\n            padding: 10px;\n            text-align: center;\n        }\n        .content {\n            padding: 10px;\n        }\n\n        /* Dark mode styles */\n        body.dark-mode {\n            background-color: #333;\n            color: #f4f4f9;\n        }\n        .header.dark-mode {\n            background-color: #333;\n            color: #f4f4f9;\n        }\n        .header.dark-mode button {\n            background-color: #f4f4f9;\n            color: #333;\n        }\n        .header.dark-mode button:hover {\n            background-color: #0056b3;\n            color: #f4f4f9;\n        }\n        .section-title.dark-mode {\n            background-color: #f4f4f9;\n            color: #333;\n        }\n    \n/* Archived style note 000: retained source context, never discarded. */\n/* Archived style note 001: retained source context, never discarded. */\n/* Archived style note 002: retained source context, never discarded. */\n/* Archived style note 003: retained source context, never discarded. */\n/* Archived style note 004: retained source context, never discarded. */\n/* Archived style note 005: retained source context, never discarded. */\n/* Archived style note 006: retained source context, never discarded. */\n/* Archived style note 007: retained source context, never discarded. */\n/* Archived style note 008: retained source context, never discarded. */\n/* Archived style note 009: retained source context, never discarded. */\n/* Archived style note 010: retained source context, never discarded. */\n/* Archived style note 011: retained source context, never discarded. */\n/* Archived style note 012: retained source context, never discarded. */\n/* Archived style note 013: retained source context, never discarded. */\n/* Archived style note 014: retained source context, never discarded. */\n/* Archived style note 015: retained source context, never discarded. */\n/* Archived style note 016: retained source context, never discarded. */\n/* Archived style note 017: retained source context, never discarded. */\n/* Archived style note 018: retained source context, never discarded. */\n/* Archived style note 019: retained source context, never discarded. */\n/* Archived style note 020: retained source context, never discarded. */\n/* Archived style note 021: retained source context, never discarded. */\n/* Archived style note 022: retained source context, never discarded. */\n/* Archived style note 023: retained source context, never discarded. */\n/* Archived style note 024: retained source context, never discarded. */\n/* Archived style note 025: retained source context, never discarded. */\n/* Archived style note 026: retained source context, never discarded. */\n/* Archived style note 027: retained source context, never discarded. */\n/* Archived style note 028: retained source context, never discarded. */\n/* Archived style note 029: retained source context, never discarded. */\n/* Archived style note 030: retained source context, never discarded. */\n/* Archived style note 031: retained source context, never discarded. */\n/* Archived style note 032: retained source context, never discarded. */\n/* Archived style note 033: retained source context, never discarded. */\n/* Archived style note 034: retained source context, never discarded. */\n/* Archived style note 035: retained source context, never discarded. */\n/* Archived style note 036: retained source context, never discarded. */\n/* Archived style note 037: retained source context, never discarded. */\n/* Archived style note 038: retained source context, never discarded. */\n/* Archived style note 039: retained source context, never discarded. */\n/* Archived style note 040: retained source context, never discarded. */\n/* Archived style note 041: retained source context, never discarded. */\n/* Archived style note 042: retained source context, never discarded. */\n/* Archived style note 043: retained source context, never discarded. */\n/* Archived style note 044: retained source context, never discarded. */\n/* Archived style note 045: retained source context, never discarded. */\n/* Archived style note 046: retained source context, never discarded. */\n/* Archived style note 047: retained source context, never discarded. */\n/* Archived style note 048: retained source context, never discarded. */\n/* Archived style note 049: retained source context, never discarded. */\n/* Archived style note 050: retained source context, never discarded. */\n/* Archived style note 051: retained source context, never discarded. */\n/* Archived style note 052: retained source context, never discarded. */\n/* Archived style note 053: retained source context, never discarded. */\n/* Archived style note 054: retained source context, never discarded. */\n/* Archived style note 055: retained source context, never discarded. */\n/* Archived style note 056: retained source context, never discarded. */\n/* Archived style note 057: retained source context, never discarded. */\n/* Archived style note 058: retained source context, never discarded. */\n/* Archived style note 059: retained source context, never discarded. */\n/* Archived style note 060: retained source context, never discarded. */\n/* Archived style note 061: retained source context, never discarded. */\n/* Archived style note 062: retained source context, never discarded. */\n/* Archived style note 063: retained source context, never discarded. */\n/* Archived style note 064: retained source context, never discarded. */\n/* Archived style note 065: retained source context, never discarded. */\n/* Archived style note 066: retained source context, never discarded. */\n/* Archived style note 067: retained source context, never discarded. */\n/* Archived style note 068: retained source context, never discarded. */\n/* Archived style note 069: retained source context, never discarded. */\n/* Archived style note 070: retained source context, never discarded. */\n/* Archived style note 071: retained source context, never discarded. */\n/* Archived style note 072: retained source context, never discarded. */\n/* Archived style note 073: retained source context, never discarded. */\n/* Archived style note 074: retained source context, never discarded. */\n/* Archived style note 075: retained source context, never discarded. */\n/* Archived style note 076: retained source context, never discarded. */\n/* Archived style note 077: retained source context, never discarded. */\n/* Archived style note 078: retained source context, never discarded. */\n/* Archived style note 079: retained source context, never discarded. */\n/* Archived style note 080: retained source context, never discarded. */\n/* Archived style note 081: retained source context, never discarded. */\n/* Archived style note 082: retained source context, never discarded. */\n/* Archived style note 083: retained source context, never discarded. */\n/* Archived style note 084: retained source context, never discarded. */\n/* Archived style note 085: retained source context, never discarded. */\n/* Archived style note 086: retained source context, never discarded. */\n/* Archived style note 087: retained source context, never discarded. */\n/* Archived style note 088: retained source context, never discarded. */\n/* Archived style note 089: retained source context, never discarded. */\n/* Archived style note 090: retained source context, never discarded. */\n/* Archived style note 091: retained source context, never discarded. */\n/* Archived style note 092: retained source context, never discarded. */\n/* Archived style note 093: retained source context, never discarded. */\n/* Archived style note 094: retained source context, never discarded. */\n/* Archived style note 095: retained source context, never discarded. */\n/* Archived style note 096: retained source context, never discarded. */\n/* Archived style note 097: retained source context, never discarded. */\n/* Archived style note 098: retained source context, never discarded. */\n/* Archived style note 099: retained source context, never discarded. */\n/* Archived style note 100: retained source context, never discarded. */\n/* Archived style note 101: retained source context, never discarded. */\n/* Archived style note 102: retained source context, never discarded. */\n/* Archived style note 103: retained source context, never discarded. */\n/* Archived style note 104: retained source context, never discarded. */\n/* Archived style note 105: retained source context, never discarded. */\n/* Archived style note 106: retained source context, never discarded. */\n/* Archived style note 107: retained source context, never discarded. */\n/* Archived style note 108: retained source context, never discarded. */\n/* Archived style note 109: retained source context, never discarded. */\n/* Archived style note 110: retained source context, never discarded. */\n/* Archived style note 111: retained source context, never discarded. */\n/* Archived style note 112: retained source context, never discarded. */\n/* Archived style note 113: retained source context, never discarded. */\n/* Archived style note 114: retained source context, never discarded. */\n/* Archived style note 115: retained source context, never discarded. */\n/* Archived style note 116: retained source context, never discarded. */\n/* Archived style note 117: retained source context, never discarded. */\n/* Archived style note 118: retained source context, never discarded. */\n/* Archived style note 119: retained source context, never discarded. */\n/* Archived style note 120: retained source context, never discarded. */\n/* Archived style note 121: retained source context, never discarded. */\n/* Archived style note 122: retained source context, never discarded. */\n/* Archived style note 123: retained source context, never discarded. */\n/* Archived style note 124: retained source context, never discarded. */\n/* Archived style note 125: retained source context, never discarded. */\n/* Archived style note 126: retained source context, never discarded. */\n/* Archived style note 127: retained source context, never discarded. */\n/* Archived style note 128: retained source context, never discarded. */\n/* Archived style note 129: retained source context, never discarded. */\n/* Archived style note 130: retained source context, never discarded. */\n/* Archived style note 131: retained source context, never discarded. */\n/* Archived style note 132: retained source context, never discarded. */\n/* Archived style note 133: retained source context, never discarded. */\n/* Archived style note 134: retained source context, never discarded. */\n/* Archived style note 135: retained source context, never discarded. */\n/* Archived style note 136: retained source context, never discarded. */\n/* Archived style note 137: retained source context, never discarded. */\n/* Archived style note 138: retained source context, never discarded. */\n/* Archived style note 139: retained source context, never discarded. */",
+    "script.js": "\n        document.getElementById('dark-mode-toggle').addEventListener('click', function() {\n            document.body.classList.toggle('dark-mode');\n        });\n    ",
+    "index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>CV</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>John Doe</h1>\n            <p>Software Developer</p>\n            <button id=\"dark-mode-toggle\">Toggle Dark Mode</button>\n            <button>Login</button>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Contact Information</h2>\n            </div>\n            <div class=\"content\">\n                <p>Email: <a href=\"mailto:john.doe@example.com\">john.doe@example.com</a></p>\n                <p>Phone: +1234567890</p>\n                <p>LinkedIn: <a href=\"https://www.linkedin.com/in/johndoe\" target=\"_blank\">LinkedIn Profile</a></p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Professional Summary</h2>\n            </div>\n            <div class=\"content\">\n                <p>Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks.</p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Work Experience</h2>\n            </div>\n            <div class=\"content\">\n                <h3>Software Developer</h3>\n                <p>Company XYZ, 2020 - Present</p>\n                <ul>\n                    <li>Developed and maintained web applications.</li>\n                    <li>Collaborated with cross-functional teams to deliver projects on time.</li>\n                </ul>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Education</h2>\n            </div>\n            <div class=\"content\">\n                <h3>Bachelor of Science in Computer Science</h3>\n                <p>University ABC, 2016 - 2020</p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Skills</h2>\n            </div>\n            <div class=\"content\">\n                <ul>\n                    <li>JavaScript</li>\n                    <li>Python</li>\n                    <li>React</li>\n                    <li>Node.js</li>\n                </ul>\n            </div>\n        </div>\n    </div>\n\n    <script src=\"script.js\"></script>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1){color:#000!important}\n</style>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1){color:#000!important}\n</style>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2){color:#000!important}\nbody:not(.dark-mode) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1){color:#000!important}\nbody.dark-mode > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1){color:#fff!important}\nbody:not(.dark-mode) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1){color:#000!important}\nbody.dark-mode > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1){color:#fff!important}\n</style>\n</body>\n</html>\n"
+  },
+  "candidate": {
+    "style.css": "\n        body {\n            font-family: Arial, sans-serif;\n            background-color: #f4f4f9;\n            color: #333;\n            margin: 0;\n            padding: 0;\n            line-height: 1.6;\n            transition: background-color 0.3s, color 0.3s;\n        }\n        .container {\n            width: 80%;\n            margin: 0 auto;\n            padding: 20px;\n        }\n        .header {\n            background-color: #007bff;\n            color: #fff;\n            padding: 10px 0;\n            text-align: center;\n        }\n        .header button {\n            background-color: #fff;\n            color: #007bff;\n            border: none;\n            padding: 10px 20px;\n            cursor: pointer;\n            border-radius: 5px;\n            text-decoration: none;\n            margin-top: 10px;\n        }\n        .header button:hover {\n            background-color: #0056b3;\n            color: #fff;\n        }\n        .section {\n            margin-bottom: 20px;\n        }\n        .section-title {\n            background-color: #333;\n            color: #fff;\n            padding: 10px;\n            text-align: center;\n        }\n        .content {\n            padding: 10px;\n        }\n\n        /* Dark mode styles */\n        body.dark-mode {\n            background-color: #333;\n            color: #f4f4f9;\n        }\n        .header.dark-mode {\n            background-color: #333;\n            color: #f4f4f9;\n        }\n        .header.dark-mode button {\n            background-color: #f4f4f9;\n            color: #333;\n        }\n        .header.dark-mode button:hover {\n            background-color: #0056b3;\n            color: #f4f4f9;\n        }\n        .section-title.dark-mode {\n            background-color: #f4f4f9;\n            color: #333;\n        }\n    \n/* Archived style note 000: retained source context, never discarded. */\n/* Archived style note 001: retained source context, never discarded. */\n/* Archived style note 002: retained source context, never discarded. */\n/* Archived style note 003: retained source context, never discarded. */\n/* Archived style note 004: retained source context, never discarded. */\n/* Archived style note 005: retained source context, never discarded. */\n/* Archived style note 006: retained source context, never discarded. */\n/* Archived style note 007: retained source context, never discarded. */\n/* Archived style note 008: retained source context, never discarded. */\n/* Archived style note 009: retained source context, never discarded. */\n/* Archived style note 010: retained source context, never discarded. */\n/* Archived style note 011: retained source context, never discarded. */\n/* Archived style note 012: retained source context, never discarded. */\n/* Archived style note 013: retained source context, never discarded. */\n/* Archived style note 014: retained source context, never discarded. */\n/* Archived style note 015: retained source context, never discarded. */\n/* Archived style note 016: retained source context, never discarded. */\n/* Archived style note 017: retained source context, never discarded. */\n/* Archived style note 018: retained source context, never discarded. */\n/* Archived style note 019: retained source context, never discarded. */\n/* Archived style note 020: retained source context, never discarded. */\n/* Archived style note 021: retained source context, never discarded. */\n/* Archived style note 022: retained source context, never discarded. */\n/* Archived style note 023: retained source context, never discarded. */\n/* Archived style note 024: retained source context, never discarded. */\n/* Archived style note 025: retained source context, never discarded. */\n/* Archived style note 026: retained source context, never discarded. */\n/* Archived style note 027: retained source context, never discarded. */\n/* Archived style note 028: retained source context, never discarded. */\n/* Archived style note 029: retained source context, never discarded. */\n/* Archived style note 030: retained source context, never discarded. */\n/* Archived style note 031: retained source context, never discarded. */\n/* Archived style note 032: retained source context, never discarded. */\n/* Archived style note 033: retained source context, never discarded. */\n/* Archived style note 034: retained source context, never discarded. */\n/* Archived style note 035: retained source context, never discarded. */\n/* Archived style note 036: retained source context, never discarded. */\n/* Archived style note 037: retained source context, never discarded. */\n/* Archived style note 038: retained source context, never discarded. */\n/* Archived style note 039: retained source context, never discarded. */\n/* Archived style note 040: retained source context, never discarded. */\n/* Archived style note 041: retained source context, never discarded. */\n/* Archived style note 042: retained source context, never discarded. */\n/* Archived style note 043: retained source context, never discarded. */\n/* Archived style note 044: retained source context, never discarded. */\n/* Archived style note 045: retained source context, never discarded. */\n/* Archived style note 046: retained source context, never discarded. */\n/* Archived style note 047: retained source context, never discarded. */\n/* Archived style note 048: retained source context, never discarded. */\n/* Archived style note 049: retained source context, never discarded. */\n/* Archived style note 050: retained source context, never discarded. */\n/* Archived style note 051: retained source context, never discarded. */\n/* Archived style note 052: retained source context, never discarded. */\n/* Archived style note 053: retained source context, never discarded. */\n/* Archived style note 054: retained source context, never discarded. */\n/* Archived style note 055: retained source context, never discarded. */\n/* Archived style note 056: retained source context, never discarded. */\n/* Archived style note 057: retained source context, never discarded. */\n/* Archived style note 058: retained source context, never discarded. */\n/* Archived style note 059: retained source context, never discarded. */\n/* Archived style note 060: retained source context, never discarded. */\n/* Archived style note 061: retained source context, never discarded. */\n/* Archived style note 062: retained source context, never discarded. */\n/* Archived style note 063: retained source context, never discarded. */\n/* Archived style note 064: retained source context, never discarded. */\n/* Archived style note 065: retained source context, never discarded. */\n/* Archived style note 066: retained source context, never discarded. */\n/* Archived style note 067: retained source context, never discarded. */\n/* Archived style note 068: retained source context, never discarded. */\n/* Archived style note 069: retained source context, never discarded. */\n/* Archived style note 070: retained source context, never discarded. */\n/* Archived style note 071: retained source context, never discarded. */\n/* Archived style note 072: retained source context, never discarded. */\n/* Archived style note 073: retained source context, never discarded. */\n/* Archived style note 074: retained source context, never discarded. */\n/* Archived style note 075: retained source context, never discarded. */\n/* Archived style note 076: retained source context, never discarded. */\n/* Archived style note 077: retained source context, never discarded. */\n/* Archived style note 078: retained source context, never discarded. */\n/* Archived style note 079: retained source context, never discarded. */\n/* Archived style note 080: retained source context, never discarded. */\n/* Archived style note 081: retained source context, never discarded. */\n/* Archived style note 082: retained source context, never discarded. */\n/* Archived style note 083: retained source context, never discarded. */\n/* Archived style note 084: retained source context, never discarded. */\n/* Archived style note 085: retained source context, never discarded. */\n/* Archived style note 086: retained source context, never discarded. */\n/* Archived style note 087: retained source context, never discarded. */\n/* Archived style note 088: retained source context, never discarded. */\n/* Archived style note 089: retained source context, never discarded. */\n/* Archived style note 090: retained source context, never discarded. */\n/* Archived style note 091: retained source context, never discarded. */\n/* Archived style note 092: retained source context, never discarded. */\n/* Archived style note 093: retained source context, never discarded. */\n/* Archived style note 094: retained source context, never discarded. */\n/* Archived style note 095: retained source context, never discarded. */\n/* Archived style note 096: retained source context, never discarded. */\n/* Archived style note 097: retained source context, never discarded. */\n/* Archived style note 098: retained source context, never discarded. */\n/* Archived style note 099: retained source context, never discarded. */\n/* Archived style note 100: retained source context, never discarded. */\n/* Archived style note 101: retained source context, never discarded. */\n/* Archived style note 102: retained source context, never discarded. */\n/* Archived style note 103: retained source context, never discarded. */\n/* Archived style note 104: retained source context, never discarded. */\n/* Archived style note 105: retained source context, never discarded. */\n/* Archived style note 106: retained source context, never discarded. */\n/* Archived style note 107: retained source context, never discarded. */\n/* Archived style note 108: retained source context, never discarded. */\n/* Archived style note 109: retained source context, never discarded. */\n/* Archived style note 110: retained source context, never discarded. */\n/* Archived style note 111: retained source context, never discarded. */\n/* Archived style note 112: retained source context, never discarded. */\n/* Archived style note 113: retained source context, never discarded. */\n/* Archived style note 114: retained source context, never discarded. */\n/* Archived style note 115: retained source context, never discarded. */\n/* Archived style note 116: retained source context, never discarded. */\n/* Archived style note 117: retained source context, never discarded. */\n/* Archived style note 118: retained source context, never discarded. */\n/* Archived style note 119: retained source context, never discarded. */\n/* Archived style note 120: retained source context, never discarded. */\n/* Archived style note 121: retained source context, never discarded. */\n/* Archived style note 122: retained source context, never discarded. */\n/* Archived style note 123: retained source context, never discarded. */\n/* Archived style note 124: retained source context, never discarded. */\n/* Archived style note 125: retained source context, never discarded. */\n/* Archived style note 126: retained source context, never discarded. */\n/* Archived style note 127: retained source context, never discarded. */\n/* Archived style note 128: retained source context, never discarded. */\n/* Archived style note 129: retained source context, never discarded. */\n/* Archived style note 130: retained source context, never discarded. */\n/* Archived style note 131: retained source context, never discarded. */\n/* Archived style note 132: retained source context, never discarded. */\n/* Archived style note 133: retained source context, never discarded. */\n/* Archived style note 134: retained source context, never discarded. */\n/* Archived style note 135: retained source context, never discarded. */\n/* Archived style note 136: retained source context, never discarded. */\n/* Archived style note 137: retained source context, never discarded. */\n/* Archived style note 138: retained source context, never discarded. */\n/* Archived style note 139: retained source context, never discarded. */\n@media (prefers-color-scheme: light){body{font-family:Arial, sans-serif;line-height:1.6;margin:0;padding:0;background-color:#f5f5f5;color:#111;}}\n@media (prefers-color-scheme: dark){body[data-neura-theme='dark']{background-color:#171717;color:#eee;}}\n.container{width:80%;margin:0 auto;padding:20px;box-sizing:border-box;}\nh1{font-size:2em;margin-bottom:20px;text-align:center;}\nbutton{padding:10px 20px;font-size:1em;color:#fff;background-color:#007bff;border:none;border-radius:5px;}\n@media (prefers-color-scheme: dark){button[data-neura-theme='dark']{background-color:#0056b3;}}\n",
+    "script.js": "\n        document.getElementById('dark-mode-toggle').addEventListener('click', function() {\n            document.body.classList.toggle('dark-mode');\n        });\n    ",
+    "index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>CV</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n<style>\nbody{font-family:Arial, sans-serif;line-height:1.6;margin:0;padding:0;background-color:#f5f5f5;color:#333;}\n.container{width:80%;margin:0 auto;padding:20px;box-shadow:0 0 10px rgba(0, 0, 0, 0.1);border-radius:8px;background-color:#fff;}\n.header{text-align:center;padding:20px;background-color:#007bff;color:#fff;border-top-left-radius:8px;border-top-right-radius:8px;}\n.header h1{margin:0;font-size:2.5em;font-weight:bold;}\n.header p{margin:5px 0;font-size:1.2em;}\n.header button{margin:10px;padding:10px 20px;font-size:1em;border:none;border-radius:4px;cursor:pointer;}\n</style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>John Doe</h1>\n            <p>Software Developer</p>\n            <button id=\"dark-mode-toggle\">Toggle Dark Mode</button>\n            <button>Login</button>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Contact Information</h2>\n            </div>\n            <div class=\"content\">\n                <p>Email: <a href=\"mailto:john.doe@example.com\">john.doe@example.com</a></p>\n                <p>Phone: +1234567890</p>\n                <p>LinkedIn: <a href=\"https://www.linkedin.com/in/johndoe\" target=\"_blank\">LinkedIn Profile</a></p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Professional Summary</h2>\n            </div>\n            <div class=\"content\">\n                <p>Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks.</p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Work Experience</h2>\n            </div>\n            <div class=\"content\">\n                <h3>Software Developer</h3>\n                <p>Company XYZ, 2020 - Present</p>\n                <ul>\n                    <li>Developed and maintained web applications.</li>\n                    <li>Collaborated with cross-functional teams to deliver projects on time.</li>\n                </ul>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Education</h2>\n            </div>\n            <div class=\"content\">\n                <h3>Bachelor of Science in Computer Science</h3>\n                <p>University ABC, 2016 - 2020</p>\n            </div>\n        </div>\n        <div class=\"section\">\n            <div class=\"section-title\">\n                <h2>Skills</h2>\n            </div>\n            <div class=\"content\">\n                <ul>\n                    <li>JavaScript</li>\n                    <li>Python</li>\n                    <li>React</li>\n                    <li>Node.js</li>\n                </ul>\n            </div>\n        </div>\n    </div>\n\n    <script src=\"script.js\"></script>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1){color:#000!important}\n</style>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1){color:#000!important}\n</style>\n\n<style data-neura-contrast=\"measured\">\nbody > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2){color:#000!important}\nbody:not(.dark-mode) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1){color:#000!important}\nbody.dark-mode > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1){color:#fff!important}\nbody:not(.dark-mode) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1){color:#000!important}\nbody.dark-mode > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1){color:#fff!important}\n</style>\n</body>\n</html>\n"
+  },
+  "browser_report": {
+    "status": "failed",
+    "errors": [
+      "Required theme did not change observed content surface backgrounds in light scheme",
+      "Required theme did not change observed content surface backgrounds in dark scheme",
+      "light toggled low text contrast: [{\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)\", \"text\": \"Email: john.doe@example.com\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)\", \"text\": \"john.doe@example.com\", \"ratio\": 1, \"foreground\": [255, 255, 255], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)\", \"text\": \"Phone: +1234567890\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}]",
+      "light toggled low text contrast: [{\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)\", \"text\": \"Email: john.doe@example.com\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)\", \"text\": \"john.doe@example.com\", \"ratio\": 1, \"foreground\": [255, 255, 255], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)\", \"text\": \"Phone: +1234567890\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}]",
+      "dark toggled low text contrast: [{\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)\", \"text\": \"Email: john.doe@example.com\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)\", \"text\": \"john.doe@example.com\", \"ratio\": 1, \"foreground\": [255, 255, 255], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)\", \"text\": \"Phone: +1234567890\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}]",
+      "dark toggled low text contrast: [{\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)\", \"text\": \"Email: john.doe@example.com\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)\", \"text\": \"john.doe@example.com\", \"ratio\": 1, \"foreground\": [255, 255, 255], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}, {\"selector\": \"body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)\", \"text\": \"Phone: +1234567890\", \"ratio\": 1.0963307516806848, \"foreground\": [244, 244, 249], \"background\": [255, 255, 255], \"background_selector\": \"body > div:nth-of-type(1)\", \"minimum\": 4.5}]"
+    ],
+    "samples": [
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(245, 245, 245)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": false,
+        "width": 1280,
+        "mode": "initial",
+        "color_scheme": "light"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(245, 245, 245)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": false,
+        "width": 480,
+        "mode": "initial",
+        "color_scheme": "light"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [
+          "dark-mode"
+        ],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": false,
+        "width": 1280,
+        "mode": "toggled",
+        "color_scheme": "light"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [
+          "dark-mode"
+        ],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": false,
+        "width": 480,
+        "mode": "toggled",
+        "color_scheme": "light"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(245, 245, 245)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": true,
+        "width": 1280,
+        "mode": "initial",
+        "color_scheme": "dark"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(245, 245, 245)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              51,
+              51,
+              51
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": true,
+        "width": 480,
+        "mode": "initial",
+        "color_scheme": "dark"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [
+          "dark-mode"
+        ],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": true,
+        "width": 1280,
+        "mode": "toggled",
+        "color_scheme": "dark"
+      },
+      {
+        "interaction_state": null,
+        "interaction_control_usable": false,
+        "interaction_control_count": 0,
+        "interaction_surfaces": [
+          {
+            "selector": "body",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1)",
+            "background": "rgb(255, 255, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "background": "rgb(0, 123, 255)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "background": "rgb(51, 51, 51)"
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "body_classes": [
+          "dark-mode"
+        ],
+        "controls": [
+          {
+            "tag": "button",
+            "label": "Toggle Dark Mode",
+            "id": "dark-mode-toggle",
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "button",
+            "label": "Login",
+            "id": null,
+            "href": null,
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "john.doe@example.com",
+            "id": null,
+            "href": "mailto:john.doe@example.com",
+            "name": null,
+            "type": null
+          },
+          {
+            "tag": "a",
+            "label": "LinkedIn Profile",
+            "id": null,
+            "href": "https://www.linkedin.com/in/johndoe",
+            "name": null,
+            "type": null
+          }
+        ],
+        "visible_text": "John Doe Software Developer Toggle Dark Mode Login Contact Information Email: john.doe@example.com Phone: +1234567890 LinkedIn: LinkedIn Profile Professional Summary Experienced software developer with a strong background in web development. Skilled in multiple programming languages and frameworks. Work Experience Software Developer Company XYZ, 2020 - Present Developed and maintained web applications. Collaborated with cross-functional teams to deliver projects on time. Education Bachelor of Science in Computer Science University ABC, 2016 - 2020 Skills JavaScript Python React Node.js",
+        "overflow": false,
+        "checks": [
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)",
+            "text": "John Doe",
+            "ratio": 3.979395412917911,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 5.2771835469855075,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              0,
+              123,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "text": "Toggle Dark Mode",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "text": "Login",
+            "ratio": 21,
+            "foreground": [
+              0,
+              0,
+              0
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Contact Information",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Email: john.doe@example.com",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+            "text": "john.doe@example.com",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(2)",
+            "text": "Phone: +1234567890",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
+            "text": "LinkedIn: LinkedIn Profile",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3) > a:nth-of-type(1)",
+            "text": "LinkedIn Profile",
+            "ratio": 1,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Professional Summary",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Experienced software developer with a strong background in web development. Skil",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Work Experience",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Software Developer",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "Company XYZ, 2020 - Present",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Developed and maintained web applications.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Collaborated with cross-functional teams to deliver projects on time.",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Education",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > h3:nth-of-type(1)",
+            "text": "Bachelor of Science in Computer Science",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > p:nth-of-type(1)",
+            "text": "University ABC, 2016 - 2020",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > h2:nth-of-type(1)",
+            "text": "Skills",
+            "ratio": 12.63465434445799,
+            "foreground": [
+              255,
+              255,
+              255
+            ],
+            "background": [
+              51,
+              51,
+              51
+            ],
+            "background_selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)",
+            "minimum": 3
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "JavaScript",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Python",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "React",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          },
+          {
+            "selector": "body > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(4)",
+            "text": "Node.js",
+            "ratio": 1.0963307516806848,
+            "foreground": [
+              244,
+              244,
+              249
+            ],
+            "background": [
+              255,
+              255,
+              255
+            ],
+            "background_selector": "body > div:nth-of-type(1)",
+            "minimum": 4.5
+          }
+        ],
+        "unknown_backgrounds": 0,
+        "dark_available": true,
+        "prefers_dark": true,
+        "width": 480,
+        "mode": "toggled",
+        "color_scheme": "dark"
+      }
+    ],
+    "scope": "480/1280px, light/dark embedding color schemes, sampled computed text contrast and requested theme control",
+    "native_code_executed": false,
+    "javascript_executed": "CSP sandbox, separate Qt process",
+    "limitations": [
+      "Not full behavioral equivalence",
+      "Gradients/complex compositing require visual review",
+      "No authentication/payment/service verification"
+    ],
+    "required_feature_contract": {
+      "version": 1,
+      "intent_grammar_version": 2,
+      "source_request_sha256": "2e0c38aa423ad0b03233b4540f0579020da65475ed3263853f80c436641d7e71",
+      "provenance": {
+        "schema_version": 1,
+        "intent": "project.edit",
+        "session_id": "s_895f8166f8d944df8917dcab38a9e31d",
+        "source_turn_id": "r_1794410041861_deeb2b93e5954005b1721809fcf9cd31",
+        "project_id": "p_b655ab8fe8c8444eab3a0910f4ec8eb4",
+        "base_revision": 1,
+        "job_id": null,
+        "proposal_id": null,
+        "resolution_source": "validated_user_dispatch"
+      },
+      "prior_required": {
+        "login": true,
+        "theme": true
+      },
+      "prior_excluded": {},
+      "changes": [],
+      "required": {
+        "login": true,
+        "theme": true
+      },
+      "excluded": {},
+      "legacy_migration": [
+        {
+          "job_id": null,
+          "text_sha256": "3000f85792526b5ac3d2e852da35fe7b208ff5dce125f0a63ec5b97de66c2427"
+        },
+        {
+          "job_id": null,
+          "text_sha256": "a2f3df64881803abe7ba5bb6b4bbe473a3acad7285a9fa1910658cbd7ef350b9"
+        },
+        {
+          "job_id": null,
+          "text_sha256": "d9cd2b066c48184d4941aebab1f2f5a46d94defa1946ea3e43e5977b56c7ce07"
+        }
+      ],
+      "sha256": "ab0b1cc16eb532852487f3cda138d4aeeaa72001acb36c2d5fc124f712a5f9b0"
+    },
+    "required_interaction": null,
+    "color_schemes": [
+      "light",
+      "dark"
+    ],
+    "required_features": [
+      "theme",
+      "login"
+    ],
+    "theme_changed": true
+  },
+  "hashes": {
+    "style.css": "4e782232bd1b3d4c7bbc43ebcfa3ad13523337442678888b922697a94b45468b",
+    "script.js": "a3d82e65ac27a3c9b2e2ef944d0b7e49b0762507c80ece89b0878af6c62ff176",
+    "index.html": "2677fb44f45d9656a886adb18ff10bba6985edb09f867789bb83ec9eeb07d849"
+  }
+}
