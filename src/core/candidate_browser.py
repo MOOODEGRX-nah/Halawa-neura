@@ -69,11 +69,22 @@ INSPECT=r'''(()=>{
    checks.push({selector:selector(e),text:e.textContent.trim().slice(0,80),ratio,foreground:fg,background:bg,background_selector:backgroundSelector,minimum:large?3:4.5});}
  }
  const compiledControl=document.getElementById('neura-theme-toggle');
- const dark=compiledControl||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
+ const usable=e=>!!e&&visible(e)&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'&&getComputedStyle(e).pointerEvents!=='none';
+ const dark=(usable(compiledControl)?compiledControl:null)||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>visible(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
  const controls=Array.from(document.querySelectorAll('a,button,input,select,textarea')).filter(visible).map(e=>({tag:e.tagName.toLowerCase(),label:e.textContent.trim().replace(/\s+/g,' '),id:e.getAttribute('id'),href:e.getAttribute('href'),name:e.getAttribute('name'),type:e.getAttribute('type')}));
- return JSON.stringify({interaction_state:document.body.getAttribute('data-neura-theme'),interaction_pressed:compiledControl?.getAttribute('aria-pressed'),interaction_control_count:document.querySelectorAll('#neura-theme-toggle').length,interaction_surfaces:Array.from(document.querySelectorAll('body,body div,body header,body nav,body main,body section,body article,body aside,body footer')).filter(visible).map(e=>({selector:selector(e),background:getComputedStyle(e).backgroundColor})),body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark,prefers_dark:matchMedia('(prefers-color-scheme: dark)').matches});
+ return JSON.stringify({interaction_state:document.body.getAttribute('data-neura-theme'),interaction_pressed:compiledControl?.getAttribute('aria-pressed'),interaction_control_usable:usable(compiledControl),interaction_control_count:document.querySelectorAll('#neura-theme-toggle').length,interaction_surfaces:Array.from(document.querySelectorAll('body,body div,body header,body nav,body main,body section,body article,body aside,body footer')).filter(visible).map(e=>({selector:selector(e),background:getComputedStyle(e).backgroundColor})),body_classes:Array.from(document.body.classList).filter(x=>/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(x)),controls,visible_text:document.body.innerText.replace(/\s+/g,' '),overflow:document.documentElement.scrollWidth>innerWidth+2,checks,unknown_backgrounds:unknown,dark_available:!!dark,prefers_dark:matchMedia('(prefers-color-scheme: dark)').matches});
 })()'''
-TOGGLE=r'''(()=>{const e=document.getElementById('neura-theme-toggle')||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||''));});if(e){e.click();return true;}return false;})()'''
+TOGGLE=r'''(()=>{
+ const usable=e=>{if(!e)return false;const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'&&s.pointerEvents!=='none';};
+ const compiled=document.getElementById('neura-theme-toggle');
+ const e=(usable(compiled)?compiled:null)||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>usable(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
+ if(!e)return false;
+ e.scrollIntoView({block:'center',behavior:'instant'});
+ const r=e.getBoundingClientRect(),x=Math.max(0,Math.min(innerWidth-1,r.left+r.width/2)),y=Math.max(0,Math.min(innerHeight-1,r.top+r.height/2));
+ const hit=document.elementFromPoint(x,y);if(hit!==e&&!e.contains(hit))return false;
+ e.click();return true;
+})()'''
+
 
 
 def main(source,destination):
@@ -164,7 +175,7 @@ def main(source,destination):
                 if required['interaction']!=theme_contract():raise ValueError('Unsupported required interaction contract')
                 for sample in samples:
                     expected='light' if sample['mode']=='initial' else 'dark'
-                    if sample['interaction_control_count']!=1 or sample['interaction_state']!=expected or sample['interaction_pressed']!=str(expected=='dark').lower():
+                    if sample['interaction_control_count']!=1 or not sample['interaction_control_usable'] or sample['interaction_state']!=expected or sample['interaction_pressed']!=str(expected=='dark').lower():
                         report['errors'].append('Required interaction control/state mismatch in '+scheme)
                 if len(samples)!=4:report['errors'].append('Required interaction has no complete toggle samples')
                 else:

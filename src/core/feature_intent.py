@@ -6,6 +6,7 @@ Unsupported/ambiguous requests remain outside this feature contract.
 import re
 from dataclasses import dataclass,asdict
 from src.core.application_targets import normalize
+from src.core.user_commands import command_text
 
 
 @dataclass(frozen=True)
@@ -31,7 +32,8 @@ def feature_intents(text):
         if re.search(r'\b(?:dark(?: mode)?|theme|الوضع الداكن|وضع داكن|الوضع الليلي|وضع ليلي|الثيم الداكن|المظهر الداكن|النمط الداكن|الوضع المظلم)\b',clause):features.append('theme')
         if re.search(r'\b(?:login|log in|sign in|sign-in|ل?تسجيل دخول|ل?تسجيل الدخول)\b',clause):features.append('login')
         if not features:continue
-        remove=bool(re.search(r'\b(?:احذف|تحذف|ازل|تزيل|ازالة|حذف|remove|delete|disable)\b',clause))
+        canonical=command_text(clause)
+        remove=bool(re.match(r'^(?:احذف|ازل|remove|delete|disable)\b',canonical)) or bool(re.search(r'\b(?:احذف|تحذف|ازل|تزيل|ازالة|حذف|remove|delete|disable)\b',clause))
         negated=bool(re.search(r'\b(?:لا|لن|ليس|مو|مش|ما ابي|ما ابغى|بدون|do not|don.t|never|without)\b',clause))
         if negated:
             if remove:operation='keep'

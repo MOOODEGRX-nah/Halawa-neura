@@ -100,7 +100,7 @@ def test_repair_receives_the_same_user_contract(system):
     assert json.loads(system.backend.calls[-1]['messages'][1]['content'])['required_feature_contract']==contract
 
 
-@pytest.mark.parametrize('text',['احذف Login','هل يمكنك إزالة زر تسجيل الدخول؟','هل يمكنك حذف زر تسجيل الدخول؟','أزل زر تسجيل الدخول','Remove Login'])
+@pytest.mark.parametrize('text',['احذف Login','هل يمكنك إزالة زر تسجيل الدخول؟','هل يمكنك حذف زر تسجيل الدخول؟','أزل زر تسجيل الدخول','هل يمكنك أن تحذف زر تسجيل الدخول؟','ممكن تزيل زر تسجيل الدخول','Remove Login','Delete Login'])
 def test_explicit_removal_variants_use_validated_job_admission(system,text):
     from src.core.chat_dispatch import active_edit_intent
     assert active_edit_intent(text)

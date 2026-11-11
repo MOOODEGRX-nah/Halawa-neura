@@ -37,6 +37,11 @@ for fixture in sorted((Path(__file__).parents[1]/'tests/fixtures/ax07_review').g
     run(fixture.stem+'-compiled',compiled,True,True,True)
     disconnected={p:s.replace('root.setAttribute(state,dark?"dark":"light")','root.setAttribute("unrelated-state",dark?"dark":"light")') for p,s in compiled.items()}
     run(fixture.stem+'-disconnected-state',disconnected,False,True)
+    for mode,extra in [('hidden-control','display:none!important'),('pointer-blocked-control','pointer-events:none!important')]:
+        blocked={p:s.replace('</head>','<style>#neura-theme-toggle{'+extra+'}</style></head>') for p,s in compiled.items()}
+        run(fixture.stem+'-'+mode,blocked,False,True,True)
+    disabled={p:s.replace('id="neura-theme-toggle"','disabled id="neura-theme-toggle"') for p,s in compiled.items()}
+    run(fixture.stem+'-disabled-control',disabled,False,True,True)
     run(fixture.stem+'-removed-but-visible',compiled,False,False,False,True)
     run(fixture.stem+'-removed',data['base'],True,False,False,True)
 raise SystemExit(0 if all(r['passed'] for r in results) else 1)
