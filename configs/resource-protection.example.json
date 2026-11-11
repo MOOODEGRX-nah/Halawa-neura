@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "mode": "auto",
+  "game_detection": true,
+  "process_rules": [],
+  "exclusions": [],
+  "sampling_interval_seconds": 2.0,
+  "gpu_enter_percent": 90.0,
+  "cpu_enter_percent": 85.0,
+  "cpu_hot_core_percent": 95.0,
+  "pressure_hold_seconds": 5.0,
+  "gpu_exit_percent": 60.0,
+  "cpu_exit_percent": 60.0,
+  "exit_hold_seconds": 20.0,
+  "minimum_mode_dwell_seconds": 30.0,
+  "protected_gpu": "",
+  "protected_models_dir": "",
+  "tier_models": {
+    "expert": "qwen2.5-coder-7b-q4",
+    "coder": "qwen2.5-coder-7b-q4"
+  },
+  "physical_cpu_core_limit": 2,
+  "generation_threads": 2,
+  "prompt_threads": 2,
+  "protected_cpu_nice": 10,
+  "protected_context": 4096,
+  "primary_gpu_fallback_while_protected": false,
+  "cpu_offload_fallback": false,
+  "memory_reserve_gb": 0.25
+}

@@ -15,19 +15,19 @@ backend=app.state.coordinator.backend;original=backend.generate
 lifecycle=run/'artifacts/model-lifecycle.jsonl'
 def lifecycle_record(kind,**values):
     with lifecycle.open('a') as f:f.write(json.dumps({'time':time.time(),'kind':kind,**values},default=str)+'\n')
-residency=app.state.coordinator.residency
-original_guard=residency.can_load
+from src.backends.residency import ResidencyManager
+original_guard=ResidencyManager.can_load
 from src.backends.residency import gpu_memory
-def guarded(model_id,context_length=4096,tier=None):
-    result=original_guard(model_id,context_length,tier)
-    lifecycle_record('memory_guard',model_id=model_id,tier=tier,selected_device=getattr(backend,'selected_device',None),device_requested=app.state.coordinator.settings.gpu_device,available_memory=gpu_memory(),estimate_gb=residency.estimate_vram_usage_gb(model_id,context_length),allowed=result[0],reason=result[1])
+def guarded(residency,model_id,context_length=4096,tier=None):
+    result=original_guard(residency,model_id,context_length,tier)
+    lifecycle_record('memory_guard',model_id=model_id,tier=tier,selected_device=getattr(backend,'selected_device',None),device_requested=app.state.coordinator._effective_settings.gpu_device,bound_sysfs=residency.bound_sysfs,available_memory=gpu_memory(),estimate_gb=residency.estimate_vram_usage_gb(model_id,context_length),allowed=result[0],reason=result[1])
     return result
-residency.can_load=guarded
+ResidencyManager.can_load=guarded
 original_load,original_unload=backend.load,backend.unload
 def load(*args,**options):
     lifecycle_record('load_start',path=args[0],options=options)
     try:return original_load(*args,**options)
-    finally:lifecycle_record('load_end',selected_device=getattr(backend,'selected_device',None),memory=gpu_memory())
+    finally:lifecycle_record('load_end',native_limits=getattr(backend,'native_limits',None),cpu=app.state.coordinator.protection.limits.snapshot(),selected_device=getattr(backend,'selected_device',None),memory=gpu_memory())
 def unload():
     lifecycle_record('unload_start',path=backend.model_path)
     try:return original_unload()
@@ -40,7 +40,7 @@ def observed(*args,**options):
     record={'trace_id':uuid.uuid4().hex,'source_root':str(ROOT),'environment':'actual '+os.environ.get('NEURA_QA_TARGET_KIND','packaged')+' backend with QA observer; NO fake inference',
         'model_id':app.state.coordinator.current_model_id,'model_path':backend.model_path,
         'projector':getattr(backend.handler,'clip_model_path',None),'device':getattr(backend,'selected_device',None),
-        'n_ctx':app.state.coordinator.settings.n_ctx,'native_n_gpu_layers':getattr(getattr(backend.model,'model_params',None),'n_gpu_layers',None),
+        'resource_profile':app.state.coordinator.resource_receipt(),'n_ctx':app.state.coordinator._effective_settings.n_ctx,'native_n_gpu_layers':getattr(getattr(backend.model,'model_params',None),'n_gpu_layers',None),
         'chat_template_sha256':digest(getattr(backend.model,'metadata',{}).get('tokenizer.chat_template')),
         'messages':messages,'messages_sha256':digest(messages),'effective_options':plain,
         'options_sha256':digest(plain),'image_sha256':images,'started_at':time.time()}
@@ -66,4 +66,17 @@ def observed(*args,**options):
             record['finished_at']=time.time();record['token_metrics']=getattr(backend,'last_metrics',None);save()
     return chunks()
 backend.generate=observed
+# Separate QA sampler: actual memory readings, not estimated token rates.
+import threading,psutil
+sample_stop=threading.Event()
+def memory_samples():
+    path=run/'artifacts/runtime-memory.jsonl'
+    for _ in range(8000):
+        if sample_stop.is_set():break
+        try:
+            value={'time':time.time(),'phase':app.state.coordinator.phase,'model':app.state.coordinator.current_model_id,'gpu':gpu_memory(),'rss_bytes':psutil.Process().memory_info().rss}
+            with path.open('a') as f:f.write(json.dumps(value)+'\n')
+        except OSError:pass
+        sample_stop.wait(.5)
+threading.Thread(target=memory_samples,name='qa-memory-observer',daemon=True).start()
 uvicorn.run(app,host='127.0.0.1',port=a.port,log_level='warning',proxy_headers=False)

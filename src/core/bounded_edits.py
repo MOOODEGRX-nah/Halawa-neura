@@ -276,7 +276,7 @@ class BoundedEditor:
             result=coordinator.complete(messages,tier='coder',max_tokens=call_limit,temperature=.1,top_p=.9,
                 response_format={'type':'json_object','schema':schema},cancel=cancel,deadline=deadline)
             choice=result['choices'][0]
-            record={'operation':index,'path':path,'base_revision':revision,'source_sha256':sha,
+            record={'resource_profile':result.get('resource_profile'),'operation':index,'path':path,'base_revision':revision,'source_sha256':sha,
                 'source_scope_sha256':digest(scope),'source_start_char':start,'source_end_char':end,'source_size_chars':size,'scope_bytes':len(scope.encode()),'preflight':preflight,'output_limit':call_limit,'available_output_budget_before':remaining,
                 'output':choice.get('message',{}).get('content',''),'finish_reason':choice.get('finish_reason'),'usage':result.get('usage'),'token_metrics':result.get('neura_token_metrics')}
             if targets is not None:record.update(scope_targets=targets.manifest(),edit_protocol='semantic_deletion')

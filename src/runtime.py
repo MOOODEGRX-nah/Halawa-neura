@@ -1,5 +1,6 @@
 """Paths and resource limits shared by every active entry point."""
 import os
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -26,6 +27,9 @@ class Settings:
     n_gpu_layers: int = field(default_factory=lambda: int(os.environ.get("NEURA_N_GPU_LAYERS", "-1")))
     gpu_device: str = field(default_factory=lambda: os.environ.get('NEURA_GPU_DEVICE','auto'))
     n_threads: int = field(default_factory=lambda: int(os.environ.get("NEURA_N_THREADS", str(min(os.cpu_count() or 4, 8)))))
+    n_threads_batch: int | None = None
+    memory_reserve_gb: float = 0
+    resource_protection: dict = field(default_factory=lambda: json.loads(os.environ.get('NEURA_RESOURCE_PROTECTION','{"mode":"normal"}')))
     timeout_s: float = field(default_factory=lambda: float(os.environ.get("NEURA_TIMEOUT_S", "180")))
     token: str = field(default_factory=lambda: os.environ.get("NEURA_TOKEN", ""))
 
@@ -35,5 +39,5 @@ class Settings:
         self.data_dir = Path(self.data_dir).resolve()
         if not 512 <= self.n_ctx <= 32768:
             raise ValueError("NEURA_N_CTX must be between 512 and 32768")
-        if self.timeout_s <= 0 or self.n_threads < 1:
+        if self.timeout_s <= 0 or self.n_threads < 1 or self.n_threads_batch is not None and self.n_threads_batch<1 or self.memory_reserve_gb<0:
             raise ValueError("Invalid timeout or thread count")

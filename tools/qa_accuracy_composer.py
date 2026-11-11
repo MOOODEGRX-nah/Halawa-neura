@@ -5,7 +5,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--baseline',action='store_true')
 p.add_argument('--real-model',action='store_true')
-p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify'],default='exact')
+p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify','resource-smoke'],default='exact')
 p.add_argument('--seed-project',type=Path,help='Declared existing-project source JSON for large/edit-removal QA')
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--login-request',default='أضف زر تسجيل دخول',help='Explicitly declared preservation journey variant')
@@ -14,6 +14,7 @@ p.add_argument('--removed-feature',choices=['login','theme'],default='login',hel
 p.add_argument('--compound-mode',choices=['add','keep'],default='keep',help='Independent declared compound expectation')
 p.add_argument('--compound-request',default='احذف Login ولا تحذف الوضع الداكن')
 p.add_argument('--remove-request',default='هل يمكنك إزالة زر تسجيل الدخول؟',help='Explicit removal of an accepted seed feature')
+p.add_argument('--resource-config',type=Path,help='Explicit resource protection profile; default Normal for repeatability')
 p.add_argument('--gpu',default=None,help='Observed unique device description; no numeric GPU index')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
 if (out/'composer.json').exists():raise SystemExit('Refusing to overwrite an existing run')
@@ -27,6 +28,10 @@ from PySide6.QtCore import QCoreApplication,QEvent
 from src.desktop.paths import DesktopSettings
 from src.desktop.app import MainWindow
 qt=QApplication(['neura-accuracy-qa']);settings=DesktopSettings()
+from src.core.resource_policy import ProtectionConfig,save_config
+resource=ProtectionConfig.model_validate_json(a.resource_config.read_text()) if a.resource_config else ProtectionConfig(mode='normal')
+save_config(profile/'data',resource)
+identity['resource_configuration']=resource.model_dump();(out/'identity.json').write_text(json.dumps(identity,indent=2))
 settings.values.update(models_dir='/opt/neura-ai/models',n_gpu_layers=-1 if a.gpu else 0,gpu_device=a.gpu or 'auto',n_ctx=4096,dedicated_coder=True,check_updates=False);settings.save()
 seed_id=None
 if a.workflow in ('large','remove','compound','compound-clarify'):
@@ -101,13 +106,14 @@ try:
  elif a.workflow=='plan':
   send('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.')
  else:
-  if a.workflow=='compound':send(a.compound_request)
+  if a.workflow=='resource-smoke':send('برمج سكربت Python بسيط باسم main.py يطبع مرحبا دون أي اعتماد خارجي')
+  elif a.workflow=='compound':send(a.compound_request)
   elif a.workflow=='remove':send(a.remove_request)
   elif a.workflow=='large':send('هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا')
   else:send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
   texts=['هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا','نعم','لم تفعل شي حتى الان؟','فل تبرمج','هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا'] if a.workflow=='exact' else [a.login_request,a.theme_request,'هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
   if a.workflow=='proposal':texts=['واجهة مميزة تناسب العرض',a.approval,a.approval]
-  if a.workflow in ('smoke','large','remove','compound'):texts=[]
+  if a.workflow in ('smoke','resource-smoke','large','remove','compound'):texts=[]
   for text in texts:send(text)
   js('document.querySelector("#ws-return").click();true;')
   wait(lambda:js('Array.from(document.querySelectorAll("[data-project-job-id]")).every(e=>["completed","failed","cancelled"].includes(e.dataset.jobState))'))

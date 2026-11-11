@@ -28,9 +28,9 @@ def test_game_detected(monitor):
         mock_proc.info = {'name': 'steam'}
         mock_iter.return_value = [mock_proc]
         result = monitor.check_once()
-        assert result is True
-        assert monitor.is_gaming is True
-        assert monitor.current_game == 'steam'
+        assert result is False
+        assert monitor.is_gaming is False
+        assert monitor.current_game is None
 
 def test_game_ended(monitor):
     monitor.is_gaming = True

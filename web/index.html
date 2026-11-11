@@ -845,7 +845,9 @@ function tierTable(el,mg){
   el.innerHTML='<tr><th>Tier</th><th>Model</th><th class="r">Port</th><th class="r">Ctx</th><th class="r">VRAM estimate</th><th>Status</th></tr>'+Object.keys(TIERS).map(k=>{const i=mg&&mg.tiers&&mg.tiers[k];let tag='<span class="nx-tag">—</span>';
     if(i)tag=mg.loading===k?'<span class="nx-tag warn">LOADING</span>':i.up?'<span class="nx-tag ok">UP</span>':i.enabled?'<span class="nx-tag info">READY</span>':`<span class="nx-tag bad" title="${hx(i.note)}">MISSING</span>`;
     return `<tr><td>${hx(TIERS[k].n)}</td><td>${hx(i&&i.label||'—')}${i&&i.fallback?' <span class="nx-tag warn">fallback</span>':''}</td><td class="r">${i?'in-process':'—'}</td><td class="r">${i?kf(i.ctx):'—'}</td><td class="r">${i?nf(i.vram_gb)+' GB':'—'}</td><td>${tag}</td></tr>`}).join('')}
-function paintMon(){buildMon();const S=SS,off=!S,mg=S&&S.mgr,ph=off?'error':S.phase,lv=(S&&S.live)||{},last=S&&S.last,tier=S&&S.tier,ti=tier&&mg&&mg.tiers&&mg.tiers[tier];
+function paintMon(){buildMon();
+  let resource=document.getElementById('resource-status');if(!resource){resource=document.createElement('div');resource.id='resource-status';resource.className='nx-sub';resource.setAttribute('aria-live','polite');$('mcards').before(resource);}
+  const policy=SS&&SS.resources;if(policy){resource.textContent=['حماية الموارد: '+policy.state,...policy.trigger_reasons,'GPU: '+(policy.target_device?.description||'لا جهاز محمي نشط'),'النموذج: '+(SS.current_model||'غير محمّل'),'CPU: '+(policy.cpu.requested_cpus?.join(', ')||'الحدود الأصلية'),policy.confirmation,policy.blocked_reason].filter(Boolean).join(' · ');}else resource.textContent='حالة حماية الموارد غير متاحة';const S=SS,off=!S,mg=S&&S.mgr,ph=off?'error':S.phase,lv=(S&&S.live)||{},last=S&&S.last,tier=S&&S.tier,ti=tier&&mg&&mg.tiers&&mg.tiers[tier];
   [...$('ms-chips').children].forEach(c=>{c.dataset.on=c.dataset.k===ph?ph:''});
   const lab=tier&&TIERS[tier]?TIERS[tier].n+(ti&&ti.label?' · '+ti.label:''):'';let t,n='';
   if(off)t='Core غير متصل — اضغط «إعادة الاتصال» في شريط التطبيق';

@@ -120,6 +120,9 @@ class SettingsDialog(QDialog):
         index=self.brave.findData(settings.values['brave_desktop_id'])
         self.brave.setCurrentIndex(max(index,0));form.addRow('Brave للمهارات',self.brave)
         layout.addLayout(form)
+        from src.desktop.resource_settings import ResourceSettings
+        resource_group=QGroupBox('حماية الموارد أثناء اللعب والأحمال الخارجية');resource_layout=QVBoxLayout(resource_group)
+        self.resource_settings=ResourceSettings();resource_layout.addWidget(self.resource_settings);layout.addWidget(resource_group)
         self.locations=copy.deepcopy(settings.values['approved_locations'])
         self.locations_list=QListWidget();self.locations_list.setMaximumHeight(90);layout.addWidget(self.locations_list)
         controls=QHBoxLayout()
@@ -234,6 +237,11 @@ class SettingsDialog(QDialog):
             path = Path(self.folder.text()) / 'Qwen2.5-Coder-14B-Q4_K_M.gguf'
             if not path.is_file() or Path(str(path) + '.aria2').exists():
                 QMessageBox.warning(self, 'Coder', 'أكمل تنزيل Qwen Coder أولًا.'); return
+        try:
+            resource=self.resource_settings.value()
+            if resource!=self.resource_settings.initial:self.skill_request('/resources/config',resource.model_dump())
+        except Exception as error:
+            QMessageBox.warning(self,'حماية الموارد',str(error));return
         self.settings.values.update(models_dir=self.folder.text(), n_gpu_layers=-1 if self.mode.currentIndex() == 0 else 0,
                                     n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(),
                                     brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData(),

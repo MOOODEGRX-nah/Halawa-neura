@@ -31,8 +31,11 @@ def check_candidate(files,preview,cancel,deadline,required=None):
              'XDG_CACHE_HOME':str(folder/'cache'),'XDG_CONFIG_HOME':str(folder/'config')}
         env.pop('QTWEBENGINE_DISABLE_SANDBOX',None)
         with (folder/'renderer.log').open('w') as log:
-            child=subprocess.Popen([sys.executable,'-B','-m','src.core.candidate_browser',str(source),str(result)],
+            from src.core.resource_policy import owned_popen
+            child=owned_popen([sys.executable,'-B','-m','src.core.candidate_browser',str(source),str(result)],
                 env=env,stdout=log,stderr=log,start_new_session=True)
+            from src.core.resource_policy import register_owned_child
+            register_owned_child(child.pid)
             limit=min(deadline,time.monotonic()+30)
             try:
                 while child.poll() is None:

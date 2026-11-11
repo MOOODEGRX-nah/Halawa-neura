@@ -25,6 +25,8 @@ class ResidencyManager:
     def __init__(self, config_dir=None, total_vram_gb=16.0, models_dir=None, settings=None):
         settings = settings or Settings()
         self.gpu_required = settings.n_gpu_layers != 0
+        self.memory_reserve_gb=getattr(settings,'memory_reserve_gb',0)
+        self.bound_sysfs=None
         self.models_dir = Path(models_dir or settings.models_dir).resolve()
         config_dir = Path(config_dir or settings.config_dir)
         self.total_vram_gb = total_vram_gb
@@ -88,7 +90,7 @@ class ResidencyManager:
         if model.get('projector'):
             projector=(self.models_dir/model['projector']).resolve()
             if projector.is_relative_to(self.models_dir) and projector.is_file():projector_size=projector.stat().st_size/1e9
-        return float(model.get('size_gb', 0)) + projector_size + context_length / 1024 * 0.5 + 1.0
+        return float(model.get('size_gb', 0)) + projector_size + context_length / 1024 * 0.5 + 1.0 + self.memory_reserve_gb
 
     def can_load(self, model_id, context_length=4096, tier=None):
         available, reason = self.availability(model_id)
@@ -99,7 +101,13 @@ class ResidencyManager:
         policy = self.tiers.get(tier, {}).get('residency')
         reason = 'Coordinator must unload current model first. ' if policy == 'alone' and self.current_model_id not in (None, model_id) else ''
         measured = gpu_memory()
+        if self.bound_sysfs and not measured:return False,'Selected GPU memory counters unavailable'
+        if measured and self.bound_sysfs:
+            matches=[d for d in measured.get('devices',[measured]) if d['device']==self.bound_sysfs]
+            measured=matches[0] if len(matches)==1 else None
+            if measured is None:return False,'Selected GPU memory counters unavailable'
         budget = max(d['free_gb'] for d in measured.get('devices',[measured])) if measured and self.current_model_id is None else self.total_vram_gb
+        if measured and self.bound_sysfs:budget=measured['free_gb'] if self.current_model_id is None else measured['total_gb']
         estimate = self.estimate_vram_usage_gb(model_id, context_length)
         if estimate > budget:
             return False, f'Estimated VRAM {estimate:.1f} GB exceeds budget {budget:.1f} GB'

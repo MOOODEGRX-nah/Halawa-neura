@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from src.core.neura_loop import InferenceError
+from src.core.resource_policy import owned_run
 
 
 class VoiceService:
@@ -23,6 +24,8 @@ class VoiceService:
                 'tts_reason': 'Requires piper CLI and a local voice ONNX + JSON; Kokoro weights alone are insufficient'}
 
     def transcribe(self, raw, language='ar'):
+        from src.core.resource_policy import accelerator_allowed
+        accelerator_allowed()
         if not self.capabilities()['stt']:
             raise InferenceError(self.capabilities()['stt_reason'], 501, 'stt_unavailable')
         if not raw or len(raw) > 20_000_000:
@@ -43,10 +46,10 @@ class VoiceService:
             root = Path(directory)
             (root / 'input').write_bytes(raw)
             try:
-                subprocess.run([self.ffmpeg, '-v', 'error', '-nostdin', '-y', '-protocol_whitelist', 'file,pipe', '-f', demuxer, '-i', str(root / 'input'),
+                owned_run([self.ffmpeg, '-v', 'error', '-nostdin', '-y', '-protocol_whitelist', 'file,pipe', '-f', demuxer, '-i', str(root / 'input'),
                                 '-t', '120', '-ar', '16000', '-ac', '1', str(root / 'audio.wav')],
                                check=True, timeout=30, capture_output=True)
-                subprocess.run([self.whisper, '-m', str(self.whisper_model), '-f', str(root / 'audio.wav'),
+                owned_run([self.whisper, '-m', str(self.whisper_model), '-f', str(root / 'audio.wav'),
                                 '-l', language, '-otxt', '-of', str(root / 'transcript')],
                                check=True, timeout=180, capture_output=True)
                 text = (root / 'transcript.txt').read_text(encoding='utf-8').strip()
@@ -65,7 +68,7 @@ class VoiceService:
         with tempfile.TemporaryDirectory(prefix='neura-tts-') as directory:
             output = Path(directory) / 'speech.wav'
             try:
-                subprocess.run([self.piper, '--model', self.piper_model, '--output_file', str(output)],
+                owned_run([self.piper, '--model', self.piper_model, '--output_file', str(output)],
                                input=text.encode(), check=True, timeout=90, capture_output=True)
                 audio = output.read_bytes()
             except (subprocess.SubprocessError, OSError) as exc:

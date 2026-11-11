@@ -45,13 +45,20 @@ class ProjectJobs:
         self.stopping = threading.Event()
         self.worker = None
         self.update_reservation = None
+        self.deferred = {}; self.resource_deadlines = {}
         with store.lock:
             store.db.execute('CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,project_id TEXT,state TEXT,request TEXT,draft TEXT,seq INTEGER,cancel INTEGER,error TEXT,created TEXT,updated TEXT)')
             store.db.execute('CREATE TABLE IF NOT EXISTS project_events(job_id TEXT,seq INTEGER,payload TEXT,PRIMARY KEY(job_id,seq))')
             store.db.execute('CREATE TABLE IF NOT EXISTS job_contracts(job_id TEXT PRIMARY KEY,invoice TEXT NOT NULL,stages TEXT NOT NULL,result TEXT NOT NULL)')
+            store.db.execute('CREATE TABLE IF NOT EXISTS resource_waits(job_id TEXT PRIMARY KEY,deadline REAL NOT NULL,reason TEXT NOT NULL)')
             interrupted = store.db.execute("SELECT id FROM jobs WHERE state NOT IN ('completed','failed','cancelled')").fetchall()
             store.db.commit()
         for row in interrupted:
+            waiting=store.db.execute('SELECT * FROM resource_waits WHERE job_id=?',(row['id'],)).fetchone()
+            if waiting and self._row(row['id'])['state']=='queued':
+                key=row['id'];self.cancel_flags[key]=threading.Event()
+                if self._row(key)['cancel']:self.cancel_flags[key].set()
+                self.deferred[key]=waiting['reason'];self.resource_deadlines[key]=time.monotonic()+max(0,waiting['deadline']-time.time());continue
             job=self._row(row['id']);meta=self.store.get(job['project_id']);receipt=meta.get('last_execution')
             if receipt and receipt['job_id']==row['id'] and receipt['result_revision']==meta['project_revision'] and meta['source_freshness']=='current':
                 result={'execution':receipt,'validation':meta['validation'],'saved_files':[{'project_id':job['project_id'],'path':path,'revision':receipt['result_revision'],'sha256':sha} for path,sha in receipt['result_hashes'].items()]}
@@ -59,6 +66,9 @@ class ProjectJobs:
                 self._state(row['id'],'completed');self._emit(row['id'],'job_completed',{'execution':receipt,'recovered_committed_receipt':True});continue
             self._state(row['id'], 'failed', error='interrupted: توقف التطبيق؛ لم يُستأنف التوليد تلقائيًا')
             self._emit(row['id'], 'job_failed', {'code': 'interrupted'})
+
+        if self.deferred:
+            self.worker=threading.Thread(target=self._run,name='neura-project-worker',daemon=True);self.worker.start()
 
     def _row(self, job_id):
         with self.store.lock:
@@ -75,7 +85,7 @@ class ProjectJobs:
             contract=self.store.db.execute('SELECT * FROM job_contracts WHERE job_id=?',(job_id,)).fetchone()
             result=json.loads(contract['result']) if contract else {}
             return {'job_id': row['id'], 'project_id': row['project_id'], 'state': row['state'],
-                    'last_seq': row['seq'], 'cancellation_requested': bool(row['cancel']),
+                    'blocked_reason': self.deferred.get(job_id), 'last_seq': row['seq'], 'cancellation_requested': bool(row['cancel']),
                     'draft_files': json.loads(row['draft']), 'error': row['error'],
                     'created_at': row['created'], 'updated_at': row['updated'],
                     'invoice':json.loads(contract['invoice']) if contract else None,
@@ -170,7 +180,8 @@ class ProjectJobs:
         if issue:raise ProjectError(issue)
         with self.store.lock:
             if self.update_reservation:raise Conflict('التحديث قيد التهيئة؛ لم تُنشأ مهمة جديدة.')
-            if self.stopping.is_set() or self.queue.full():
+            active_count=self.store.db.execute("SELECT COUNT(*) FROM jobs WHERE state NOT IN ('completed','failed','cancelled')").fetchone()[0]
+            if self.stopping.is_set() or self.queue.full() or active_count>=5:
                 raise Conflict('قائمة التوليد ممتلئة؛ انتظر انتهاء مهمة')
             if request.project_id:
                 active=self.store.db.execute("SELECT COUNT(*) FROM jobs WHERE project_id=? AND state NOT IN ('completed','failed','cancelled')",(request.project_id,)).fetchone()[0]
@@ -224,25 +235,49 @@ class ProjectJobs:
             return self.get(job_id)
 
     def _run(self):
+        from contextlib import nullcontext
+        scope=self.coordinator.protection.limits.scope(persistent=True) if hasattr(self.coordinator,'protection') else nullcontext()
+        with scope:self._work_loop()
+
+    def _work_loop(self):
         while not self.stopping.is_set():
             try:
-                job_id = self.queue.get(timeout=.2)
-            except queue.Empty:
-                continue
-            try:
-                self._generate(job_id)
-            finally:
+                key=self.queue.get(timeout=.1)
                 self.queue.task_done()
+                self.deferred[key]=None
+            except queue.Empty:pass
+            for job_id in list(self.deferred):
+                if self.stopping.is_set():break
+                deadline=self.resource_deadlines.setdefault(job_id,time.monotonic()+self.coordinator.settings.timeout_s)
+                expired=time.monotonic()>=deadline or self.cancel_flags[job_id].is_set()
+                ready,reason=getattr(self.coordinator,'project_resource_ready',lambda:(True,None))()
+                if not ready and not expired:
+                    if self.deferred[job_id]!=reason:
+                        self.deferred[job_id]=reason
+                        with self.store.lock:
+                            self.store.db.execute('INSERT OR REPLACE INTO resource_waits VALUES(?,?,?)',(job_id,time.time()+max(0,deadline-time.monotonic()),reason));self.store.db.commit()
+                        self._emit(job_id,'stage_changed',{'stage':'queued','blocked_reason':reason})
+                    if hasattr(self.coordinator,'protection'):self.coordinator.protection.note_wait(job_id,reason)
+                    continue
+                self.deferred.pop(job_id,None)
+                with self.store.lock:
+                    # Remove BEFORE model work: only never-started resource waits
+                    # can resume automatically after a restart, never partial jobs.
+                    self.store.db.execute('DELETE FROM resource_waits WHERE job_id=?',(job_id,));self.store.db.commit()
+                if hasattr(self.coordinator,'protection'):self.coordinator.protection.clear_wait(job_id)
+                self._generate(job_id,deadline)
+                self.resource_deadlines.pop(job_id,None)
 
-    def _generate(self, job_id):
+    def _generate(self, job_id, deadline=None):
         cancel = self.cancel_flags[job_id]
-        deadline = time.monotonic() + self.coordinator.settings.timeout_s
+        deadline = deadline if deadline is not None else time.monotonic() + self.coordinator.settings.timeout_s
         acquired = False
         parser = FileStream(lambda kind, data: self._emit(job_id, kind, data, drafts=parser.files))
         try:
             while not acquired:
                 self.coordinator._check(cancel, deadline)
                 acquired = self.coordinator.lock.acquire(timeout=.1)
+            profile=getattr(self.coordinator,'begin_job_profile',lambda:None)()
             row = self._row(job_id)
             request = WorkspaceRequest.model_validate_json(row['request'])
             parser=FileStream(lambda kind,data:self._emit(job_id,kind,data,drafts=parser.files),
@@ -285,6 +320,7 @@ class ProjectJobs:
                 parser=FileStream(lambda kind,data:self._emit(job_id,kind,data,drafts=parser.files),
                                   expected_files=request.required_files,filename_hints=request.filename_hints or request.context_files)
                 if attempt:
+                    if hasattr(self.coordinator,'assert_resource_epoch'):self.coordinator.assert_resource_epoch(profile['epoch'])
                     self._state(job_id,'generating');self._emit(job_id,'stage_changed',{'stage':'generating','attempt':attempt,'mode':'candidate_patch'})
                     try:
                         corrected=repair_contrast(generated,preview.get('entry_point'),browser_failure,request.user_request+' '+json.dumps(accepted,ensure_ascii=False))
@@ -333,6 +369,8 @@ class ProjectJobs:
                                 self._stage_result(job_id,item.get('stage','generating'),result)
                     generated={p:v['content'] for p,v in parser.files.items()} if request.project_id else parser.finish()
                 self.coordinator._check(cancel,deadline)
+                if acquired:
+                    self.coordinator.lock.release();acquired=False
                 self._state(job_id,'validating');self._emit(job_id,'stage_changed',{'stage':'validating','attempt':attempt})
                 files={**before,**generated}
                 unseen=set(generated).intersection(before).difference(request.context_files) if request.project_id else set()
@@ -378,7 +416,7 @@ class ProjectJobs:
                     repair=str(error)[:1800]
             self.coordinator._check(cancel,deadline)
             # Receipt and project metadata share the SAME durable SQLite commit.
-            execution={'required_feature_contract':feature_contract,'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
+            execution={'resource_profile':profile,'required_feature_contract':feature_contract,'validated_feature_intent':feature_intent,'outcome':'saved' if changed else 'no_change','project_id':project_id,'job_id':job_id,
                 'base_revision':expected,'result_revision':expected+1 if changed else expected,'changed_files':changed,
                 'base_hashes':{path:digest(value) for path,value in before.items()},
                 'result_hashes':{path:digest(files[path]) for path in changed},
@@ -398,7 +436,7 @@ class ProjectJobs:
             self._emit(job_id, 'validation_result', project['validation'])
             for path in changed:
                 self._emit(job_id, 'file_saved', {'path': path, 'revision': project['project_revision']})
-            self.coordinator.lock.release()
+            if acquired:self.coordinator.lock.release()
             acquired = False
             with self.store.lock:
                 self._state(job_id, 'completed')
@@ -407,7 +445,7 @@ class ProjectJobs:
             if acquired:
                 self.coordinator.lock.release()
                 acquired = False
-            state = 'cancelled' if cancel.is_set() else 'failed'
+            state = 'cancelled' if cancel.is_set() or getattr(exc,'code',None)=='protection_interrupted' else 'failed'
             with self.store.lock:
                 self._state(job_id, state, error=str(exc)[:1000])
                 self._emit(job_id, 'job_cancelled' if state == 'cancelled' else 'job_failed',
@@ -415,6 +453,7 @@ class ProjectJobs:
         finally:
             if acquired:
                 self.coordinator.lock.release()
+            getattr(self.coordinator,'end_job_profile',lambda:None)()
             self.cancel_flags.pop(job_id, None)
 
     def shutdown(self):

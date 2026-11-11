@@ -63,6 +63,7 @@ class LlamaCppBackend:
             if handler and hasattr(handler, 'close'):
                 handler.close()
             raise
+        self.native_limits={'main_gpu':int(model.model_params.main_gpu),'split_mode':int(model.model_params.split_mode),'generation_threads':int(model.context_params.n_threads),'prompt_threads':int(model.context_params.n_threads_batch),'context':int(model.n_ctx()),'gpu_layers':int(model.model_params.n_gpu_layers)}
         self.reasoning_end_token = reasoning_end_token
         self.model, self.handler = model, handler
         self.model_path = str(model_path)
@@ -162,6 +163,7 @@ class LlamaCppBackend:
                 'chat_template': 'mtmd' if self.handler else 'gguf' if self.model else None}
 
     def unload(self):
+        self.native_limits=None
         if self.model is not None:
             self.model.close()
             self.model = None

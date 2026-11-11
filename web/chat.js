@@ -14,6 +14,7 @@
   function jobText(job){
     const r=job.execution;
     if(job.state==='failed'||job.state==='cancelled')return 'لم يُحفظ التعديل: '+(job.error||'أُلغيت المهمة')+'. بقيت آخر مراجعة محفوظة.';
+    if(job.state==='queued'&&job.blocked_reason)return 'المهمة تنتظر الموارد: '+job.blocked_reason;
     if(job.state!=='completed')return ({queued:'المهمة في قائمة الانتظار.',planning:'يجري التخطيط قبل توليد الملفات.',generating:'يجري توليد الملفات.',validating:'يجري فحص المرشح قبل الحفظ.'})[job.state]||'تعذر تأكيد حالة المهمة.';
     if(r?.outcome==='no_change')return 'لم يتغير محتوى الملفات؛ لم تُنشأ مراجعة جديدة.';
     if(r?.outcome==='saved'&&r.changed_files?.length)return 'حُفظت المراجعة '+r.result_revision+' بدل '+r.base_revision+'؛ الملفات المتغيرة: '+r.changed_files.join('، ')+'. اجتاز الفحص الساكن.'+(r.browser?.status==='passed'?' اجتاز فحوص المعاينة المحدودة؛ لا يثبت ذلك كل وظائف الموقع.':'');

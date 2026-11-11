@@ -136,7 +136,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
             return error_response('Open the UI from this API origin', 403, 'origin_denied')
         if request.headers.get('sec-fetch-site') == 'cross-site':
             return error_response('Cross-site requests are disabled', 403, 'origin_denied')
-        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills','/chat'))
+        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills','/chat','/resources'))
         if private:
             supplied = request.headers.get('x-neura-token', '')
             if not secrets.compare_digest(supplied.encode(), token.encode()):
@@ -173,16 +173,19 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     def tiers_snapshot():
         tiers = {}
         installed = importlib.util.find_spec('llama_cpp') is not None
+        protected=hasattr(coordinator,'protection') and coordinator.protection.trigger.desired
+        manager=coordinator._active_residency if protected else coordinator.residency
+        context=coordinator._effective_settings.n_ctx if protected else settings.n_ctx
         for name, info in coordinator.residency.tiers.items():
-            mid = info['model_id']
-            model = coordinator.residency.get_model_info(mid) or {}
-            available, note = coordinator.residency.availability(mid)
+            mid = coordinator.protection.config.tier_models.get(name) if protected else info['model_id']
+            model = manager.get_model_info(mid) or {}
+            available, note = manager.availability(mid) if mid else (False,'لا إسناد محمي لهذا الدور؛ ينتظر دون استخدام الرئيسي')
             tiers[name] = {'model_id': mid, 'label': model.get('name', mid),
                            'enabled': available and installed, 'available': available,
                            'loaded': coordinator.current_model_id == mid,
                            'up': coordinator.current_model_id == mid, 'note': note,
-                           'ctx': settings.n_ctx, 'port': None,
-                           'vram_gb': coordinator.residency.estimate_vram_usage_gb(mid, settings.n_ctx),
+                           'ctx': context, 'port': None,
+                           'vram_gb': manager.estimate_vram_usage_gb(mid, context) if mid else None,
                            'vram_is_estimate': True}
         return tiers
 
@@ -235,6 +238,19 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
                 'inference_verified': False, 'tiers': tiers, 'capabilities': capabilities(),
                 'last_error': coordinator.last_error, 'pending': 0, 'budget_gb': coordinator.residency.total_vram_gb}
 
+    from src.core.resource_policy import ProtectionConfig
+
+    @app.get('/resources')
+    async def resources():
+        if not hasattr(coordinator,'protection'):raise HTTPException(501,'Resource policy unavailable')
+        return coordinator.protection.snapshot()
+
+    @app.post('/resources/config')
+    async def resource_config(config: ProtectionConfig):
+        if not hasattr(coordinator,'protection'):raise HTTPException(501,'Resource policy unavailable')
+        await asyncio.to_thread(coordinator.protection.update,config)
+        return coordinator.protection.snapshot()
+
     @app.get('/stats')
     async def stats():
         try:
@@ -261,7 +277,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
             except (OSError, ValueError):
                 pass
         mid = coordinator.current_model_id
-        return {'current_model': mid, 'uptime_s': time.monotonic() - started,
+        return {'resources':coordinator.protection.snapshot() if hasattr(coordinator,'protection') else None,'current_model': mid, 'uptime_s': time.monotonic() - started,
                 'phase': 'queued' if coordinator.phase == 'loading' else coordinator.phase,
                 'sys': system, 'gpu': gpu, 'live': {'tokens': None, 'tps': None},
                 **coordinator.metrics_snapshot(), 'uptime': time.monotonic() - started,
@@ -301,8 +317,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
             tier = req.selected_tier()
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
-        chosen, mid, reason, intent = coordinator.select(messages, tier, req.model)
-        options = dict(tier=chosen, model=mid, max_tokens=req.max_tokens, temperature=req.temperature, top_p=req.top_p)
+        options = dict(tier=tier, model=req.model, max_tokens=req.max_tokens, temperature=req.temperature, top_p=req.top_p)
         if not req.stream:
             return await run_worker(request, coordinator,
                 lambda cancel, deadline: coordinator.complete(messages, cancel=cancel, deadline=deadline, **options))
@@ -367,7 +382,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
             finally:
                 cancel.set()
         return StreamingResponse(send(), media_type='text/event-stream', headers={
-            'X-Neura-Tier': chosen, 'X-Neura-Model': mid, 'X-Accel-Buffering': 'no'})
+            'X-Neura-Tier':str(first[1].get('tier',tier or 'unknown')) if isinstance(first[1],dict) else 'unknown', 'X-Neura-Model':str(first[1].get('model','unknown')) if isinstance(first[1],dict) else 'unknown', 'X-Accel-Buffering': 'no'})
 
     @app.post('/projects')
     async def create_project(req: WorkspaceRequest, request: Request):

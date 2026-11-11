@@ -61,7 +61,15 @@ class BackendService:
             (config / name).write_text(yaml.safe_dump(value, allow_unicode=True, sort_keys=False), encoding='utf-8')
         vendor = ROOT.parent / 'vendor'
         paths = [str(ROOT)] + ([str(vendor)] if vendor.is_dir() else [])
-        return {**os.environ, 'PYTHONPATH': os.pathsep.join(paths),
+        from src.core.resource_policy import read_config
+        resource=read_config(data_directory(),{'mode':'auto'})
+        import psutil
+        owner={'pid':os.getpid(),'started':psutil.Process().create_time(),'webengine_executable':''}
+        try:
+            from PySide6.QtCore import QLibraryInfo
+            owner['webengine_executable']=str(Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.LibraryExecutablesPath))/'QtWebEngineProcess')
+        except ImportError:pass
+        return {**os.environ,'NEURA_RESOURCE_PROTECTION':resource.model_dump_json(),'NEURA_DESKTOP_OWNER':json.dumps(owner), 'PYTHONPATH': os.pathsep.join(paths),
                 'NEURA_DATA_DIR': str(data_directory()), 'NEURA_REGISTRY_DIR': str(config),
                 'NEURA_MODELS_DIR': str(folder), 'NEURA_INSTANCE_ID': self.instance,
                 'NEURA_N_CTX': str(self.settings.values['n_ctx']),

@@ -1,9 +1,20 @@
 """Pinned ggml device ABI: select measured hardware, never assume GPU index zero."""
 import ctypes
 import threading
+from pathlib import Path
 
 _lock = threading.Lock()
 _initialized = False
+
+
+def physical_gpus():
+    result=[]
+    for p in Path('/sys/class/drm').glob('card[0-9]*/device'):
+        try:
+            vendor=(p/'vendor').read_text().strip();device=(p/'device').read_text().strip();pci=p.resolve().name;total=int((p/'mem_info_vram_total').read_text())
+            result.append({'pci_id':pci,'vendor_id':vendor,'device_id':device,'stable_id':pci+'|'+vendor+':'+device,'sysfs_device':str(p),'total_bytes':total})
+        except (OSError,ValueError):continue
+    return result
 
 
 def probe_devices():
@@ -36,12 +47,18 @@ def probe_devices():
                 'description':lib.ggml_backend_dev_description(pointer).decode(),
                 'gpu_index':len(devices),'free_bytes':free.value,'total_bytes':total.value,
                 '_pointer':pointer})
+        physical=physical_gpus()
+        for d in devices:
+            matches=[p for p in physical if p['total_bytes']==d['total_bytes']]
+            # Equal-capacity adapters cannot be mapped to PCI by capacity. Fail
+            # protected selection rather than invent a stable hardware identity.
+            if len(matches)==1:d.update({k:v for k,v in matches[0].items() if k!='total_bytes'})
         return devices
 
 
 def select_device(devices, configured='auto', min_free_gb=0):
     if configured and configured!='auto':
-        candidates=[d for d in devices if d['description']==configured]
+        candidates=[d for d in devices if d['description']==configured or d.get('stable_id')==configured]
         if len(candidates)!=1:
             raise ValueError('الجهاز المحفوظ غير موجود أو اسمه ملتبس؛ راجع إعدادات GPU.')
     else:
