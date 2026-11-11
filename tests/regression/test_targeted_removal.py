@@ -92,11 +92,11 @@ def test_invalid_or_incomplete_scope_set_cannot_commit_partial_removal(system,fa
     finally:jobs.shutdown();store.close()
 
 
-def test_authorized_hidden_removal_is_not_simultaneously_required_visible(system,monkeypatch):
+def test_source_rewriting_is_rejected_by_deletion_only_protocol(system,monkeypatch):
     source='<html><head></head><body><h1>Keep</h1><button>Login</button></body></html>'
     store,jobs,pid=setup(system,source);observed=[]
     def oracle(messages,options):
-        packet=json.loads(messages[1]['content']);s=packet['source_spans'][0]
+        packet=json.loads(messages[1]['content']);s=next(s for s in packet['source_spans'] if s['target_id'])
         return reply(packet,[{'target_id':s['target_id'],'after':s['source'].replace('<button>','<button style="display:none">')}])
     system.backend.text=oracle
     def browser(files,preview,cancel,deadline,required):
@@ -106,8 +106,9 @@ def test_authorized_hidden_removal_is_not_simultaneously_required_visible(system
         return {'status':'fixture_not_run'}
     monkeypatch.setattr('src.core.project_jobs.check_candidate',browser)
     try:
-        job=wait(jobs,request(jobs,pid));assert job['state']=='completed',job
-        assert observed and store.get(pid)['project_revision']==2
+        job=wait(jobs,request(jobs,pid));assert job['state']=='failed',job
+        assert not observed and store.get(pid)['project_revision']==1
+        assert store.read(pid,'index.html')['content']==source
     finally:jobs.shutdown();store.close()
 
 

@@ -10,12 +10,13 @@ p.add_argument('--seed-project',type=Path,help='Declared existing-project source
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--login-request',default='أضف زر تسجيل دخول',help='Explicitly declared preservation journey variant')
 p.add_argument('--theme-request',default='أضف الوضع الداكن إلى هذا المشروع',help='Explicitly declared preservation journey variant')
+p.add_argument('--removed-feature',choices=['login','theme'],default='login',help='Declared expected removed feature for QA only')
 p.add_argument('--remove-request',default='هل يمكنك إزالة زر تسجيل الدخول؟',help='Explicit removal of an accepted seed feature')
 p.add_argument('--gpu',default=None,help='Observed unique device description; no numeric GPU index')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
 if (out/'composer.json').exists():raise SystemExit('Refusing to overwrite an existing run')
 root=Path(__file__).resolve().parents[1]
-identity={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'runtime_hashes':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for base in ('src','web','configs') for p in (root/base).rglob('*') if p.is_file() and '__pycache__' not in str(p)},'started_at':time.time(),'workflow':a.workflow,'preservation_requests':{'login':a.login_request,'theme':a.theme_request},'removal_request':a.remove_request,'device_requested':a.gpu or 'CPU','inference':'real' if a.real_model else 'fake'}
+identity={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'runtime_hashes':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for base in ('src','web','configs') for p in (root/base).rglob('*') if p.is_file() and '__pycache__' not in str(p)},'started_at':time.time(),'workflow':a.workflow,'preservation_requests':{'login':a.login_request,'theme':a.theme_request},'removal_request':a.remove_request,'removed_feature':a.removed_feature,'device_requested':a.gpu or 'CPU','inference':'real' if a.real_model else 'fake'}
 (out/'identity.json').write_text(json.dumps(identity,indent=2))
 profile=out/'profile'
 os.environ.update(NEURA_SETTINGS_DIR=str(profile/'config'),NEURA_DATA_DIR=str(profile/'data'),NEURA_STATE_DIR=str(profile/'state'),NEURA_TIMEOUT_S='900')

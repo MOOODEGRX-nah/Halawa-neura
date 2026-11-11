@@ -21,29 +21,39 @@ class RepairTargets:
     Every text byte is supplied once as bounded contiguous line groups. Coordinates refer to the
     original candidate, never to intermediate replacements. No fuzzy matching.
     """
-    def __init__(self, files, revision=None, binding=None):
+    def __init__(self, files, revision=None, binding=None, ranges=None):
         self.hashes={p:digest(v) for p,v in files.items()}
         self.revision=revision
         self.binding=dict(binding or {})
-        self.snapshot=hashlib.sha256(json.dumps({'revision':revision,'files':self.hashes,'binding':self.binding},sort_keys=True).encode()).hexdigest()
+        self.snapshot=hashlib.sha256(json.dumps({'revision':revision,'files':self.hashes,'binding':self.binding,'ranges':ranges},sort_keys=True).encode()).hexdigest()
         self.targets={};self.source=[]
         for path,value in files.items():
             safe_path(path)
             if not isinstance(value,str):continue
-            offset=0;parts=[]
-            groups=[];group=''
-            for line in value.splitlines(keepends=True):
-                if group and len(group)+len(line)>512:groups.append(group);group=''
-                group+=line
-            if group:groups.append(group)
-            for line in groups:
-                # Do not truncate a long line. Fail explicitly if it cannot be
-                # represented by the bounded repair contract.
-                if len(line)>4000:raise ProjectError('سطر المرشح أكبر من نطاق الإصلاح المحدود؛ لم يُقتطع المصدر')
-                end=offset+len(line)
-                key='t_'+hashlib.sha256(f'{self.snapshot}:{path}:{offset}:{end}'.encode()).hexdigest()[:16]
-                target=RepairTarget(key,path,offset,end,digest(line));self.targets[key]=target
-                parts.append({'target_id':key,'source':line});offset=end
+            parts=[];segments=[]
+            if ranges is not None:
+                cursor=0
+                for start,end in sorted(ranges.get(path,[])):
+                    if not 0<=cursor<=start<end<=len(value):raise ProjectError('نطاقات دلالية متداخلة أو غير صالحة')
+                    if start>cursor:segments.append((cursor,start,False))
+                    segments.append((start,end,True));cursor=end
+                if cursor<len(value):segments.append((cursor,len(value),False))
+            else:
+                groups=[];group=''
+                for line in value.splitlines(keepends=True):
+                    if group and len(group)+len(line)>512:groups.append(group);group=''
+                    group+=line
+                if group:groups.append(group)
+                cursor=0
+                for group in groups:
+                    if len(group)>4000:raise ProjectError('سطر المرشح أكبر من نطاق الإصلاح المحدود؛ لم يُقتطع المصدر')
+                    segments.append((cursor,cursor+len(group),True));cursor+=len(group)
+            for start,end,editable in segments:
+                key=None
+                if editable:
+                    key='t_'+hashlib.sha256(f'{self.snapshot}:{path}:{start}:{end}'.encode()).hexdigest()[:16]
+                    self.targets[key]=RepairTarget(key,path,start,end,digest(value[start:end]))
+                parts.append({'target_id':key,'source':value[start:end]})
             self.source.append({'path':path,'spans':parts})
         if len(self.targets)>512:raise ProjectError('عدد نطاقات الإصلاح يتجاوز الحد الآمن')
 
