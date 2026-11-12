@@ -345,7 +345,11 @@ class ProjectJobs:
                     if hasattr(self.coordinator,'assert_resource_epoch'):self.coordinator.assert_resource_epoch(profile['epoch'])
                     self._state(job_id,'generating');self._emit(job_id,'stage_changed',{'stage':'generating','attempt':attempt,'mode':'candidate_patch'})
                     try:
-                        corrected=repair_contrast(generated,preview.get('entry_point'),browser_failure,request.user_request+' '+json.dumps(accepted,ensure_ascii=False))
+                        corrected=None
+                        if request.web_recipe:
+                            from src.tools.web_recipes import repair_missing_button_type
+                            corrected=repair_missing_button_type(generated,request.web_recipe,repair,expected,{'project_id':project_id,'job_id':job_id,'purpose':'required_recipe_control_shape'})
+                        if not corrected:corrected=repair_contrast(generated,preview.get('entry_point'),browser_failure,request.user_request+' '+json.dumps(accepted,ensure_ascii=False))
                         if corrected:generated,repair_result=corrected
                         else:
                             if model_repairs:raise ProjectError('استُنفدت محاولة الإصلاح بالنموذج؛ بقيت المراجعة السابقة')

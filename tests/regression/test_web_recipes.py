@@ -117,3 +117,25 @@ def test_changed_recipe_while_resource_waiting_never_replays_new_contract(system
         job=terminal(jobs,key);assert job['state']=='failed' and 'وصفة' in job['error']
         assert not system.backend.calls and not store.committed_files(job['project_id'])
     finally:jobs.shutdown();store.close()
+
+
+def test_recorded_missing_type_repairs_only_bound_start_tag():
+    from src.tools.web_recipes import repair_missing_button_type
+    fixture=json.loads(FIXTURE.with_name('web_cv_rejected_native.json').read_text());before=fixture['missing_type']
+    with pytest.raises(ProjectError,match='زر الخط'):validate_source(before,ID)
+    binding={'project_id':'qa','job_id':'qa','purpose':'required_recipe_control_shape'}
+    after,receipt=repair_missing_button_type(before,ID,'زر الخط لا يطابق عقد الوصفة',0,binding)
+    assert after['index.html']==before['index.html'].replace('aria-pressed="false">','aria-pressed="false" type="button">')
+    assert after['style.css']==before['style.css'] and after['script.js']==before['script.js']
+    assert not receipt['model_called'] and len(receipt['repair_targets']['targets'])==1
+    assert receipt['repair_targets']['base_revision']==0 and receipt['repair_targets']['binding']==binding
+    assert validate_source(after,ID)['status']=='passed'
+    with pytest.raises(ProjectError):validate_source(fixture['bad_model_repair'],ID)
+
+
+def test_recipe_shape_repair_rejects_duplicate_conflicting_or_unknown_targets():
+    from src.tools.web_recipes import repair_missing_button_type
+    f=files();f['index.html']=f['index.html'].replace('type="button" ','')
+    for bad in [f['index.html'].replace('</body>','<button id="cv-font-toggle"></button></body>'),f['index.html'].replace('aria-pressed="false"','aria-pressed="false" type="submit"'),f['index.html'].replace('id="cv-font-toggle"','id="wrong" id="cv-font-toggle"')]:
+        assert repair_missing_button_type({**f,'index.html':bad},ID,'زر الخط لا يطابق عقد الوصفة',1,{}) is None
+    assert repair_missing_button_type(f,ID,'unrelated failure',1,{}) is None

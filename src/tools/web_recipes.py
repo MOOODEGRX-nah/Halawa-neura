@@ -66,6 +66,8 @@ def validate_source(files,recipe_id):
     if any(not isinstance(files[p],str) for p in FILES):raise ProjectError('ملفات الوصفة يجب أن تكون نصية')
     p=Structure();p.feed(files['index.html']);p.close();elements=p.elements
     if not any(t=='html' and a.get('lang','').startswith('ar') and a.get('dir')=='rtl' for t,a in elements):raise ProjectError('الوصفة تتطلب HTML عربيًا وRTL')
+    if any(len(re.findall(r'</'+tag+r'\s*>',files['index.html'],re.I))!=1 or sum(t==tag for t,a in elements)!=1 for tag in ('html','head','body')):raise ProjectError('الوصفة تحتاج مستند HTML كاملًا واحدًا دون نهايات مكررة')
+    if sum(t=='script' and a.get('src') in ('script.js','./script.js') for t,a in elements)!=1:raise ProjectError('مرجع script.js يجب أن يظهر مرة واحدة')
     ids=[a.get('id') for t,a in elements]
     if ids.count('cv-font-toggle')!=1 or ids.count('cv-content')!=1:raise ProjectError('هوية زر الخط أو المحتوى مفقودة أو مكررة')
     if not any(t=='button' and a.get('id')=='cv-font-toggle' and a.get('type')=='button' and a.get('aria-controls')=='cv-content' and a.get('aria-pressed')=='false' for t,a in elements):raise ProjectError('زر الخط لا يطابق عقد الوصفة')
@@ -78,3 +80,32 @@ def validate_source(files,recipe_id):
         if tag=='link' and a.get('href') not in ('style.css','./style.css'):raise ProjectError('الوصفة لا تقبل خطوطًا أو روابط موارد خارجية')
     if re.search(r'@import|https?://|url\(\s*[\'"]?(?://|[a-z]+:)',files['style.css'],re.I) or re.search(r'\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\s*\(|\bimport\s*(?:\(|[\'{*])|\b(?:localStorage|sessionStorage)\b',files['script.js']):raise ProjectError('الوصفة محلية بلا شبكة أو تخزين أو imports')
     return {'recipe':manifest(),'status':'passed','scope':'Source structure/offline references only; behavior requires isolated browser checks'}
+
+
+def repair_missing_button_type(files,recipe_id,failure,revision,binding):
+    """One exact, deterministic shape repair; no fuzzy anchor or guessed code.
+
+    A known recipe control may omit its explicit HTML type. Only that missing
+    attribute is eligible; duplicate controls/attributes and conflicting values
+    are never rewritten. The result still passes all independent gates.
+    """
+    if recipe_id!=ID or failure!='زر الخط لا يطابق عقد الوصفة' or not isinstance(files.get('index.html'),str):return None
+    source=files['index.html'];matches=[];ids=[]
+    class Tags(HTMLParser):
+        def handle_starttag(self,tag,attrs):
+            values=dict(attrs)
+            if values.get('id')=='cv-font-toggle':
+                ids.append(tag)
+                if tag!='button' or len(attrs)!=len(values):return
+                if values.get('aria-controls')!='cv-content' or values.get('aria-pressed')!='false' or 'type' in values:return
+                line,column=self.getpos();start=sum(len(s) for s in source.splitlines(keepends=True)[:line-1])+column;raw=self.get_starttag_text()
+                if raw.endswith('/>') or source[start:start+len(raw)]!=raw:return
+                matches.append((start,start+len(raw),raw[:-1]+' type="button">'))
+    parser=Tags();parser.feed(source);parser.close()
+    if ids!=['button'] or len(matches)!=1:return None
+    start,end,after=matches[0]
+    from src.core.repair_targets import RepairTargets
+    targets=RepairTargets(files,revision,binding,ranges={'index.html':[(start,end)]});target_id=next(iter(targets.targets));edits=[{'target_id':target_id,'after':after}]
+    result=targets.apply(files,edits,revision,binding)
+    validate_source(result,recipe_id)
+    return result,{'mode':'recipe_missing_explicit_button_type','repair_targets':targets.manifest(),'edits':edits,'model_called':False,'scope':'Only missing type=button in a uniquely identified validated recipe control; not acceptance until source/browser revalidation'}
