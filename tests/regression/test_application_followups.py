@@ -70,8 +70,10 @@ def test_unknown_and_relevant_ambiguity_never_fall_back_to_catalog(system):
 def test_unavailable_discord_no_arbitrary_match(system):
     app,desktop,dispatch=application(system,Applications([{'id':'cmake.desktop','name':'CMake'}]))
     result=dispatch.dispatch('افتح الديسكورد',request_id(),session_id='chat_a')
-    assert result['kind']=='action' and result['result']['status']=='unavailable'
-    assert 'Discord' in result['result']['message'] and not desktop.calls
+    # Not installed: never an arbitrary app (CMake); the fixed Discord web address instead, said plainly.
+    assert result['kind']=='action' and result['skill']=='open_website'
+    assert 'غير مثبت' in result['result']['message'] and 'Discord' in result['result']['message']
+    assert all('cmake' not in ' '.join(map(str,c)).lower() for c in desktop.calls)
     app.state.project_store.close()
 
 

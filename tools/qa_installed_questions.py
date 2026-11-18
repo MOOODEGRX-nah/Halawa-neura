@@ -177,6 +177,12 @@ try:
     ask(34, 'd', 'افتح github.com', 'action', skill('open_website'))
     ask(35, 'd', 'افتح موقع example.com', 'action', skill('open_website'))
     ask(36, 'd', 'اعرض آخر التطبيقات', 'action', skill('list_recent_applications'))
+    ask(49, 'd', 'افتح جوجل', 'action', skill('open_website'))
+    ask(50, 'd', 'هل يمكنك ان تفتح لي موقع الجزيرة', 'action', skill('open_website'))
+    ask(51, 'd', 'ابحث في جوجل عن سعر الذهب', 'action', skill('open_website'))
+    ask(52, 'd', 'شغل لي يوتيوب', 'action', skill('open_website'))
+    ask(53, 'd', 'افتح ستيم', 'action', lambda r, d: True if d.get('skill') in ('open_application', 'open_website') else 'skill: ' + str(d.get('skill')))
+    ask(54, 'd', 'شغل موسيقى هادئة', 'chat')
     ask(37, 'd2', 'افتح تطبيق برنامج_غير_موجود_xyz', 'action', lambda r, d: True if 'لم أتعرف' in r['message'] and 'لم أفتح' in r['message'] else r['message'][:160])
     ask(38, 'd3', 'افتح ملف', 'action', lambda r, d: True if not d.get('skill') or d.get('kind') == 'clarification' else 'opened without a target')
     # --- a real saved project, then questions and edits bound to it ---

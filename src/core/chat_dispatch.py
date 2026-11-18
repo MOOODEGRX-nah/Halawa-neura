@@ -268,11 +268,21 @@ class ChatDispatcher:
             return self._skill('list_recent_applications',{})
         match=re.match(r'^(?:ابحث(?:لي)?|تبحث|search)\s+(?:لي\s+)?(?:(?:في|على|in|on)\s+)?(?:(?:ال)?يوتيوب|(?:ال)?يوتوب|يو تيوب|youtube|you tube)\s+(?:عن\s+|for\s+)?(.+)$',q)
         if match:return self._skill('search_youtube',{'query':self._original_query(text,match[1])})
+        from src.tools.known_sites import engine_for,engine_names_pattern,search_url
+        match=re.match(r'^(?:ابحث(?:لي)?|تبحث|search)\s+(?:لي\s+)?(?:في|على|in|on)\s+(?:موقع\s+)?('+engine_names_pattern()+r')(?:\s+(?:عن\s+|for\s+)?(.+))?$',q)
+        if match and engine_for(match[1]):
+            if not match[2]:return {'kind':'action','result':{'status':'error','message':'اكتب ما تريد البحث عنه، مثل: ابحث في جوجل عن سعر الذهب.'}}
+            engine=engine_for(match[1]);query=self._original_query(text,match[2])
+            result=self._skill('open_website',{'destination':search_url(engine,query)})
+            if result['result'].get('status')=='launched':result['result']['message']='فتحت نتائج البحث في '+engine+' عن «'+query[:160]+'».'
+            return result
         match=re.match(r'^(?:ابحث(?:لي)?|تبحث|search)\s+(?:لي\s+)?(?:(?:في الويب|في الانترنت|في brave|on the web)\s+)?(?:عن\s+|for\s+)(.+)$',q)
         if match:return self._skill('search_web',{'query':self._original_query(text,match[1])})
-        match=re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch)\s+(?:لي\s+)?(.+)$',q)
+        match=re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|شغل(?:لي)?|تشغل|ادخل(?:لي)?\s+(?:على|الى|ل)|روح\s+(?:على|الى|ل)|خذني\s+(?:على|الى|ل)|go to|take me to)\s+(?:لي\s+)?(.+)$',q)
         if not match:return {'kind':'chat'}
         target=match[1].strip()
+        # «شغل X» also means "run this code"/"play music": act only for a known site or installed app.
+        play=bool(re.match(r'^(?:شغل|تشغل)',q))
         if target.startswith(('مجلد مشروع ','مجلد المشروع')):
             title=re.sub(r'^مجلد (?:المشروع|مشروع)\s*','',target)
             if not title and active_project_id:return self._skill('open_folder',{'project_id':active_project_id})
@@ -283,9 +293,22 @@ class ChatDispatcher:
         explicit_app=bool(re.match(r'^(?:تطبيق|برنامج|application|app)\s+',target))
         explicit_site=bool(re.match(r'^(?:موقع|website|site)\s+',target))
         target=re.sub(r'^(?:موقع|متصفح|تطبيق|برنامج|website|site|browser|application|app)\s+','',target)
-        aliases={'يوتيوب':'https://www.youtube.com/','يوتوب':'https://www.youtube.com/','اليوتيوب':'https://www.youtube.com/','اليوتوب':'https://www.youtube.com/','يو تيوب':'https://www.youtube.com/','youtube':'https://www.youtube.com/','you tube':'https://www.youtube.com/',
-                 'جيت هب':'https://github.com/','جيتهاب':'https://github.com/','github':'https://github.com/'}
-        if target in aliases and not explicit_app:return self._skill('open_website',{'destination':aliases[target]})
+        from src.tools.known_sites import site_for
+        site=None if explicit_app else site_for(target)
+        if site:
+            if not explicit_site:
+                apps=resolve_application(target,status.get('applications',[]),configuration)
+                if not apps:
+                    # «ستيم» -> an installed «Steam»: exact catalog name only, never a partial match like «Google Chrome».
+                    from src.core.application_targets import catalog_apps,names as app_names
+                    wanted={key(n) for n in site['app_names']}
+                    apps=[a for a in catalog_apps(status.get('applications',[])) if wanted & {key(n) for n in app_names(a)}]
+                if apps:return self._applications(apps,target,session_id)  # the installed app wins over its website
+            result=self._skill('open_website',{'destination':site['url']})
+            if result['result'].get('status')=='launched':
+                app_alias=None if explicit_site else alias_for(target)
+                result['result']['message']=('تطبيق '+app_alias['name']+' غير مثبت؛ فتحت '+site['name']+' على الويب في Brave.') if app_alias else 'فتحت موقع '+site['name']+' في Brave.'
+            return result
         if alias_for(target) and alias_for(target)['name']=='Brave' and explicit_site:
             return self._skill('open_website',{'destination':'https://search.brave.com/'})
         if explicit_site or re.match(r'^[a-z][a-z0-9+.-]*:',target) or re.match(r'^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/|$)',target):
@@ -293,13 +316,24 @@ class ChatDispatcher:
             raw=re.search(r'https?://\S+',text,re.I)
             destination=raw[0].rstrip('؟?!.,،') if raw else target
             if '://' not in destination and re.match(r'^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/|$)',destination):destination='https://'+destination
-            return self._skill('open_website',{'destination':website_url(destination)})
+            try:url=website_url(destination)
+            except ProjectError:
+                if not explicit_site or '/' in destination or '.' in destination:raise
+                result=self._skill('search_web',{'query':self._original_query(text,target)})
+                if result['result'].get('status')=='launched':result['result']['message']='لا أعرف عنوان موقع «'+target[:120]+'» بدقة، ففتحت نتائج البحث عنه في Brave بدل تخمين عنوان.'
+                return result
+            return self._skill('open_website',{'destination':url})
         kind='folder' if target.startswith('مجلد ') else 'file' if target.startswith('ملف ') else None
         name=re.sub(r'^(?:ملف|مجلد)\s+','',target)
         candidates=[(p['name'],'open_'+p['kind'],{'selection_id':p['id']}) for p in status.get('locations',[]) if kind is None or p['kind']==kind]
         if kind:return self._targets(candidates,name,'أي ملف أو مجلد مختار تقصد؟ اختره هنا، أو أضف مكانًا من إعدادات Neura.')
         apps=resolve_application(target,status.get('applications',[]),configuration)
         if explicit_app or apps or alias_for(target):return self._applications(apps,target,session_id)
+        if play:return {'kind':'chat'}
+        if not any(key(target) and key(target) in key(c[0]) for c in candidates):
+            # Nothing installed, approved or known by this name: offer a web search, never guess an address.
+            return self._choice([('ابحث في الويب عن «'+target[:80]+'»','search_web',{'query':self._original_query(text,target)})],
+                'لم أجد تطبيقًا مثبتًا أو موقعًا معروفًا باسم «'+target[:120]+'». هل أبحث عنه في الويب؟ لم أفتح شيئًا بعد.')
         return self._targets(candidates,target,'أي مكان مختار تقصد؟')
 
     @staticmethod
@@ -327,7 +361,7 @@ class ChatDispatcher:
             not re.match(r'^(?:ما|هل|why|what)\b',q))
         followup=bool(re.fullmatch(r'(?:هذا (?:هو|هوا) افتحه|افتحه|نعم افتح هذا التطبيق|open it)',q))
         knowledge=bool(re.match(r'^(?:هل (?:تعرف|تعلم)|ما (?:اسم|هو|هي)|what is|do you know)\b',q))
-        action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي)\b',q))
+        action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي|شغل(?:لي)?|تشغل|ادخل(?:لي)?\s+(?:على|الى|ل)|روح\s+(?:على|الى|ل)|خذني\s+(?:على|الى|ل)|go to|take me to)\b',q))
         metadata=bool(active_project_id and metadata_intent(text))
         edit=active_edit_intent(text)
         # A conversation already bound to a saved project: an imperative edit of it is an edit job

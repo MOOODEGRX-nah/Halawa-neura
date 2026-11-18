@@ -77,6 +77,9 @@ class PermissionDenied(ProjectError):
 
 def website_url(value):
     value=NAMES.get(value.casefold(),value)
+    from src.tools.known_sites import site_for
+    known=site_for(value) if '://' not in value else None
+    if known:value=known['url']
     if any(ord(c)<33 or ord(c)==127 for c in value) or '\\' in value:
         raise ProjectError('عنوان الموقع غير صالح')
     try:parsed=urlsplit(value)
