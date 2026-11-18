@@ -281,12 +281,12 @@ class Run:
         codes=[]
         for script,record,ids in suites:
             name=Path(script).stem;folder=self.out/'artifacts'/name
-            env={**self.env,'QT_QPA_PLATFORM':'offscreen'}
+            env={**self.env,'QT_QPA_PLATFORM':'offscreen','QTWEBENGINE_CHROMIUM_FLAGS':'--disable-gpu'}  # offscreen GPU process traps on exit with RADV; sandbox stays enabled
             e=self.execute(name,[sys.executable,str(HERE/script),'--data',str(self.profile/name),'--output',str(folder)],150,env=env)
             logfile=(self.out/e['log']).read_text(errors='replace');file=folder/record
             blocked=any(text in logfile.lower() for text in ('no usable sandbox','failed to move to new namespace','operation not permitted','running as root without --no-sandbox','failed to initialize graphics','could not connect to display'))
             if file.exists():
-                value=json.loads(file.read_text());items=value['results'];status='PASS' if e['returncode']==0 and all(x['passed'] for x in items) else 'FAIL';observed={'checks':items,'sandbox_disabled':False,'qt_surface':'offscreen','model':'fake','desktop':'fake'}
+                value=json.loads(file.read_text());items=value['results'];status='PASS' if e['returncode']==0 and all(x['passed'] for x in items) else 'FAIL';observed={'checks':items,'sandbox_disabled':False,'qt_surface':'offscreen','chromium_gpu':'disabled','model':'fake','desktop':'fake'}
             else:status='BLOCKED' if blocked else 'FAIL';observed={'exit':e['returncode'],'reason':'Normal Qt sandbox/display unavailable' if blocked else 'Qt tool did not produce results'}
             self.gate(ids.split(),'UI_FIXTURE',status,observed,[str(file.relative_to(self.out))] if file.exists() else [e['log']],limitation='Qt offscreen؛ لا native visible KDE ولا تعطيل sandbox. قبول النموذج/سطح المكتب منفصل.')
             codes.append(3 if status=='BLOCKED' else 1 if status=='FAIL' else 0)

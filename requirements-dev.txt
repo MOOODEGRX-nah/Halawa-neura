@@ -1,2 +1,4 @@
 -r requirements-backend.txt
 pytest==9.1.1
+# Desktop, update and preview tests import Qt; CI runs them offscreen.
+PySide6==6.12.0

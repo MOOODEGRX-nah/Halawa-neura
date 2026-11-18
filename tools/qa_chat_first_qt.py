@@ -91,7 +91,7 @@ try:
  grant=api('/skills/authorize',{'name':'open_website','args':{'destination':'https://www.youtube.com/'},'remember':True})
  dialog=SettingsDialog(settings,window);dialog.resize(700,700);dialog.show()
  wait(lambda:dialog.grants.count()==1)
- record('native-settings-availability-and-grants',len(dialog.skill_checks)==7 and dialog.skill_checks['open_website'].isChecked())
+ record('native-settings-availability-and-grants',set(dialog.skill_checks)=={'prepare_static_cv','prepare_static_services','open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications'} and dialog.skill_checks['open_website'].isChecked())
  dialog.grants.setCurrentRow(0);dialog.revoke_skill_grant();wait(lambda:dialog.grants.count()==0 and dialog.revoke_grant.isEnabled())
  record('native-settings-revokes-grant',api('/skills/grants')['grants']==[])
  from PySide6.QtWidgets import QScrollArea

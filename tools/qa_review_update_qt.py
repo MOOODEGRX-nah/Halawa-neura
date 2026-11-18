@@ -7,7 +7,7 @@ from pathlib import Path
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--data',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
 a.data=a.data.resolve();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
 os.environ.update(NEURA_DATA_DIR=str(a.data/'data'),NEURA_SETTINGS_DIR=str(a.data/'config'),NEURA_STATE_DIR=str(a.data/'state'))
-os.environ.pop('QTWEBENGINE_DISABLE_SANDBOX',None);os.environ.pop('QTWEBENGINE_CHROMIUM_FLAGS',None)
+os.environ.pop('QTWEBENGINE_DISABLE_SANDBOX',None);os.environ['QTWEBENGINE_CHROMIUM_FLAGS']='--disable-gpu'  # offscreen GPU process traps with RADV
 from types import SimpleNamespace
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QCoreApplication,QEvent
