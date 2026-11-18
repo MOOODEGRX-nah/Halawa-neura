@@ -226,3 +226,17 @@ def test_filter_shape_repair_does_not_end_the_job_on_an_unrelated_remaining_erro
     repaired,receipt=repair_missing_button_type(f,SERVICES_ID,FILTER_SHAPE_ERROR,0,{'project_id':'qa','job_id':'qa','purpose':'required_recipe_control_shape'})
     assert 'type="button" data-category="all"' in repaired['index.html'] or 'data-category="all" aria-pressed="true" type="button"' in repaired['index.html']
     with pytest.raises(ProjectError,match='meta description'):validate_source(repaired,SERVICES_ID)
+
+
+@pytest.mark.parametrize('text,expected',[('أنشئ دليل خدمات محلي بدون إنترنت لمركز صيانة',True),('انشئ دليلا للخدمات',True),('Build a services directory',True),
+    ('اكتب دليل استخدام للبرنامج',False),('ما هو دليل الخدمات؟',False)])
+def test_services_directory_request_is_a_project(text,expected):
+    """Found by the installed-app question battery: this request went to plain chat, which claimed to have prepared it."""
+    from src.core.chat_dispatch import project_intent
+    assert project_intent(text) is expected
+
+
+@pytest.mark.parametrize('text',['افتح موقع example.com','افتح example.com','أضف رابط https://example.com/how في التذييل'])
+def test_domain_names_are_not_explanation_words(text):
+    from src.core.feature_intent import interpret_features
+    assert interpret_features(text).issues==[]

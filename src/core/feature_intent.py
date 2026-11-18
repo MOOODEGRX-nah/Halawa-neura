@@ -62,6 +62,8 @@ def interpret_features(text):
     q,offsets=mapped_text(text)
     # Mask, do not erase: all provenance coordinates stay in the original text.
     q=re.sub(r'"[^"\n]*"|«[^»]*»|“[^”]*”|`[^`]*`',lambda m:' '*len(m[0]),q)
+    # A URL or domain is a name: «example.com» must not read as the word "example".
+    q=re.sub(r'[a-z][a-z0-9+.-]*://\S+|(?<![\w@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/\S*)?',lambda m:' '*len(m[0]),q)
     if EXPLAIN.search(q):
         if command_text(text):result.issues.append('هل تطلب تغيير الميزات أم شرحها؟ افصل طلب التنفيذ عن المثال أو الشرح.')
         return result

@@ -97,3 +97,16 @@ def test_toggle_failure_reports_measured_unreachable_control():
     assert message.startswith('dark 480px theme control could not be clicked') and '[115, -450, 170, 38]' in message and 'button#dark-mode-toggle' in message
     assert 'not activated' in toggle_failure(False,'light',1280)
     assert 'unreadable' in toggle_failure('not json','light',1280)
+
+
+def test_token_measurement_returns_phase_to_idle(system):
+    """A measured edit that is then cancelled must not leave the status stuck at loading/'queued'."""
+    import threading,time
+    messages=[{'role':'user','content':'measure me'}]
+    system.measure_messages(messages,tier='coder',max_tokens=64,cancel=threading.Event(),deadline=time.monotonic()+5)
+    assert system.phase=='idle'
+    def broken(*a,**k):raise RuntimeError('measurement failed')
+    system.backend.measure_messages=broken
+    with pytest.raises(RuntimeError):
+        system.measure_messages(messages,tier='coder',max_tokens=64,cancel=threading.Event(),deadline=time.monotonic()+5)
+    assert system.phase=='idle'

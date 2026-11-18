@@ -283,12 +283,16 @@ class NeuraLoop:
             self._check(cancel,deadline)
             self.assert_resource_epoch(epoch)
             chosen,model_id,_,_=self.select(messages,tier,None)
-            self._load(model_id,chosen)
-            if not hasattr(self.backend,'measure_messages'):
-                raise InferenceError('المحرك لا يوفّر عدّ رموز القالب؛ لا يمكن تقسيم التعديل بأمان',422,'token_measurement_unavailable')
-            result=self.backend.measure_messages(messages,max_tokens=max_tokens,**options)
-            self.assert_resource_epoch(epoch)
-            return result
+            try:
+                self._load(model_id,chosen)
+                if not hasattr(self.backend,'measure_messages'):
+                    raise InferenceError('المحرك لا يوفّر عدّ رموز القالب؛ لا يمكن تقسيم التعديل بأمان',422,'token_measurement_unavailable')
+                result=self.backend.measure_messages(messages,max_tokens=max_tokens,**options)
+                self.assert_resource_epoch(epoch)
+                return result
+            finally:
+                # _load leaves 'loading'; without this a measured-then-cancelled edit reported 'queued' forever.
+                self.phase='idle'
 
     def _options(self, cancel, deadline, options,epoch=None):
         def stop(*_):
