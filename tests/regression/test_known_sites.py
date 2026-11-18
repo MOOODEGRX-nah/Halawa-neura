@@ -73,3 +73,12 @@ def test_non_actions_and_missing_queries_open_nothing(system, text):
     result = dispatch.dispatch(text, request_id(), session_id='chat_a')
     assert not desktop.calls and (result['kind'] == 'chat' or result['result']['status'] == 'error')
     app.state.project_store.close()
+
+
+@pytest.mark.parametrize('text', ['افتح ملف', 'افتح مجلد', 'افتح موقع', 'افتح تطبيق', 'open a file', 'افتح شي'])
+def test_bare_generic_nouns_ask_instead_of_searching(system, text):
+    app, desktop, dispatch = application(system, Applications())
+    result = dispatch.dispatch(text, request_id(), session_id='chat_a')
+    assert not desktop.calls and result.get('skill') != 'search_web'
+    assert not any('ابحث في الويب' in c['label'] for c in result.get('choices', []))
+    app.state.project_store.close()

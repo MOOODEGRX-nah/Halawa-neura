@@ -183,6 +183,7 @@ class ChatDispatcher:
         if len(matches)==1:return self._skill(matches[0][1],matches[0][2])
         if not matches:
             if not target.strip() and candidates:return self._choice(candidates,message)
+            if not target.strip():return {'kind':'action','result':{'status':'unavailable','message':'أي ملف أو مجلد تقصد؟ لا توجد أماكن معتمدة بعد؛ أضف الملف أو المجلد من إعدادات Neura ثم اطلبه باسمه. لم أفتح شيئًا.'}}
             return {'kind':'action','result':{'status':'unavailable','message':'لم أتعرف على الهدف «'+target[:160]+'» أو أنه غير متاح ضمن الأماكن والتطبيقات المعتمدة. اكتب اسمه المثبت بدقة أو اختر مكانًا من الإعدادات.'}}
         return self._choice(matches,message)
 
@@ -323,8 +324,12 @@ class ChatDispatcher:
                 if result['result'].get('status')=='launched':result['result']['message']='لا أعرف عنوان موقع «'+target[:120]+'» بدقة، ففتحت نتائج البحث عنه في Brave بدل تخمين عنوان.'
                 return result
             return self._skill('open_website',{'destination':url})
+        # A bare generic noun names nothing: ask, never search the web for the word itself.
+        if re.fullmatch(r'(?:ال)?(?:ملف|مجلد)(?:ا)?|(?:a |the )?(?:file|folder)',target):target=('مجلد ' if re.search(r'مجلد|folder',target) else 'ملف ')
+        elif re.fullmatch(r'(?:ال)?(?:موقع|تطبيق|برنامج)(?:ا)?|شي|شيء|شيئا|(?:a |the |an )?(?:site|website|app|application|program|something|it)',target):
+            return {'kind':'action','result':{'status':'error','message':'ما الذي تريد فتحه؟ اكتب الاسم، مثل: افتح جوجل، أو افتح ديسكورد، أو افتح ملف التقرير. لم أفتح شيئًا.'}}
         kind='folder' if target.startswith('مجلد ') else 'file' if target.startswith('ملف ') else None
-        name=re.sub(r'^(?:ملف|مجلد)\s+','',target)
+        name=re.sub(r'^(?:ملف|مجلد)\s*','',target)
         candidates=[(p['name'],'open_'+p['kind'],{'selection_id':p['id']}) for p in status.get('locations',[]) if kind is None or p['kind']==kind]
         if kind:return self._targets(candidates,name,'أي ملف أو مجلد مختار تقصد؟ اختره هنا، أو أضف مكانًا من إعدادات Neura.')
         apps=resolve_application(target,status.get('applications',[]),configuration)
