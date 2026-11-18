@@ -100,3 +100,32 @@ def requested_web_features(contract):
     """Consume admission's contract; never reclassify conversation/source text."""
     from src.core.feature_intent import contract_features
     return contract_features(contract)
+
+
+_ADD=r'^(?:اضف|ادرج|ضع|add|insert|include)\b'
+_STOP=r'(?:ضمن|في|مع|تحت|الى|إلى|داخل|بجانب|بعد|قبل|لكي|حتى|under|in|with|to|inside|after|before)'
+
+
+def requested_names(text):
+    """Literal names the user asked to ADD («…», "…", باسم X, named/called X). Filenames are ignored.
+
+    A small deterministic acceptance criterion from the user's own words: an add request that names
+    the item must leave that name visible. Not a semantic judge of quality; removals never use it.
+    """
+    import re
+    from src.core.user_commands import command_text
+    q=command_text(text)
+    if not q or not re.match(_ADD,q,re.I):return []
+    names=[m for pair in re.findall(r'«([^»]{2,60})»|"([^"]{2,60})"|“([^”]{2,60})”',text) for m in pair if m]
+    for m in re.finditer(r'(?:باسم|بعنوان|named|called|titled)\s+(.+?)(?=\s+'+_STOP+r'\b|[،,.؛;:!؟?]|$)',text,re.I):
+        words=m.group(1).strip().split()
+        if 1<=len(words)<=6:names.append(' '.join(words))
+    return [n for n in dict.fromkeys(n.strip() for n in names) if n and not re.search(r'\.[a-z0-9]{1,5}$',n,re.I)]
+
+
+def missing_requested_names(text,files,entry):
+    names=requested_names(text)
+    if not names or not entry:return []
+    visible=' '.join(html_contract(files).get(entry,{}).get('text',[]))
+    norm=lambda v:' '.join(v.casefold().split())
+    return [n for n in names if norm(n) not in norm(visible)]

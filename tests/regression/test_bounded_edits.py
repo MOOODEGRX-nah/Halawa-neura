@@ -123,8 +123,14 @@ def test_large_source_is_partitioned_without_discarding_bytes(system):
     request=ProjectRequest(user_request='Improve the existing site',requirements=['Keep content'],max_tokens=3072)
     events=list(BoundedEditor(InvoiceOrchestrator(system)).generate(request,{'style.css':source},['style.css'],1,
         source,'p_test','j_test',threading.Event(),time.monotonic()+5))
-    assert len(seen)>1 and ''.join(seen)==source
     assert events[-1]['kind']=='finished'
+    # No byte is discarded: scopes sent to the model plus comment-only scopes preserved verbatim
+    # (no model call) tile the source exactly, in order.
+    skipped=events[-1]['skipped_comment_scopes']
+    pieces=sorted([(op['source_start_char'],op['source_end_char']) for op in events[-1]['operations']]+[(s['source_start_char'],s['source_end_char']) for s in skipped])
+    assert pieces[0][0]==0 and pieces[-1][1]==len(source) and all(a[1]==b[0] for a,b in zip(pieces,pieces[1:]))
+    assert len(pieces)>1 and skipped and all(s['source_scope_sha256']==__import__('hashlib').sha256(source[s['source_start_char']:s['source_end_char']].encode()).hexdigest() for s in skipped)
+    assert ''.join(seen)==''.join(source[a:b] for a,b in sorted((op['source_start_char'],op['source_end_char']) for op in events[-1]['operations']))
     assert [e for e in events if e['kind']=='candidate_file'][-1]['content']==source.replace('black','#111')
 
 
@@ -220,3 +226,159 @@ def test_structured_css_serializes_bounded_rules_and_rejects_duplicates():
     with pytest.raises(ValidationError):FilePatch(base_revision=1,path='index.html',source_sha256=digest(source),edits=[],css_rules=[rule]*7)
     with pytest.raises(ValidationError):css_text([{**rule,'declarations':[{'name':'color','value':'red'},{'name':'COLOR','value':'blue'}]}])
     with pytest.raises(ProjectError):css_text([{**rule,'declarations':[{'name':'color','value':'red; background: black'}]}])
+
+
+def test_single_narrowed_reask_after_measured_length_overrun(system):
+    """Observed 7B failure: the first patch call copied whole CSS blocks and hit finish_reason=length."""
+    base={'main.py':'VALUE = 1\n','other.py':'X = 1\n'};store,jobs,pid=fixture(system,base)
+    truncated='{"base_revision": 1, "path": "main.py", "edits": [{"before": "VALUE = 1'
+    system.backend.replies=[truncated,packet('main.py',base['main.py'],before='1',after='3'),packet('other.py',base['other.py'],before='1',after='2')]
+    original=system.backend.generate;calls=[]
+    def generate(**options):
+        if options['messages'][0]['content'].startswith('Return a bounded file patch'):
+            calls.append(options);system.backend.finish='length' if len(calls)==1 else 'stop'
+        return original(**options)
+    system.backend.generate=generate
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='completed',result
+        assert store.get(pid)['project_revision']==2 and store.read(pid,'main.py')['content']=='VALUE = 3\n'
+        ops=next(s for s in result['stage_results'] if s['stage']=='generating' and s.get('result',{}).get('operations'))['result']['operations']
+        assert [o['finish_reason'] for o in ops]==['length','stop','stop'] and ops[0]['output']==truncated
+        assert ops[0]['operation']==ops[1]['operation']==0 and 'reask_after_length' in ops[1]['preflight']
+        assert sum(o['output_tokens_charged'] for o in ops)<=4096
+        first,reask=calls[0],calls[1]
+        assert first['messages']==reask['messages'][:len(first['messages'])] and 'cut off at the output limit' in reask['messages'][-1]['content']
+        assert first['response_format']['schema']['properties']['edits']['maxItems']==8
+        narrowed=reask['response_format']['schema']
+        assert narrowed['properties']['edits']['maxItems']==3 and narrowed['$defs']['Replacement']['properties']['before']['maxLength']==200
+        assert 'maxLength' not in narrowed['$defs']['Replacement']['properties']['after']
+    finally:jobs.shutdown();store.close()
+
+
+def test_reask_happens_at_most_once_per_job(system):
+    base={'main.py':'VALUE = 1\n','other.py':'X = 1\n'};store,jobs,pid=fixture(system,base)
+    system.backend.replies=['{"x','{"y','{"z'];system.backend.finish='length';system.backend.plan_finish='stop'
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='failed' and 'length' in result['error']
+        patch_calls=[c for c in system.backend.calls if c['messages'][0]['content'].startswith('Return a bounded file patch')]
+        assert len(patch_calls)==2 and store.committed_files(pid)==base and store.get(pid)['project_revision']==1
+    finally:jobs.shutdown();store.close()
+
+
+def test_reask_output_limit_shrinks_to_measured_context(system,monkeypatch):
+    base={'main.py':'VALUE = 1\n'};store,jobs,pid=fixture(system,base)
+    system.backend.replies=['{"cut',packet('main.py',base['main.py'],before='1',after='5')]
+    original_measure=system.backend.measure_messages
+    def measure(messages,max_tokens=1024,**o):
+        value=original_measure(messages,max_tokens,**o)
+        if 'cut off at the output limit' in messages[-1]['content']:value={**value,'effective_output_limit':min(max_tokens,500)}
+        return value
+    monkeypatch.setattr(system.backend,'measure_messages',measure)
+    original=system.backend.generate;calls=[]
+    def generate(**options):
+        if options['messages'][0]['content'].startswith('Return a bounded file patch'):
+            calls.append(options);system.backend.finish='length' if len(calls)==1 else 'stop'
+        return original(**options)
+    system.backend.generate=generate
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='completed',result
+        assert calls[1]['max_tokens']==500 and store.read(pid,'main.py')['content']=='VALUE = 5\n'
+    finally:jobs.shutdown();store.close()
+
+
+def test_comment_only_css_scopes_skip_model_calls_and_append_moves_to_last_behavioral_scope(system,monkeypatch):
+    """Measured 7B limit: 140 archived comment lines split style.css into 4 scopes (6 operations)."""
+    from src.core.bounded_edits import comment_only
+    archive=''.join(f'/* Archived style note {i:03d}: retained source context, never discarded. */\n' for i in range(140))
+    base={'index.html':HTML,'style.css':'body { color: black; background: white; }\n'+archive}
+    store,jobs,pid=fixture(system,base)
+    def measure(messages,max_tokens=1024,**o):
+        tokens=len(json.dumps(messages,ensure_ascii=False))//4
+        return {'prompt_tokens':tokens,'context_size':4096,'requested_output_limit':max_tokens,'effective_output_limit':max(0,min(max_tokens,4096-tokens)),'measurement':'fixture proportional'}
+    monkeypatch.setattr(system.backend,'measure_messages',measure)
+    css_sha=digest(base['style.css'])
+    def reply(path,source):
+        if path=='style.css':return json.dumps({'base_revision':1,'path':path,'source_sha256':css_sha,'edits':[{'before':'color: black','after':'color: #111'}],
+                                                'css_rules':[{'selector':'main','declarations':[{'name':'padding','value':'1rem'}],'scheme':None}],'script_code':None,'html_fragment':None,'new_content':None,'interaction':None})
+        return packet(path,source)
+    calls=[]
+    original=system.backend.generate
+    def generate(**options):
+        if options['messages'][0]['content'].startswith('Return a bounded file patch'):
+            user=json.loads(options['messages'][1]['content']);calls.append((user.get('path'),user.get('at_eof')))
+            system.backend.replies=[reply(user['path'],base[user['path']])]
+        return original(**options)
+    system.backend.generate=generate
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='completed',result
+        css=store.read(pid,'style.css')['content']
+        assert css.startswith('body { color: #111;') and archive in css and css.rstrip().endswith('main{padding:1rem;}')
+        stage=next(s for s in result['stage_results'] if s['stage']=='generating' and s.get('result',{}).get('skipped_comment_scopes'))['result']
+        assert len(stage['skipped_comment_scopes'])>=1 and all(s['reason'].startswith('comment-only') for s in stage['skipped_comment_scopes'])
+        assert [c for c in calls if c[0]=='style.css']==[('style.css',True)]
+    finally:jobs.shutdown();store.close()
+    assert comment_only('a.css','/* x */\n\n/* y */') and not comment_only('a.css','a{b:c}') and not comment_only('a.css','end of comment */\n')
+    assert comment_only('a.js','// x\n/* y */') and not comment_only('a.html','<!-- x -->')
+
+
+def test_ambiguous_anchor_gets_one_server_target_reask_and_never_guesses(system):
+    """Observed 7B failures: 'color:#000!important' occurred 6 times; another anchor did not exist."""
+    css='a { color: #000; }\nb { color: #000; }\n'
+    base={'main.py':'VALUE = 1\n','style.css':css};store,jobs,pid=fixture(system,base)
+    calls=[]
+    original=system.backend.generate
+    def generate(**options):
+        if options['messages'][0]['content'].startswith('Return a bounded file patch'):
+            user=json.loads(options['messages'][1]['content']);calls.append(user)
+            if user['path']=='style.css' and 'scope_targets' in user:
+                span=next(s for s in user['scope_targets'] if s['target_id'])
+                system.backend.replies=[json.dumps({'base_revision':1,'path':'style.css','source_sha256':digest(css),'edits':[],'target_edits':[{'target_id':span['target_id'],'after':span['source'].replace('b { color: #000; }','b { color: #222; }')}],
+                    'css_rules':None,'script_code':None,'html_fragment':None,'new_content':None,'interaction':None})]
+            elif user['path']=='style.css':system.backend.replies=[packet('style.css',css,before='color: #000;',after='color: #222;')]
+            else:system.backend.replies=[packet('main.py',base['main.py'],before='1',after='2')]
+        return original(**options)
+    system.backend.generate=generate
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='completed',(result['error'],[(a.get('status'),a.get('error')) for a in result.get('attempts') or []])
+        assert store.read(pid,'style.css')['content']=='a { color: #000; }\nb { color: #222; }\n'
+        reask=[c for c in calls if 'scope_targets' in c]
+        assert len(reask)==1 and 'source_scope' not in reask[0] and reask[0]['failed_edit_befores']==['color: #000;']
+        ops=[o for s in result['stage_results'] if s['stage']=='generating' for o in (s.get('result') or {}).get('operations',[])]
+        assert any(o.get('edit_protocol')=='anchor_reask_server_targets' for o in ops)
+    finally:jobs.shutdown();store.close()
+
+
+def test_anchor_reask_happens_once_per_operation_and_bad_targets_fail_without_saving(system):
+    css='a { color: #000; }\nb { color: #000; }\n'
+    base={'style.css':css};store,jobs,pid=fixture(system,base)
+    system.backend.replies=[packet('style.css',css,before='color: #000;',after='x'),
+        json.dumps({'base_revision':1,'path':'style.css','source_sha256':digest(css),'edits':[],'target_edits':[{'target_id':'t_0000000000000000','after':'x'}],'css_rules':None,'script_code':None,'html_fragment':None,'new_content':None,'interaction':None})]
+    try:
+        result=wait(jobs,start(jobs,pid,base));assert result['state']=='failed'
+        assert store.committed_files(pid)==base and store.get(pid)['project_revision']==1
+        assert len([c for c in system.backend.calls if c['messages'][0]['content'].startswith('Return a bounded file patch')])==2
+    finally:jobs.shutdown();store.close()
+
+
+@pytest.mark.parametrize('text,names',[('أضف خدمة جديدة باسم مختبر تحاليل ضمن فئة الخدمات الطبية',['مختبر تحاليل']),('أضف زر «تواصل معنا» في الأعلى',['تواصل معنا']),
+    ('Add a section named Projects to the page',['Projects']),('احذف خدمة باسم كهربائي',[]),('برمج سكربت Python باسم main.py',[]),('أضف الوضع الداكن',[]),('"أضف باسم X"',[])])
+def test_requested_names_only_from_add_requests(text,names):
+    from src.core.edit_preservation import requested_names
+    assert requested_names(text)==names
+
+
+def test_add_request_whose_named_item_is_absent_is_not_saved_as_success(system):
+    """Observed (followup-content-2): 7B saved only unrelated CSS for «أضف خدمة … باسم مختبر تحاليل»."""
+    store,jobs,pid=fixture(system)
+    def start_named(text):
+        return jobs.create({'project_id':pid,'expected_revision':store.get(pid)['project_revision'],'context_files':list(BASE),'user_request':text,'requirements':[text],'max_tokens':4096})['job']['job_id']
+    unrelated=[packet('index.html',HTML),packet('style.css',BASE['style.css'],before='black',after='#111'),packet('script.js',BASE['script.js'])]
+    system.backend.replies=unrelated*3
+    try:
+        result=wait(jobs,start_named('أضف خدمة جديدة باسم مختبر تحاليل ضمن قائمة الخدمات'))
+        assert result['state']=='failed' and store.get(pid)['project_revision']==1 and store.committed_files(pid)==BASE
+        assert any('مختبر تحاليل' in (a.get('error') or '') for a in result.get('attempts') or [])
+        system.backend.replies=[packet('index.html',HTML,before='</body>',after='<p>مختبر تحاليل</p></body>'),packet('style.css',BASE['style.css']),packet('script.js',BASE['script.js'])]
+        ok=wait(jobs,start_named('أضف خدمة جديدة باسم مختبر تحاليل ضمن قائمة الخدمات'))
+        assert ok['state']=='completed' and store.get(pid)['project_revision']==2 and 'مختبر تحاليل' in store.read(pid,'index.html')['content']
+    finally:jobs.shutdown();store.close()

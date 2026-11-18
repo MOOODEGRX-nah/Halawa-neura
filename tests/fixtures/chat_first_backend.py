@@ -25,7 +25,7 @@ class Backend:
  def measure_messages(self,messages,max_tokens=1024,**options):
   return {'prompt_tokens':200,'context_size':4096,'effective_output_limit':min(max_tokens,3896),'measurement':'controlled Qt token fixture, not native'}
  def generate(self,*,messages,stream=False,**options):
-  self.calls+=1;text=WEB if 'complete named files' in messages[0]['content'] else MARKDOWN
+  self.calls+=1;text=WEB if 'complete named files' in messages[0]['content'] else os.environ.get('NEURA_QA_CHAT_TEXT') or MARKDOWN
   if messages[0]['content'].startswith('Return ONLY a compact JSON implementation plan'):
    invoice=json.loads(messages[1]['content'])
    text=json.dumps({'steps':['Inspect requirements and source.','Implement the requested files.','Check syntax and preserved behavior.'],

@@ -152,6 +152,49 @@ class BoundedEditor:
         if any(a<start<b or a<start+len(scope)<b for a,b in self.removal_units.get(path,[])):raise ProjectError('جزء المصدر يقسم وحدة إزالة كاملة؛ لم يُخمن حد آخر')
         return RepairTargets({path:scope},revision,binding,ranges={path:units}),binding
 
+    def anchor_reask(self,coordinator,request,plan,path,scope,revision,sha,inventory,at_end,start,end,size,schema,failure,failed,reserve,remaining,later,records,contract,skipped,cancel,deadline,preflight):
+        """One re-ask per job after a missing/non-unique text anchor: server-issued span IDs replace free text.
+
+        Same scope, revision and hashes; the raw source_scope is replaced by the same text split into
+        hash-bound spans, so the prompt does not grow. Charged to the same output ledger and deadline.
+        Returns (patch, remaining, edited_scope) or None when the budget/context does not allow it.
+        """
+        import copy
+        from src.core.repair_targets import RepairTargets
+        binding={**self.identity,'base_file_sha256':sha,'scope_start_char':start,'scope_end_char':end,'purpose':'anchor_reask'}
+        targets=RepairTargets({path:scope},revision,binding)
+        if not targets.targets:return None
+        messages=self.messages(request,plan,path,scope,revision,sha,False,inventory,at_end,scope_start=start)
+        payload=json.loads(messages[1]['content']);payload.pop('source_scope',None)
+        payload['scope_targets']=targets.source[0]['spans'];payload['anchor_failure']=failure
+        payload['failed_edit_befores']=[e.before[:160] for e in failed.edits]
+        messages=[{'role':'system','content':messages[0]['content']+' ANCHOR RETRY: the previous edits used before text that was missing or not unique in this scope. Do NOT use edits now. To change existing source use target_edits: choose server-issued target_id values from scope_targets; each after is the COMPLETE replacement text of that span (keep its trailing newline and all unchanged lines of the span). Select each target at most once.'},
+                  {'role':'user','content':json.dumps(payload,ensure_ascii=False)}]
+        schema=copy.deepcopy(schema)
+        schema['properties']['edits']['maxItems']=0
+        schema['$defs']['TargetEdit']['properties']['target_id']={'type':'string','enum':list(targets.targets)}
+        schema['properties']['target_edits']={'type':'array','items':{'$ref':'#/$defs/TargetEdit'},'minItems':1,'maxItems':3}
+        call_limit=min(reserve,remaining-later*self.MIN_OUTPUT)
+        if call_limit<self.MIN_OUTPUT:return None
+        measured=coordinator.measure_messages(messages,tier='coder',max_tokens=call_limit,cancel=cancel,deadline=deadline)
+        call_limit=min(call_limit,measured['effective_output_limit'])
+        if call_limit<self.MIN_OUTPUT:return None
+        result=coordinator.complete(messages,tier='coder',max_tokens=call_limit,temperature=.1,top_p=.9,response_format={'type':'json_object','schema':schema},cancel=cancel,deadline=deadline)
+        choice=result['choices'][0];native=(result.get('usage') or {}).get('completion_tokens')
+        spent=native if isinstance(native,int) and 0<=native<=call_limit else call_limit;remaining-=spent
+        records.append({'resource_profile':result.get('resource_profile'),'operation':records[-1]['operation'] if records else None,'path':path,'base_revision':revision,'source_sha256':sha,
+            'source_scope_sha256':digest(scope),'source_start_char':start,'source_end_char':end,'source_size_chars':size,'preflight':{**preflight,'reask_after_anchor':measured},'output_limit':call_limit,
+            'output':choice.get('message',{}).get('content',''),'finish_reason':choice.get('finish_reason'),'usage':result.get('usage'),'token_metrics':result.get('neura_token_metrics'),
+            'output_tokens_charged':spent,'remaining_output_budget':remaining,'edit_protocol':'anchor_reask_server_targets','scope_targets':targets.manifest(),'anchor_failure':failure})
+        yield {'kind':'stage_result','stage':'generating','mode':'bounded_patch','required_feature_contract':contract,'operations':list(records),'plan':plan,'skipped_comment_scopes':skipped}
+        if choice.get('finish_reason')!='stop':raise ProjectError('ترقيع الملف غير مكتمل: '+str(choice.get('finish_reason'))+'؛ لم يُحفظ تعديل جزئي')
+        try:patch=FilePatch.model_validate_json(choice['message']['content'])
+        except ValueError as e:raise ProjectError('الترقيع لا يطابق عقد الملف؛ لم تُخمن التعديلات') from e
+        if (patch.base_revision,patch.path,patch.source_sha256)!=(revision,path,sha) or patch.edits or patch.new_content is not None:raise ProjectError('إعادة طلب المراسي لا تطابق العقد')
+        if patch.interaction:raise ProjectError('عقد التفاعل غير مفوض في إعادة طلب المراسي')
+        edited=targets.apply({path:scope},patch.target_edits,revision,binding)[path]
+        return patch,remaining,edited
+
     @staticmethod
     def structured_addition(request):
         return any(i['operation']=='add' for i in request.required_feature_contract.get('changes',[]))
@@ -180,15 +223,25 @@ class BoundedEditor:
         invoice=self.invoice.make_invoice(request,project_id=project_id,task_id=job_id,context=context)
         yield {'kind':'stage','stage':'planning'}
         # Try complete planning context first; explicitly fall back to an inventory
-        # only when it cannot fit. Every actual selected byte still goes through
-        # the later bounded file operations; no source is silently discarded.
+        # only when it cannot fit. Every selected byte is either sent through a later
+        # bounded file operation or, for comment-only CSS/JS scopes, preserved verbatim
+        # and recorded in skipped_comment_scopes; no source is silently discarded.
         compact=False
         if len(context)>60000 or not self.invoice.plan_fits(invoice,request,cancel=cancel,deadline=deadline):
             compact=True
             invoice.context_summary=json.dumps({'source_mode':'Complete source supplied in bounded file operations after this plan, not truncated here',
                 'files':inventory,'accepted_requirements':self.accepted,'preserve':'Preserve existing content/controls/links/theme; use minimal coherent edits'},ensure_ascii=False)
         completion=self.invoice.plan_completion(invoice,request,cancel=cancel,deadline=deadline)
-        checked=self.invoice.inspect_plan(completion,request)
+        # A recipe's contract files that already exist in the saved revision are preserved and
+        # revalidated after generation, so an edit plan need not list them. User-named required
+        # files and any file still to be created must remain in the plan.
+        recipe_files=set()
+        if getattr(request,'web_recipe',None):
+            from src.tools.web_recipes import manifest as recipe_manifest
+            recipe_files=set(recipe_manifest(request.web_recipe)['required_files'])
+        to_create=[p for p in request.required_files if not (p in before and p in recipe_files)]
+        checked=self.invoice.inspect_plan(completion,request.model_copy(update={'required_files':to_create}))
+        checked['plan_required_files']=to_create
         checked['source_mode']='bounded_inventory_then_complete_file_operations' if compact else 'complete_planning_source'
         checked['base_hashes']={p:digest(v) for p,v in before.items()}
         checked['required_feature_contract']=contract
@@ -227,15 +280,33 @@ class BoundedEditor:
                 pending[:0]=[scope[:middle],scope[middle:]]
                 if len(operations)+len(pending)>self.MAX_OPERATIONS:raise ProjectError('المصدر يحتاج عمليات أكثر من الحد الآمن؛ لم يُحفظ تعديل جزئي')
             if cursor!=len(source):raise ProjectError('لم تُغطَّ جميع أجزاء المصدر؛ لم يُحفظ تعديل جزئي')
+        # CSS/JS scopes holding only comments/whitespace carry no behavior: keep them byte-for-byte
+        # without a model call (measured 7B overrun copied such comments into edits). Appending moves
+        # to the last behavioral scope of that file. Removal jobs and HTML are unchanged.
+        skipped=[];last_scope={}
+        if not self.removal:
+            meaningful={}
+            for op in operations:meaningful.setdefault(op[0],[]).append(not comment_only(op[0],op[1]))
+            kept=[]
+            for op in operations:
+                path,scope,_,new_file=op[:4]
+                if not new_file and path.endswith(('.css','.js')) and comment_only(path,scope) and any(meaningful[path]):
+                    skipped.append({'path':path,'source_start_char':op[5],'source_end_char':op[6],'source_scope_sha256':digest(scope),'reason':'comment-only scope preserved verbatim; no model call'})
+                    continue
+                kept.append(op)
+            operations=kept
+        for index,op in enumerate(operations):last_scope[op[0]]=index
         if len(operations)>self.MAX_OPERATIONS:raise ProjectError('عمليات التعديل تتجاوز الحد الآمن')
         limit=min(reserve,request.max_tokens//len(operations))
         if limit<self.MIN_OUTPUT:raise ProjectError('ميزانية خرج التعديل لا تكفي لكل الأجزاء؛ لم يُحفظ تعديل جزئي')
-        candidate=dict(before);records=[];remaining=request.max_tokens;theme_path=None;scope_parts={};scope_ends={}
+        candidate=dict(before);records=[];remaining=request.max_tokens;theme_path=None;scope_parts={};scope_ends={};reasked=False;anchor_reasked=False
         for index,(path,scope,sha,new_file,preflight,start,end,size) in enumerate(operations):
+            anchor_reasked=False  # at most one anchor re-ask per operation; the shared ledger bounds the total
             coordinator._check(cancel,deadline)
             call_limit=min(reserve,remaining-(len(operations)-index-1)*self.MIN_OUTPUT)
             if call_limit<self.MIN_OUTPUT:raise ProjectError('استُنفدت ميزانية الترقيع قبل إكمال جميع الملفات')
-            messages=self.messages(request,plan,path,scope,revision,sha,new_file,inventory,end==size,scope_start=start)
+            at_end=end==size or (path.endswith(('.css','.js')) and last_scope.get(path)==index)
+            messages=self.messages(request,plan,path,scope,revision,sha,new_file,inventory,at_end,scope_start=start)
             schema=generation_schema(FilePatch)
             array=next(shape for shape in schema['properties']['css_rules']['anyOf'] if shape.get('type')=='array')
             array['maxItems']=6
@@ -253,7 +324,7 @@ class BoundedEditor:
                         if boundary not in scope and not (boundary not in before[path] and end==size):schema['properties'][field]={'type':'null'}
                 else:
                     for field,suffix in [('css_rules','.css'),('script_code','.js')]:
-                        if not path.endswith(suffix) or end!=size:schema['properties'][field]={'type':'null'}
+                        if not path.endswith(suffix) or not at_end:schema['properties'][field]={'type':'null'}
                     schema['properties']['html_fragment']={'type':'null'}
             eligible_theme=self.theme and path.endswith(('.html','.htm')) and end==size
             schema['properties']['interaction']={'const':'theme','type':'string'} if eligible_theme else {'type':'null'}
@@ -273,18 +344,32 @@ class BoundedEditor:
                 schema['required'].append('target_edits');schema['properties']['edits']['maxItems']=0
                 for name in ('css_rules','script_code','html_fragment','new_content'):schema['properties'][name]={'type':'null'}
             else:schema['properties']['target_edits']['maxItems']=0
-            result=coordinator.complete(messages,tier='coder',max_tokens=call_limit,temperature=.1,top_p=.9,
-                response_format={'type':'json_object','schema':schema},cancel=cancel,deadline=deadline)
-            choice=result['choices'][0]
-            record={'resource_profile':result.get('resource_profile'),'operation':index,'path':path,'base_revision':revision,'source_sha256':sha,
-                'source_scope_sha256':digest(scope),'source_start_char':start,'source_end_char':end,'source_size_chars':size,'scope_bytes':len(scope.encode()),'preflight':preflight,'output_limit':call_limit,'available_output_budget_before':remaining,
-                'output':choice.get('message',{}).get('content',''),'finish_reason':choice.get('finish_reason'),'usage':result.get('usage'),'token_metrics':result.get('neura_token_metrics')}
-            if targets is not None:record.update(scope_targets=targets.manifest(),edit_protocol='semantic_deletion')
-            native_usage=(result.get('usage') or {}).get('completion_tokens')
-            spent=native_usage if isinstance(native_usage,int) and 0<=native_usage<=call_limit else call_limit
-            remaining-=spent;record.update(output_tokens_charged=spent,remaining_output_budget=remaining)
-            records.append(record)
-            yield {'kind':'stage_result','stage':'generating','mode':'bounded_patch','required_feature_contract':contract,'operations':list(records),'plan':plan}
+            for ask in (0,1):
+                result=coordinator.complete(messages,tier='coder',max_tokens=call_limit,temperature=.1,top_p=.9,
+                    response_format={'type':'json_object','schema':schema},cancel=cancel,deadline=deadline)
+                choice=result['choices'][0]
+                record={'resource_profile':result.get('resource_profile'),'operation':index,'path':path,'base_revision':revision,'source_sha256':sha,
+                    'source_scope_sha256':digest(scope),'source_start_char':start,'source_end_char':end,'source_size_chars':size,'scope_bytes':len(scope.encode()),'preflight':preflight,'output_limit':call_limit,'available_output_budget_before':remaining,
+                    'output':choice.get('message',{}).get('content',''),'finish_reason':choice.get('finish_reason'),'usage':result.get('usage'),'token_metrics':result.get('neura_token_metrics')}
+                if targets is not None:record.update(scope_targets=targets.manifest(),edit_protocol='semantic_deletion')
+                native_usage=(result.get('usage') or {}).get('completion_tokens')
+                spent=native_usage if isinstance(native_usage,int) and 0<=native_usage<=call_limit else call_limit
+                remaining-=spent;record.update(output_tokens_charged=spent,remaining_output_budget=remaining)
+                records.append(record)
+                yield {'kind':'stage_result','stage':'generating','mode':'bounded_patch','required_feature_contract':contract,'operations':list(records),'plan':plan,'skipped_comment_scopes':skipped}
+                if choice.get('finish_reason')!='length' or ask or reasked or self.removal:break
+                # One narrower re-ask per job, ONLY after a measured output overrun. Same scope, hashes,
+                # deadline and output ledger; the truncated record is kept. Never a larger budget.
+                reasked=True;overrun=call_limit
+                call_limit=min(reserve,remaining-(len(operations)-index-1)*self.MIN_OUTPUT)
+                if call_limit<self.MIN_OUTPUT:break
+                schema=narrowed_schema(schema)
+                messages=messages+[{'role':'user','content':'Your previous patch for this exact scope was cut off at the output limit (finish_reason=length after '+str(overrun)+' tokens). Return a SMALLER patch for the same request: at most 3 edits whose before is a short exact anchor that occurs EXACTLY ONCE in source_scope (if a declaration such as color: #333; repeats, include its selector line so the anchor is unique) and whose after contains only that changed text, and/or at most 3 append-only css_rules. Never copy whole rule blocks or unchanged source.'}]
+                retry_preflight=coordinator.measure_messages(messages,tier='coder',max_tokens=call_limit,cancel=cancel,deadline=deadline)
+                # The narrowed answer must fit the measured context; never exceed it, never go below the floor.
+                call_limit=min(call_limit,retry_preflight['effective_output_limit'])
+                if call_limit<self.MIN_OUTPUT:break
+                preflight={**preflight,'reask_after_length':retry_preflight}
             if choice.get('finish_reason')!='stop':raise ProjectError('ترقيع الملف غير مكتمل: '+str(choice.get('finish_reason'))+'؛ لم يُحفظ تعديل جزئي')
             try:patch=FilePatch.model_validate_json(choice['message']['content'])
             except ValueError as e:raise ProjectError('الترقيع لا يطابق عقد الملف؛ لم تُخمن التعديلات') from e
@@ -313,8 +398,19 @@ class BoundedEditor:
                 candidate[path]=patch.new_content;bounded_files(candidate)
             else:
                 if patch.new_content is not None:raise ProjectError('لا يجوز استبدال الملف المحفوظ عبر new_content')
-                candidate=apply_exact(candidate,path,patch.edits,scope)
-                candidate=apply_sections(candidate,path,patch,scope,end==size)
+                try:
+                    candidate=apply_exact(candidate,path,patch.edits,scope)
+                    candidate=apply_sections(candidate,path,patch,scope,at_end)
+                except ProjectError as anchor_error:
+                    if anchor_reasked or not patch.edits or 'مرساة الترقيع' not in str(anchor_error):raise
+                    anchor_reasked=True
+                    rerun=yield from self.anchor_reask(coordinator,request,plan,path,scope,revision,sha,inventory,at_end,start,end,size,schema,
+                        str(anchor_error),patch,reserve,remaining,len(operations)-index-1,records,contract,skipped,cancel,deadline,preflight)
+                    if rerun is None:raise
+                    patch,remaining,edited_scope=rerun
+                    if candidate[path].count(scope)!=1:raise ProjectError('جزء المصدر غير فريد في المرشح؛ لم يُطبّق إصلاح المراسي')
+                    candidate={**candidate,path:candidate[path].replace(scope,edited_scope,1)};bounded_files(candidate)
+                    candidate=apply_sections(candidate,path,patch,edited_scope,at_end)
             if candidate[path]!=before.get(path):yield {'kind':'candidate_file','path':path,'content':candidate[path]}
         if self.theme:
             if not theme_path:raise ProjectError('لم تنتج عملية HTML عقد التفاعل المطلوب')
@@ -324,4 +420,28 @@ class BoundedEditor:
             yield {'kind':'candidate_file','path':theme_path,'content':candidate[theme_path]}
         # All operations succeeded on the private candidate. Promotion is owned
         # by ProjectJobs, after global references/preservation/browser validation.
-        yield {'kind':'finished','stage':'generating','mode':'bounded_patch','finish_reason':'stop','required_feature_contract':contract,'operations':records,'plan':plan,'required_interaction':interaction if self.theme else None}
+        yield {'kind':'finished','stage':'generating','mode':'bounded_patch','finish_reason':'stop','required_feature_contract':contract,'operations':records,'skipped_comment_scopes':skipped,'plan':plan,'required_interaction':interaction if self.theme else None}
+
+
+def narrowed_schema(schema):
+    """Grammar for the single re-ask after an output overrun: fewer items and short anchors.
+
+    `before` is capped (an over-long anchor simply fails exact matching); `after` is not capped,
+    so a replacement is never cut mid-declaration by the grammar.
+    """
+    import copy
+    schema=copy.deepcopy(schema)
+    edits=schema['properties']['edits'];edits['maxItems']=min(edits.get('maxItems',8),3)
+    schema['$defs']['Replacement']['properties']['before']['maxLength']=200
+    rules=schema['properties']['css_rules']
+    for shape in rules.get('anyOf',[]):
+        if shape.get('type')=='array':shape['maxItems']=min(shape.get('maxItems',6),3)
+    return schema
+
+
+def comment_only(path,scope):
+    """True when a CSS/JS scope contains nothing but complete comments and whitespace."""
+    if path.endswith('.css'):rest=re.sub(r'/\*.*?\*/','',scope,flags=re.S)
+    elif path.endswith('.js'):rest=re.sub(r'//[^\n]*','',re.sub(r'/\*.*?\*/','',scope,flags=re.S))
+    else:return False
+    return not rest.strip()

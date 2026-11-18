@@ -70,7 +70,7 @@ def test_preview_assets_are_capability_scoped_and_sandboxed(tmp_path):
             except urllib.error.HTTPError as exc:assert exc.code==404
             else:raise AssertionError('Private file served: '+suffix)
         with opener.open(prefix+'style.css') as response:assert response.read()==WEB['style.css'].encode()
-        other=store.create('other','other')['project_id'];store.commit(other,{'index.html':'other'},0)
+        other=store.create('other','other')['project_id'];store.commit(other,{'index.html':'<p>other</p>'},0)
         assert record['project_id']!=other
     finally:
         preview.stop();store.close()

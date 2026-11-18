@@ -202,12 +202,12 @@ class ProjectJobs:
             if request.project_id:
                 request.web_recipe=(project.get('generation_recipe') or {}).get('id')
             if request.web_recipe:
-                from src.tools.web_recipes import manifest
-                recipe=manifest()
+                from src.tools.web_recipes import manifest,skill_for
+                recipe=manifest(request.web_recipe)
                 if project and project.get('generation_recipe') and project['generation_recipe']!={k:v for k,v in recipe.items() if k in ('id','version','sha256')}:raise Conflict('تغير عقد وصفة المشروع؛ راجع التوافق قبل التعديل')
                 request.web_recipe_sha256=recipe['sha256']
                 registry=getattr(self,'skill_registry',None)
-                if registry and not next(s for s in registry.describe()['skills'] if s['name']=='prepare_static_cv')['available']:raise ProjectError('وصفة CV معطلة؛ لم يبدأ التوليد')
+                if registry and not next(s for s in registry.describe()['skills'] if s['name']==skill_for(request.web_recipe))['available']:raise ProjectError('وصفة الويب معطلة؛ لم يبدأ التوليد')
                 request.required_files=list(dict.fromkeys([*request.required_files,*recipe['required_files']]))
                 request.constraints=list(dict.fromkeys([*request.constraints,*recipe['constraints']]))
                 if len(request.constraints)>28 or len(request.required_files)>30:raise ProjectError('عقد الوصفة مع متطلباتك يتجاوز الحد الآمن؛ لم تُنشأ مهمة')
@@ -305,7 +305,7 @@ class ProjectJobs:
             project = self.store.get(project_id)
             if request.web_recipe:
                 from src.tools.web_recipes import manifest
-                if request.web_recipe_sha256!=manifest()['sha256']:raise Conflict('تغيرت وصفة المهمة أثناء الانتظار؛ لم يبدأ تنفيذ بعقد مختلف')
+                if request.web_recipe_sha256!=manifest(request.web_recipe)['sha256']:raise Conflict('تغيرت وصفة المهمة أثناء الانتظار؛ لم يبدأ تنفيذ بعقد مختلف')
             expected = request.expected_revision if request.project_id else 0
             if project['project_revision'] != expected or project['source_freshness'] != 'current':
                 raise Conflict('تغير المشروع أثناء الانتظار')
@@ -355,7 +355,7 @@ class ProjectJobs:
                             if model_repairs:raise ProjectError('استُنفدت محاولة الإصلاح بالنموذج؛ بقيت المراجعة السابقة')
                             model_repairs+=1
                             generated,repair_result=self.invoice.repair_candidate(generated,request,repair,contract_summary(before),
-                                cancel=cancel,deadline=deadline,max_tokens=remaining_tokens)
+                                cancel=cancel,deadline=deadline,max_tokens=remaining_tokens,before=before or None)
                         repair_result['required_feature_contract']=feature_contract
                         self._stage_result(job_id,'generating',repair_result)
                         for path,content in generated.items():
@@ -415,6 +415,10 @@ class ProjectJobs:
                     validation['required_feature_contract']=feature_contract
                     if validation['errors']:raise ProjectError('; '.join(validation['errors']))
                     if before:preserved=require_preserved(before,files,request.user_request,feature_contract)
+                    if preview.get('supported'):
+                        from src.core.edit_preservation import missing_requested_names
+                        absent=missing_requested_names(request.user_request,files,preview.get('entry_point'))
+                        if absent:raise ProjectError('المحتوى المطلوب بالاسم غير ظاهر في المرشح: '+'، '.join(absent)+'؛ أضفه كنص مرئي في الصفحة')
                     def meaningful(value):
                         if not isinstance(value,str):return value
                         return value.replace('\r\n','\n').rstrip('\n')

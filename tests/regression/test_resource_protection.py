@@ -246,3 +246,36 @@ def test_cpu_placement_failure_keeps_queue_cancelable(system,tmp_path,monkeypatc
         assert jobs.worker.is_alive() and jobs.get(key)['blocked_reason']=='affinity denied'
         jobs.cancel(key);assert wait_terminal(jobs,key)['state']=='cancelled' and not system.backend.calls
     finally:jobs.shutdown();store.close()
+
+
+def test_thread_level_self_pin_is_kept_in_protected_scope_and_cgroup_scope_still_blocks(monkeypatch):
+    """Reproduced (web-services-v2-rx580-2): a driver thread (disk$0) pinned itself to one CPU outside
+    the protected set, WorkerLimits treated it as an admin restriction and blocked all inference.
+    Thread-level pins are re-confined (override recorded); process/cgroup scope still blocks."""
+    import os,threading
+    import pytest
+    from src.core import worker_limits
+    from src.core.worker_limits import WorkerLimits
+    allowed=sorted(os.sched_getaffinity(0))
+    if len(allowed)<2:pytest.skip('needs two CPUs')
+    limits=WorkerLimits();ready=threading.Event();release=threading.Event();box={}
+    def worker():
+        with limits.scope(persistent=True):
+            box['tid']=threading.get_native_id();ready.set();release.wait(5)
+    t=threading.Thread(target=worker);t.start();assert ready.wait(5)
+    try:
+        protected=limits.activate(1,0)
+        outside=next(c for c in allowed if c not in protected)
+        os.sched_setaffinity(box['tid'],{outside})  # the thread pins itself / is moved inside our process
+        limits.refresh()
+        assert not limits.errors and sorted(os.sched_getaffinity(box['tid']))==protected
+        row=next(r for r in limits.snapshot()['registered_tasks'] if r['tid']==box['tid'])
+        assert row['override'] and 'thread-level pin [%d]'%outside in row['override']
+        # Administrator scope: a cgroup cpuset that excludes the protected CPUs must still block, with attribution.
+        monkeypatch.setattr(worker_limits,'cgroup_cpus',lambda:{outside})
+        os.sched_setaffinity(box['tid'],{outside});limits.refresh()
+        message='; '.join(limits.errors)
+        assert 'No allowed protected CPU remains' in message and 'tid %d'%box['tid'] in message and 'cgroup cpuset [%d]'%outside in message
+    finally:
+        monkeypatch.setattr(worker_limits,'cgroup_cpus',lambda:None)
+        release.set();t.join(5);limits.restore()

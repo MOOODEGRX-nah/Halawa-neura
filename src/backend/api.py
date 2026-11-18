@@ -40,6 +40,63 @@ def error_response(message, status, code):
     return JSONResponse({'error': {'message': message, 'type': code}}, status_code=status)
 
 
+class LocalBoundary:
+    """Local API boundary as pure ASGI middleware (origin, cross-site, token, 26 MB body, headers).
+
+    Replaces a BaseHTTPMiddleware: that wrapper never forwarded http.disconnect to handlers, so an
+    abandoned request (e.g. one waiting for protected resources) kept waiting or running until its
+    deadline and could take the single model slot later. The buffered body is replayed once; every
+    later receive() goes to the real connection, so request.is_disconnected() works again.
+    """
+    PRIVATE = ('/vault', '/projects', '/project-jobs', '/workspace', '/skills', '/chat', '/resources')
+    HEADERS = {'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'no-store',
+               'Content-Security-Policy': None}
+    CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+           "media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src ")
+
+    def __init__(self, app, token, preview):
+        self.app = app; self.token = token; self.preview = preview
+
+    async def __call__(self, scope, receive, send):
+        if scope['type'] != 'http':
+            return await self.app(scope, receive, send)
+        from starlette.requests import Request
+        from starlette.datastructures import MutableHeaders
+        request = Request(scope)
+        origin = request.headers.get('origin')
+        allowed_origin = str(request.base_url).rstrip('/')
+        async def deny(message, status, code):
+            await error_response(message, status, code)(scope, receive, send)
+        if origin and origin != allowed_origin:
+            return await deny('Open the UI from this API origin', 403, 'origin_denied')
+        if request.headers.get('sec-fetch-site') == 'cross-site':
+            return await deny('Cross-site requests are disabled', 403, 'origin_denied')
+        inner = receive
+        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(self.PRIVATE)
+        if private:
+            supplied = request.headers.get('x-neura-token', '')
+            if not secrets.compare_digest(supplied.encode(), self.token.encode()):
+                return await deny('Missing or invalid X-Neura-Token', 403, 'authentication_required')
+            chunks = []; size = 0; more = True
+            while more:
+                message = await receive()
+                if message['type'] == 'http.disconnect':
+                    return
+                body = message.get('body', b''); size += len(body)
+                if size > 26_000_000:
+                    return await deny('Request exceeds 26 MB', 413, 'request_too_large')
+                chunks.append(body); more = message.get('more_body', False)
+            pending = [{'type': 'http.request', 'body': b''.join(chunks), 'more_body': False}]
+            async def inner():
+                return pending.pop() if pending else await receive()
+        async def secured(message):
+            if message['type'] == 'http.response.start':
+                headers = MutableHeaders(scope=message)
+                for key, value in self.HEADERS.items(): headers[key] = value if value is not None else self.CSP + (self.preview.origin or "'none'")
+            await send(message)
+        await self.app(scope, inner, secured)
+
+
 def capability_messages(messages, instructions):
     """Keep one leading system turn for strict GGUF templates such as Gemma 3.
 
@@ -128,33 +185,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     app.state.desktop_skills=desktop_skills
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost', '[::1]'])
 
-    @app.middleware('http')
-    async def local_boundary(request, call_next):
-        origin = request.headers.get('origin')
-        allowed_origin = str(request.base_url).rstrip('/')
-        if origin and origin != allowed_origin:
-            return error_response('Open the UI from this API origin', 403, 'origin_denied')
-        if request.headers.get('sec-fetch-site') == 'cross-site':
-            return error_response('Cross-site requests are disabled', 403, 'origin_denied')
-        private = request.method not in ('GET', 'HEAD', 'OPTIONS') or request.url.path.startswith(('/vault', '/projects', '/project-jobs', '/workspace', '/skills','/chat','/resources'))
-        if private:
-            supplied = request.headers.get('x-neura-token', '')
-            if not secrets.compare_digest(supplied.encode(), token.encode()):
-                return error_response('Missing or invalid X-Neura-Token', 403, 'authentication_required')
-            size = 0
-            chunks = []
-            async for chunk in request.stream():
-                size += len(chunk)
-                if size > 26_000_000:
-                    return error_response('Request exceeds 26 MB', 413, 'request_too_large')
-                chunks.append(chunk)
-            request._body = b''.join(chunks)
-        response = await call_next(request)
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['Referrer-Policy'] = 'no-referrer'
-        response.headers['Cache-Control'] = 'no-store'
-        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; frame-src " + (preview.origin or "'none'")
-        return response
+    app.add_middleware(LocalBoundary, token=token, preview=preview)
 
     @app.exception_handler(InferenceError)
     async def inference_error(request, exc):
@@ -318,9 +349,17 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
         options = dict(tier=tier, model=req.model, max_tokens=req.max_tokens, temperature=req.temperature, top_p=req.top_p)
+        from src.core.chat_claims import guard_receipt, NOTICE
         if not req.stream:
-            return await run_worker(request, coordinator,
+            result = await run_worker(request, coordinator,
                 lambda cancel, deadline: coordinator.complete(messages, cancel=cancel, deadline=deadline, **options))
+            if isinstance(result, dict) and result.get('choices'):
+                message = result['choices'][0].get('message') or {}
+                receipt = guard_receipt(message.get('content') or '')
+                if receipt:
+                    message['content'] = (message.get('content') or '') + NOTICE
+                    result['neura_claim_guard'] = receipt
+            return result
         cancel = threading.Event()
         deadline = time.monotonic() + settings.timeout_s
         events = queue.Queue(maxsize=32)
@@ -366,15 +405,23 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
 
         async def send():
             event = first
+            generated = []
             try:
                 while True:
                     kind, value = event
                     if kind == 'done':
+                        receipt = guard_receipt(''.join(generated))
+                        if receipt:
+                            # Appended to the same reply; earlier model text is not hidden or rewritten.
+                            yield 'data: ' + json.dumps({'object': 'chat.completion.chunk', 'choices': [{'index': 0, 'delta': {'content': NOTICE}, 'finish_reason': None}],
+                                                         'neura_claim_guard': receipt}, ensure_ascii=False) + '\n\n'
                         yield 'data: [DONE]\n\n'
                         break
                     if kind == 'error':
                         yield 'data: ' + json.dumps({'error': {'message': str(value), 'type': value.code}}) + '\n\n'
                         break
+                    if isinstance(value, dict):
+                        generated.extend(c.get('delta', {}).get('content') or '' for c in value.get('choices', []))
                     yield 'data: ' + json.dumps(value, ensure_ascii=False) + '\n\n'
                     event = await pull()
             except InferenceError as exc:

@@ -24,32 +24,42 @@ def check_candidate(files,preview,cancel,deadline,required=None):
         import base64
         values={k:({'base64':base64.b64encode(v).decode()} if isinstance(v,bytes) else v) for k,v in files.items()}
     else:values=files
-    with tempfile.TemporaryDirectory(prefix='neura-candidate-') as folder:
-        folder=Path(folder);source=folder/'candidate.json';result=folder/'result.json'
-        source.write_text(json.dumps({'files':values,'preview':preview,'required':required or {}}),encoding='utf-8')
-        env={**os.environ,'QT_QPA_PLATFORM':'offscreen','QTWEBENGINE_CHROMIUM_FLAGS':'--disable-gpu',
-             'XDG_CACHE_HOME':str(folder/'cache'),'XDG_CONFIG_HOME':str(folder/'config')}
-        env.pop('QTWEBENGINE_DISABLE_SANDBOX',None)
-        with (folder/'renderer.log').open('w') as log:
-            from src.core.resource_policy import owned_popen
-            child=owned_popen([sys.executable,'-B','-m','src.core.candidate_browser',str(source),str(result)],
-                env=env,stdout=log,stderr=log,start_new_session=True)
-            from src.core.resource_policy import register_owned_child
-            register_owned_child(child.pid)
-            limit=min(deadline,time.monotonic()+30)
-            try:
-                while child.poll() is None:
-                    if cancel.wait(.05) or time.monotonic()>limit:
-                        raise ProjectError('انتهت مهلة فحص المعاينة أو أُلغي الطلب؛ لم يُحفظ المرشح')
-                if child.returncode or not result.is_file():
-                    raise ProjectError('تعذر تشغيل فحص المعاينة المعزول؛ لم يُحفظ المرشح')
-                report=json.loads(result.read_text())
-                if report.get('status')!='passed':
-                    error=ProjectError('فشل فحص المعاينة: '+ '; '.join(report.get('errors',['unknown']))[:1500]);error.browser_report=report;raise error
-                return report
-            finally:
-                if child.poll() is None:os.killpg(child.pid,signal.SIGKILL)
-                child.wait()
+    def run(flags,extra):
+        with tempfile.TemporaryDirectory(prefix='neura-candidate-') as folder:
+            folder=Path(folder);source=folder/'candidate.json';result=folder/'result.json'
+            source.write_text(json.dumps({'files':values,'preview':preview,'required':required or {},**extra}),encoding='utf-8')
+            env={**os.environ,'QT_QPA_PLATFORM':'offscreen','QTWEBENGINE_CHROMIUM_FLAGS':flags,
+                 'XDG_CACHE_HOME':str(folder/'cache'),'XDG_CONFIG_HOME':str(folder/'config')}
+            env.pop('QTWEBENGINE_DISABLE_SANDBOX',None)
+            with (folder/'renderer.log').open('w') as log:
+                from src.core.resource_policy import owned_popen
+                child=owned_popen([sys.executable,'-B','-m','src.core.candidate_browser',str(source),str(result)],
+                    env=env,stdout=log,stderr=log,start_new_session=True)
+                from src.core.resource_policy import register_owned_child
+                register_owned_child(child.pid)
+                limit=min(deadline,time.monotonic()+30)
+                try:
+                    while child.poll() is None:
+                        if cancel.wait(.05) or time.monotonic()>limit:
+                            raise ProjectError('انتهت مهلة فحص المعاينة أو أُلغي الطلب؛ لم يُحفظ المرشح')
+                    if child.returncode or not result.is_file():
+                        raise ProjectError('تعذر تشغيل فحص المعاينة المعزول؛ لم يُحفظ المرشح')
+                    return json.loads(result.read_text())
+                finally:
+                    if child.poll() is None:os.killpg(child.pid,signal.SIGKILL)
+                    child.wait()
+    def fail(report):
+        error=ProjectError('فشل فحص المعاينة: '+ '; '.join(report.get('errors',['unknown']))[:1500]);error.browser_report=report;raise error
+    report=run('--disable-gpu',{})
+    if report.get('status')!='passed':fail(report)
+    from src.tools.web_recipes import SERVICES_ID
+    if (required or {}).get('web_recipe')==SERVICES_ID:
+        # Separate disposable renderer: Chromium applies reduced motion per process.
+        motion=run('--disable-gpu --force-prefers-reduced-motion',{'reduced_motion_pass':True})
+        report['web_recipe']['reduced_motion']=motion.get('reduced_motion')
+        if motion.get('status')!='passed':
+            report['status']='failed';report['errors']=['reduced motion: '+e for e in motion.get('errors',['unknown'])];fail(report)
+    return report
 
 
 INSPECT=r'''(()=>{
@@ -81,15 +91,52 @@ TOGGLE=r'''(()=>{
  const usable=e=>{if(!e)return false;const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'&&s.pointerEvents!=='none';};
  const compiled=document.getElementById('neura-theme-toggle');
  const e=(usable(compiled)?compiled:null)||Array.from(document.querySelectorAll('button,[role=button],input[type=checkbox],a[href="#"]')).find(e=>usable(e)&&/dark|theme|داكن|مظلم/i.test(e.textContent+' '+e.id+' '+(e.getAttribute('aria-label')||'')));
- if(!e)return false;
+ const name=n=>n?(n.tagName.toLowerCase()+(n.id?'#'+n.id:'')+(typeof n.className==='string'&&n.className.trim()?'.'+n.className.trim().split(/\s+/).join('.'):'')):null;
+ if(!e)return JSON.stringify({clicked:false,reason:'no usable theme control'});
  e.scrollIntoView({block:'center',behavior:'instant'});
  const r=e.getBoundingClientRect(),x=Math.max(0,Math.min(innerWidth-1,r.left+r.width/2)),y=Math.max(0,Math.min(innerHeight-1,r.top+r.height/2));
- const hit=document.elementFromPoint(x,y);if(hit!==e&&!e.contains(hit))return false;
- e.click();return true;
+ const hit=document.elementFromPoint(x,y),info={control:name(e),rect:[r.left,r.top,r.width,r.height].map(v=>Math.round(v)),viewport:[innerWidth,innerHeight],scroll_y:Math.round(scrollY),hit:name(hit)};
+ if(hit!==e&&!e.contains(hit))return JSON.stringify({clicked:false,reason:(r.bottom<=0||r.top>=innerHeight||r.right<=0||r.left>=innerWidth)?'control rendered outside the reachable scrolled viewport':'control covered by another element',...info});
+ e.click();return JSON.stringify({clicked:true,...info});
 })()'''
 
 
+def toggle_failure(result,scheme,width):
+    """Specific, measured reason a theme control could not be activated (None when clicked)."""
+    try:value=json.loads(result) if isinstance(result,str) else {'clicked':bool(result)}
+    except ValueError:value={'clicked':False,'reason':'unreadable toggle result'}
+    if value.get('clicked'):return None
+    detail=value.get('reason','not activated')
+    if value.get('rect'):detail+=' (control '+str(value.get('control'))+' at left/top/width/height '+str(value['rect'])+' px, viewport '+str(value.get('viewport'))+', element at its centre: '+str(value.get('hit'))+')'
+    return scheme+' '+str(width)+'px theme control could not be clicked: '+detail+'; the control must stay visible and reachable within the scrollable page'
+
+
 CV_STATE=r"""(()=>{const b=document.getElementById('cv-font-toggle'),m=document.getElementById('cv-content'),p=m?.querySelector('p');const visible=e=>{if(!e)return false;const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};return JSON.stringify({button_count:document.querySelectorAll('#cv-font-toggle').length,usable:visible(b)&&!b.disabled&&getComputedStyle(b).pointerEvents!=='none',pressed:b?.getAttribute('aria-pressed'),controls:b?.getAttribute('aria-controls'),font:p?parseFloat(getComputedStyle(p).fontSize):null,content:m?.innerText,text:document.body.innerText});})()"""
+SERVICES_STATE=r"""(()=>{const vis=e=>e.getClientRects().length>0&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).visibility!=='hidden';const cards=Array.from(document.querySelectorAll('#service-list .service-card'));const a=document.activeElement,s=a?getComputedStyle(a):null;return JSON.stringify({total:cards.length,visible:cards.filter(vis).map(e=>e.dataset.category),filters:Array.from(document.querySelectorAll('.service-filter')).map(b=>{const c=getComputedStyle(b);return {category:b.dataset.category,pressed:b.getAttribute('aria-pressed'),usable:vis(b)&&!b.disabled,look:[c.backgroundColor,c.color,c.borderTopColor,c.borderTopWidth,c.fontWeight,c.textDecorationLine,c.boxShadow].join('|')};}),count:(document.getElementById('service-count')||{}).textContent||'',active:a&&a.classList&&a.classList.contains('service-filter')?{category:a.dataset.category,focus_visible:a.matches(':focus-visible'),outline:s.outlineStyle,outline_width:parseFloat(s.outlineWidth)||0,shadow:s.boxShadow}:null,text:document.body.innerText.replace(/\s+/g,' ').trim(),reduced_motion:matchMedia('(prefers-reduced-motion: reduce)').matches,max_motion_s:Math.max(0,...Array.from(document.querySelectorAll('*')).flatMap(e=>{const c=getComputedStyle(e);return (c.transitionDuration+','+c.animationDuration).split(',').map(v=>parseFloat(v)*(/ms$/.test(v.trim())?0.001:1)||0)}))});})()"""
+
+
+def services_failures(initial,chosen,after,restored,label):
+    """Errors for one keyboard pass over the arabic_services_v1 category filter."""
+    errors=[];total=initial['total']
+    if total<6 or len(initial['visible'])!=total:errors.append(label+' not every service card is initially visible')
+    if [f['pressed'] for f in initial['filters'] if f['category']=='all']!=['true'] or any(f['pressed']!='false' for f in initial['filters'] if f['category']!='all'):errors.append(label+' initial filter aria-pressed state wrong')
+    def indistinct(state):
+        pressed={f.get('look') for f in state.get('filters',[]) if f['pressed']=='true'};others={f.get('look') for f in state.get('filters',[]) if f['pressed']=='false'}
+        return bool(pressed & others)
+    if indistinct(initial):errors.append(label+' the active filter is not visually distinguishable from the others (aria-pressed state has no visible indication)')
+    if not chosen:return errors+[label+' keyboard Tab did not reach a category filter']
+    focus=chosen['active']
+    if not focus['focus_visible'] or ((focus['outline']=='none' or focus['outline_width']<=0) and focus['shadow'] in ('none','')):errors.append(label+' keyboard-focused filter has no visible focus indicator')
+    category=focus['category'];expected=initial['visible'].count(category)
+    if not after['visible'] or any(c!=category for c in after['visible']) or len(after['visible'])!=expected or expected>=total:errors.append(label+' Space on filter '+str(category)+' did not show only its '+str(expected)+' cards: '+str(after['visible'])[:200])
+    if any(f['pressed']!=('true' if f['category']==category else 'false') for f in after['filters']):errors.append(label+' aria-pressed did not follow the active filter')
+    if after.get('filters') and indistinct(after):errors.append(label+' after activation the active filter is not visually distinguishable')
+    digits=str(len(after['visible']));arabic=digits.translate(str.maketrans('0123456789','٠١٢٣٤٥٦٧٨٩'))
+    if digits not in after['count'] and arabic not in after['count']:errors.append(label+' service-count does not state the visible count '+digits)
+    if not restored or len(restored['visible'])!=total or restored['text']!=initial['text']:errors.append(label+' Enter on «الكل» did not restore every card and the original content')
+    return errors
+
+
 CV_CLICK=r"""(()=>{const b=document.getElementById('cv-font-toggle');if(!b)return false;b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect(),hit=document.elementFromPoint(Math.max(0,Math.min(innerWidth-1,r.x+r.width/2)),Math.max(0,Math.min(innerHeight-1,r.y+r.height/2)));if(hit!==b&&!b.contains(hit))return false;b.click();return true;})()"""
 
 
@@ -151,10 +198,39 @@ def main(source,destination):
         report['required_feature_contract']=required.get('feature_contract')
         report['required_interaction']=required.get('interaction')
         report['color_schemes']=['light','dark']
+        from src.tools.web_recipes import ID,SERVICES_ID
         if required.get('web_recipe'):
-            from src.tools.web_recipes import ID
-            if required['web_recipe']!=ID:raise ValueError('Unsupported web recipe')
-            report['web_recipe']={'id':ID,'samples':[]}
+            if required['web_recipe'] not in (ID,SERVICES_ID):raise ValueError('Unsupported web recipe')
+            report['web_recipe']={'id':required['web_recipe'],'samples':[]}
+        from PySide6.QtCore import Qt
+        from PySide6.QtTest import QTest
+        def key(code,modifier=None):
+            view.setFocus();QTest.keyClick(view.focusProxy() or view,code,modifier or Qt.NoModifier);pump(.15)
+        def services_pass(label):
+            """Real Qt keyboard events: Tab to a category filter, Space, Shift+Tab to «الكل», Enter."""
+            initial=json.loads(js(SERVICES_STATE));chosen=None;after=restored=None
+            for _ in range(40):
+                key(Qt.Key_Tab);state=json.loads(js(SERVICES_STATE))
+                if state['active'] and state['active']['category']!='all':chosen=state;break
+            if chosen:
+                key(Qt.Key_Space);pump(.25);after=json.loads(js(SERVICES_STATE))
+                for _ in range(40):
+                    key(Qt.Key_Tab,Qt.ShiftModifier);state=json.loads(js(SERVICES_STATE))
+                    if state['active'] and state['active']['category']=='all':break
+                key(Qt.Key_Return);pump(.25);restored=json.loads(js(SERVICES_STATE))
+            proof={'label':label,'initial':{k:initial[k] for k in ('total','visible','filters','count','reduced_motion','max_motion_s')},'chosen':chosen and chosen['active'],
+                   'after':after and {k:after[k] for k in ('visible','filters','count')},'restored':restored and {k:restored[k] for k in ('visible','filters','count')}}
+            return proof,services_failures(initial,chosen,after or {},restored,label)
+        if payload.get('reduced_motion_pass'):
+            loaded.clear();page.load(QUrl(parent_origin+'/?scheme=light'));end=time.monotonic()+10
+            while not loaded and time.monotonic()<end:pump(.01)
+            if not loaded or not loaded[0]:raise ValueError('Candidate page did not load for the reduced-motion pass')
+            view.resize(1280,800);pump(.3)
+            proof,errors=services_pass('reduced-motion 1280px')
+            report['reduced_motion']=proof;report['errors'].extend(errors)
+            if not proof['initial']['reduced_motion']:report['errors'].append('renderer did not apply prefers-reduced-motion; reduced motion not verified')
+            elif proof['initial']['max_motion_s']>0.01:report['errors'].append('transitions/animations still run under prefers-reduced-motion: '+str(proof['initial']['max_motion_s'])+'s')
+            raise StopIteration
         report['required_features']=[name for name in ('theme','login') if required.get(name)]
         changes=[]
         for scheme in ('light','dark'):
@@ -168,7 +244,10 @@ def main(source,destination):
                 sample=json.loads(js(INSPECT));sample.update(width=width,mode='initial',color_scheme=scheme);samples.append(sample)
             if any(s['prefers_dark']!=(scheme=='dark') for s in samples):raise ValueError('Embedding color-scheme did not reach isolated preview')
             if samples[0]['dark_available']:
-                js(TOGGLE);pump(.4)
+                toggled=js(TOGGLE);pump(.4)
+                failure=toggle_failure(toggled,scheme,samples[-1]['width'])
+                report.setdefault('toggle_results',[]).append({'color_scheme':scheme,'width':samples[-1]['width'],'result':toggled})
+                if failure:report['errors'].append(failure)
                 for width in (1280,480):
                     view.resize(width,800);pump(.2);sample=json.loads(js(INSPECT));sample.update(width=width,mode='toggled',color_scheme=scheme);samples.append(sample)
             if len(samples)==4:
@@ -195,10 +274,16 @@ def main(source,destination):
                         toggled={v['selector']:v['background'] for v in samples[i+2]['interaction_surfaces']}
                         if not initial or initial.keys()!=toggled.keys() or any(initial[p]==toggled[p] for p in initial):
                             report['errors'].append('Required interaction did not change every declared visible surface in '+scheme)
-                js(TOGGLE);pump(.2)
+                failure=toggle_failure(js(TOGGLE),scheme,samples[-1]['width']);pump(.2)
+                if failure:report['errors'].append('restore: '+failure)
                 restored=json.loads(js(INSPECT))
                 if restored['interaction_state']!='light' or restored['interaction_pressed']!='false':report['errors'].append('Required interaction did not restore its initial state')
-            if required.get('web_recipe'):
+            if required.get('web_recipe')==SERVICES_ID:
+                for width in (1280,480):
+                    view.resize(width,800);pump(.25)
+                    proof,errors=services_pass(scheme+' '+str(width)+'px');proof.update(width=width,color_scheme=scheme)
+                    report['web_recipe']['samples'].append(proof);report['errors'].extend(errors)
+            elif required.get('web_recipe'):
                 for width in (1280,480):
                     view.resize(width,800);pump(.2)
                     initial=json.loads(js(CV_STATE));clicked=js(CV_CLICK);pump(.2);enlarged=json.loads(js(CV_STATE));clicked_back=js(CV_CLICK);pump(.2);restored=json.loads(js(CV_STATE))
@@ -223,6 +308,7 @@ def main(source,destination):
             failures=[x for x in sample['checks'] if x['ratio']+.02<x['minimum']]
             if failures:report['errors'].append(sample['color_scheme']+' '+sample['mode']+' low text contrast: '+json.dumps(failures[:3],ensure_ascii=False))
         report['status']='failed' if report['errors'] else 'passed'
+    except StopIteration:report['status']='failed' if report['errors'] else 'passed'
     except Exception as exc:report['errors'].append(str(exc))
     finally:
         Path(destination).write_text(json.dumps(report,ensure_ascii=False,indent=2))

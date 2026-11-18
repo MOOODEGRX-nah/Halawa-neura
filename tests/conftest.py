@@ -113,7 +113,7 @@ class FakeBackend:
         if callable(text):text=text(messages,kwargs)
         if messages[0]['content'].startswith('Return a bounded file patch'):
             import re
-            packet=json.loads(messages[1]['content']);path=packet['path'];scope=packet['source_scope']
+            packet=json.loads(messages[1]['content']);path=packet['path'];scope=packet.get('source_scope','')
             from src.core.project_stream import FileStream
             supplied={}
             if '```' in text:

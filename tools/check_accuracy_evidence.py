@@ -17,7 +17,7 @@ def check_run(directory):
         if not condition:errors.append(message)
     require(identity['inference']=='real','Not real inference evidence')
     require(not any((directory/name).exists() for name in ('failure.json','interruption.json')),'Runner recorded an interruption')
-    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1,'compound':1,'compound-clarify':1,'resource-smoke':1,'web-recipe':3}[workflow],'Incomplete conversation')
+    require(len(turns)=={'exact':6,'preserve':4,'plan':1,'proposal':4,'smoke':1,'large':1,'remove':1,'compound':1,'compound-clarify':1,'resource-smoke':1,'web-recipe':3,'web-services':2}[workflow],'Incomplete conversation')
     project_id=None;seen_jobs=set()
     for index,turn in enumerate(turns):
         label=f'turn {index+1}'
@@ -44,7 +44,7 @@ def check_run(directory):
         project=projects[0];pid=project['project_id']
         if project_id is None:project_id=pid
         require(pid==project_id,label+': wrong project')
-        action=(index in (0,2)) if workflow=='proposal' else (workflow in ('preserve','web-recipe') or index in (0,1,5))
+        action=(index in (0,2)) if workflow=='proposal' else (workflow in ('preserve','web-recipe','web-services') or index in (0,1,5))
         require(decisions[0]['kind']==('project' if action else 'proposal' if workflow=='proposal' and index==1 else 'status'),label+': unexpected routing')
         if workflow=='proposal':
             require(turn.get('job_count')==(1 if index<2 else 2),label+': duplicate or missing approval job')
@@ -160,6 +160,26 @@ def check_run(directory):
                 a,b,c=sample['initial'],sample['enlarged'],sample['restored']
                 require(sample['clicked'] and sample['clicked_back'] and a['pressed']=='false' and b['pressed']=='true' and c['pressed']=='false' and b['font']>a['font'] and abs(a['font']-c['font'])<.1 and a['content']==b['content']==c['content'],label+': CV font behavior/content not preserved')
             if index>=1:require(receipt.get('browser',{}).get('theme_changed') and receipt.get('preservation',{}).get('status')=='passed',label+': follow-up theme or preservation failed')
+        if workflow=='web-services':
+            expected=identity.get('expected_recipe_manifest') or {}
+            require(turn.get('job_count')==index+1,label+': recipe request duplicated a job')
+            require((job.get('invoice') or {}).get('user_request')==turn['text'],label+': original recipe request changed')
+            require((job.get('invoice') or {}).get('web_recipe')=='arabic_services_v1' and receipt.get('web_recipe')=='arabic_services_v1',label+': recipe contract lost')
+            require((job.get('invoice') or {}).get('web_recipe_sha256')==expected.get('sha256')==(project.get('generation_recipe') or {}).get('sha256'),label+': recipe snapshot/persistence mismatch')
+            require({'index.html','style.css','script.js'}<=hashes.keys(),label+': required recipe files missing')
+            require((job.get('validation') or {}).get('web_recipe',{}).get('status')=='passed',label+': recipe source validation absent')
+            require(rev==index+1 and receipt.get('result_revision')==index+1,label+': not exactly one saved revision')
+            stages=[st['stage'] for st in job.get('stage_results',[])]
+            require('planning' in stages and 'generating' in stages and stages.index('planning')<stages.index('generating'),label+': mandatory planning missing')
+            web=receipt.get('browser',{}).get('web_recipe') or {};samples=web.get('samples',[])
+            require({(x['width'],x['color_scheme']) for x in samples}=={(1280,'light'),(480,'light'),(1280,'dark'),(480,'dark')},label+': incomplete recipe browser observations')
+            for sample in samples:
+                chosen=sample.get('chosen') or {}
+                require(chosen.get('focus_visible') and sample.get('after') and sample.get('restored') and len(sample['restored']['visible'])==sample['initial']['total'],label+': keyboard filter proof incomplete')
+                require(sample.get('after') and sample['after']['visible'] and all(c==chosen.get('category') for c in sample['after']['visible']),label+': filter did not narrow cards')
+            motion=web.get('reduced_motion') or {}
+            require(motion.get('initial',{}).get('reduced_motion') is True and motion.get('initial',{}).get('max_motion_s',1)<=0.01,label+': reduced motion not verified')
+            if index>=1:require(receipt.get('preservation',{}).get('status')=='passed',label+': follow-up preservation failed')
         if workflow=='preserve' and index>=1:
             samples=[sample for attempt in job.get('attempts',[]) if attempt.get('status')=='accepted' for sample in (attempt.get('browser') or {}).get('samples',[])]
             require(bool(samples) and all(any(re.search(r'login|sign.?in|دخول',c.get('label',''),re.I) for c in sample.get('controls',[])) for sample in samples),label+': Login placeholder not visibly demonstrated')

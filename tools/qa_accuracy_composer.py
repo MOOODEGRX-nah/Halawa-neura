@@ -5,7 +5,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--baseline',action='store_true')
 p.add_argument('--real-model',action='store_true')
-p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify','resource-smoke','web-recipe'],default='exact')
+p.add_argument('--workflow',choices=['exact','preserve','plan','proposal','smoke','large','remove','compound','compound-clarify','resource-smoke','web-recipe','web-services','web-services-edit'],default='exact')
 p.add_argument('--seed-project',type=Path,help='Declared existing-project source JSON for large/edit-removal QA')
 p.add_argument('--approval',choices=['نعم','فل تبرمج'],default='نعم')
 p.add_argument('--login-request',default='أضف زر تسجيل دخول',help='Explicitly declared preservation journey variant')
@@ -14,6 +14,7 @@ p.add_argument('--removed-feature',choices=['login','theme'],default='login',hel
 p.add_argument('--compound-mode',choices=['add','keep'],default='keep',help='Independent declared compound expectation')
 p.add_argument('--compound-request',default='احذف Login ولا تحذف الوضع الداكن')
 p.add_argument('--remove-request',default='هل يمكنك إزالة زر تسجيل الدخول؟',help='Explicit removal of an accepted seed feature')
+p.add_argument('--services-edit-request',default='أضف فئة جديدة باسم النقل مع خدمتين تجريبيتين تحت هذه الفئة')
 p.add_argument('--resource-config',type=Path,help='Explicit resource protection profile; default Normal for repeatability')
 p.add_argument('--gpu',default=None,help='Observed unique device description; no numeric GPU index')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
@@ -23,6 +24,9 @@ identity={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,tex
 if a.workflow=='web-recipe':
  from src.tools.web_recipes import manifest
  identity['expected_recipe_manifest']=manifest()
+if a.workflow=='web-services':
+ from src.tools.web_recipes import manifest,SERVICES_ID
+ identity['expected_recipe_manifest']=manifest(SERVICES_ID)
 (out/'identity.json').write_text(json.dumps(identity,indent=2))
 profile=out/'profile'
 os.environ.update(NEURA_SETTINGS_DIR=str(profile/'config'),NEURA_DATA_DIR=str(profile/'data'),NEURA_STATE_DIR=str(profile/'state'),NEURA_TIMEOUT_S='900')
@@ -37,12 +41,13 @@ save_config(profile/'data',resource)
 identity['resource_configuration']=resource.model_dump();(out/'identity.json').write_text(json.dumps(identity,indent=2))
 settings.values.update(models_dir='/opt/neura-ai/models',n_gpu_layers=-1 if a.gpu else 0,gpu_device=a.gpu or 'auto',n_ctx=4096,dedicated_coder=True,check_updates=False);settings.save()
 seed_id=None
-if a.workflow in ('large','remove','compound','compound-clarify'):
+if a.workflow in ('large','remove','compound','compound-clarify','web-services-edit'):
  if not a.seed_project:raise ValueError('seeded workflow needs explicit QA seed')
  from src.core.project_store import ProjectStore
  seed=json.loads(a.seed_project.read_text());seed_store=ProjectStore(profile/'data')
  seed_id=seed_store.create('Existing large CV' if a.workflow=='large' else 'Existing saved CV','Synthetic QA existing website' if a.workflow=='large' else 'Declared native-generated QA source')['project_id']
- seed_store.commit(seed_id,seed['files'],0,accepted_requirements=seed['accepted_requirements']);seed_store.close()
+ receipt={'web_recipe':seed['web_recipe']} if seed.get('web_recipe') else None
+ seed_store.commit(seed_id,seed['files'],0,accepted_requirements=seed['accepted_requirements'],execution_receipt=receipt);seed_store.close()
 w=MainWindow(settings)
 if a.real_model:
  from verification.live import foreign_instances
@@ -100,7 +105,7 @@ def send(text):
 try:
  wait(lambda:w.loaded,40);wait(lambda:js('!!window.NeuraChat'))
  js('window.__qaDispatch=[];window.__qaFetch=window.fetch;window.fetch=async(...args)=>{const r=await window.__qaFetch(...args);if(String(args[0]).includes("/chat/dispatch")){window.__qaDispatch.push(await r.clone().json());}return r;};true;')
- if a.workflow in ('large','remove','compound','compound-clarify'):
+ if a.workflow in ('large','remove','compound','compound-clarify','web-services-edit'):
   js('document.querySelector("#coding-workspace").click();true;')
   wait(lambda:js('document.querySelector("#ws-project-list button")!==null'))
   js('document.querySelector("#ws-project-list button").click();true;')
@@ -110,17 +115,20 @@ try:
   send('خطط لموقع سيرة ذاتية ثابت بثلاث خطوات مرقمة. بدون cloud وبدون تثبيت أي شيء.')
  else:
   if a.workflow=='web-recipe':send('برمج لي موقع سيرة ذاتية عربي محلي يعمل بدون إنترنت مع بيانات تجريبية واضحة')
+  elif a.workflow=='web-services':send('برمج لي موقع دليل خدمات عربي محلي يعمل بدون إنترنت مع تصفية حسب الفئة وبيانات تجريبية واضحة')
   elif a.workflow=='resource-smoke':send('برمج سكربت Python بسيط باسم main.py يطبع مرحبا دون أي اعتماد خارجي')
   elif a.workflow=='compound':send(a.compound_request)
   elif a.workflow=='remove':send(a.remove_request)
+  elif a.workflow=='web-services-edit':send(a.services_edit_request)
   elif a.workflow=='large':send('هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا')
   else:send('برمج لي موقع صفحة واحدة فيها عنوان مرحبا فقط' if a.workflow=='smoke' else 'برمج لي موقع للcv')
   texts=['هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا','نعم','لم تفعل شي حتى الان؟','فل تبرمج','هل يمكنك أن تحسن واجهة الموقع بجودة عالية ومبهرة جدًا'] if a.workflow=='exact' else [a.login_request,a.theme_request,'هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
   if a.workflow=='web-recipe':texts=['أضف الوضع الداكن إلى هذا المشروع','هل يمكنك ان تحسن الواجهه الموقع بجودة عالي و مبهر جدا']
+  if a.workflow=='web-services':texts=['أضف فئة جديدة باسم النقل مع خدمتين تجريبيتين تحت هذه الفئة']
   if a.workflow=='proposal':texts=['واجهة مميزة تناسب العرض',a.approval,a.approval]
-  if a.workflow in ('smoke','resource-smoke','large','remove','compound'):texts=[]
+  if a.workflow in ('smoke','resource-smoke','large','remove','compound','web-services-edit'):texts=[]
   for text in texts:
-   if a.workflow=='web-recipe' and any(j['state']!='completed' for j in turns[-1]['jobs']):break
+   if a.workflow in ('web-recipe','web-services') and any(j['state']!='completed' for j in turns[-1]['jobs']):break
    send(text)
   js('document.querySelector("#ws-return").click();true;')
   wait(lambda:js('Array.from(document.querySelectorAll("[data-project-job-id]")).every(e=>["completed","failed","cancelled"].includes(e.dataset.jobState))'))

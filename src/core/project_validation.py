@@ -105,6 +105,9 @@ def inspect_files(files):
             elif suffix=='.js':jsx_required|=javascript(text)['build_required']
             elif suffix=='.css':css(text)
             elif suffix in ('.html','.htm'):
+                # Observed (RX 580 matrix): a model emitted only the filename inside the fence, and
+                # "index.html\n" was saved as a website. An HTML file must contain markup.
+                if not re.search(r'<[A-Za-z!]',text):raise ValueError('ملف HTML لا يحتوي أي عنصر HTML')
                 parsed=References();parsed.feed(text);parsed.close();jsx_required|=parsed.build_required
                 for inner,source,declarations in parsed.inline:
                     embedded_languages.add({'javascript':'JavaScript','css':'CSS','json':'JSON'}[inner])
@@ -118,6 +121,9 @@ def inspect_files(files):
             if kind:syntax[kind]='failed'
     languages = sorted({LANGUAGES.get(PurePosixPath(p).suffix.lower(), 'Text') for p,text in files.items() if isinstance(text,str)}|embedded_languages)
     entry = 'index.html' if 'index.html' in files else next((p for p in files if PurePosixPath(p).suffix.lower() in ('.html','.htm')), None)
+    if entry and isinstance(files.get(entry),str):
+        visible=' '.join(re.sub(r'<(script|style|title|head)\b.*?</\1\s*>|<[^>]+>',' ',files[entry],flags=re.S|re.I).split())
+        if visible and set(visible.split())<=set(files):errors.append(entry+': المحتوى المرئي ليس سوى اسم ملف؛ يبدو أن النموذج كتب اسم الملف داخل الكتلة بدل المحتوى')
     build_required = jsx_required or any(PurePosixPath(p).suffix.lower() in ('.tsx','.jsx','.ts','.vue','.svelte') for p in files)
     if 'package.json' in files:
         try:

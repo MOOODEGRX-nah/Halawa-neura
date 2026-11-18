@@ -51,3 +51,12 @@ def test_generated_code_is_never_executed(system,tmp_path):
     system.backend.text=f'```python main.py\nfrom pathlib import Path\nPath({str(marker)!r}).touch()\ndef add(a,b):return a+b\n```'
     result=InvoiceOrchestrator(system).process_request(REQUEST)
     assert result['success'] and not marker.exists()
+
+
+def test_filename_only_html_is_not_a_website():
+    """Observed (RX 580 matrix run-6): 7B emitted ```html\\nindex.html\\n```; "index.html\\n" was saved."""
+    from src.core.project_validation import inspect_files
+    assert any('لا يحتوي أي عنصر HTML' in e for e in inspect_files({'index.html':'index.html\n'})[2]['errors'])
+    assert any('اسم ملف' in e for e in inspect_files({'index.html':'index.html\n<title>x</title>','style.css':'a{}'})[2]['errors'])
+    assert not inspect_files({'index.html':'<h1>مرحبا</h1>'})[2]['errors']
+    assert not inspect_files({'index.html':'<!doctype html><html><body><p>See style.css for details</p></body></html>','style.css':'a{}'})[2]['errors']

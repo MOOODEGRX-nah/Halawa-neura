@@ -67,7 +67,20 @@ class WorkerLimits:
             # Preserve an external affinity change observed since our last write.
             if t['applied'] is not None and current!=t['applied']:original &= current;t['original']=original
             target=original & self.cpus if self.cpus is not None else original
-            if not target:raise OSError('No allowed protected CPU remains')
+            # Administrator scope = the process's base affinity and the cgroup cpuset. A single thread of
+            # this process pinned to one CPU (observed: Mesa/RADV driver queue threads) is not an
+            # administrator restriction; keep it inside that scope rather than blocking all inference.
+            scope=set(self.base) & cpuset if cpuset is not None else set(self.base)
+            if not target and original <= set(self.base):
+                fallback=scope & self.cpus if self.cpus is not None else scope
+                if fallback:
+                    target=fallback;t['override']='thread-level pin %s outside the %s set; kept within the process/cgroup scope'%(sorted(current)[:16],'protected' if self.cpus is not None else 'normal')
+            if not target:
+                try:comm=Path('/proc/%d/task/%d/comm'%(pid,tid)).read_text().strip()[:32]
+                except OSError:comm='?'
+                # Diagnostic detail so an external affinity/cpuset change can be attributed if it recurs.
+                raise OSError('No allowed protected CPU remains (tid %d %s: original %s, current %s, cgroup cpuset %s, protected %s)'%(
+                    tid,comm,sorted(t['original'])[:16],sorted(current)[:16],sorted(cpuset)[:16] if cpuset is not None else None,sorted(self.cpus)[:16] if self.cpus is not None else None))
             os.sched_setaffinity(tid,target)
             if set(os.sched_getaffinity(tid))!=target:raise OSError('CPU affinity not confirmed')
             t['applied']=target
@@ -161,6 +174,6 @@ class WorkerLimits:
             actual=[]
             for (pid,tid),t in list(self.tasks.items()):
                 try:
-                    if task_identity(pid,tid)==t['identity']:actual.append({'pid':pid,'tid':tid,'allowed_cpus':sorted(os.sched_getaffinity(tid)),'nice':os.getpriority(os.PRIO_PROCESS,tid),'nice_applied':t['applied_nice']})
+                    if task_identity(pid,tid)==t['identity']:actual.append({'pid':pid,'tid':tid,'allowed_cpus':sorted(os.sched_getaffinity(tid)),'nice':os.getpriority(os.PRIO_PROCESS,tid),'nice_applied':t['applied_nice'],'override':t.get('override')})
                 except OSError:continue
             return {'requested_cpus':sorted(self.cpus) if self.cpus is not None else None,'registered_tasks':actual,'physical_topology':topology(self.base),'nice_status':self.nice_status,'errors':list(self.errors),'scope':'Registered inference threads/helpers only; no exclusive cores; external desktop launches are not registered'}

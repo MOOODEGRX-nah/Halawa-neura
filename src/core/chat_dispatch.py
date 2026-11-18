@@ -40,6 +40,16 @@ def active_edit_intent(text):
         re.match(r'^(?:اضف|تضيف|اضافة|فعل|ازل|احذف|اصلح|حسن|add|remove|fix|enable|implement)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:زرا?|الزر|ازرار|وضع|الوضع|المظهر|ميزة|الميزة|حقل|الحقل|دالة|الدالة|خلل|الخلل|button|login(?: button)?|تسجيل الدخول|تسجيل دخول|dark mode|feature|input|function|bug)\b',q))
 
 
+# Unambiguous imperative verbs only: «غير/بدل/حسن/عدل» double as adjectives or complaints
+# («غير واضح», «حسن جدا») and English change/update/fix are too vague without an object.
+BOUND_EDIT=re.compile(r'^(?:اضف|ازل|احذف|انقل|رتب|كبر|صغر|add|remove|delete|rename|move)\s+(?:لي\s+)?(?!(?:ذلك|هذا|شيئا|شي|اكثر|كمان|more|it|this|that|me|something)\b)\S')
+
+
+def bound_edit_command(q,text):
+    """Imperative edit verb, not a question; only consulted when the session is bound to a saved project."""
+    return bool(BOUND_EDIT.match(q)) and not re.search(r'[?؟]',text)
+
+
 def metadata_intent(text):
     q=command_text(text)
     if not re.search(r'مشروع|project',q):return False
@@ -320,6 +330,9 @@ class ChatDispatcher:
         action=bool(re.match(r'^(?:افتح(?:لي)?|تفتح(?:لي)?|open|launch|ابحث(?:لي)?|تبحث|search|اعرض|list|show|ما هي)\b',q))
         metadata=bool(active_project_id and metadata_intent(text))
         edit=active_edit_intent(text)
+        # A conversation already bound to a saved project: an imperative edit of it is an edit job
+        # (mandatory planning, validation, receipts), never plain chat that could claim file changes.
+        if not edit and context and q and not knowledge and not action and not planning and bound_edit_command(q,text):edit=True
         if not action and not project_intent(text) and not workspace_intent(text) and not metadata and not followup and not knowledge and not edit and not contextual and not semantic and not planning:
             self.targets.set(session_id,[])
             self.conversations.invalidate(session_id)
@@ -395,10 +408,10 @@ class ChatDispatcher:
                 if not re.search(r'\.(?:html?|py)\b',q):
                     if re.search(r'موقع|صفحة|website|web ?app',q):hints=['index.html']
                     elif re.search(r'\bpython\b',q):hints=['main.py']
-                from src.tools.web_recipes import select_for_request
+                from src.tools.web_recipes import select_for_request,skill_for
                 recipe_id=select_for_request(text,'project.create')
                 if recipe_id:
-                    selected=self._skill('prepare_static_cv',{'recipe_id':recipe_id})
+                    selected=self._skill(skill_for(recipe_id),{'recipe_id':recipe_id})
                     if selected['result']['status']!='selected':return selected
                 created=self.jobs.create(WorkspaceRequest(user_request=text,requirements=[text],title=title,web_recipe=recipe_id,
                     filename_hints=hints,background=True,max_tokens=4096),validated_decision=IntentDecision(intent='project.create',session_id=session_id,source_turn_id=request_id).model_dump())

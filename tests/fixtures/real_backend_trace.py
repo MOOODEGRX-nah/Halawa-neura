@@ -58,7 +58,9 @@ def observed(*args,**options):
         try:
             for chunk in result:
                 for choice in chunk.get('choices',[]):
-                    record['output']+=choice.get('delta',{}).get('content') or ''
+                    piece=choice.get('delta',{}).get('content') or ''
+                    if piece and 'first_token_at' not in record:record['first_token_at']=time.time()
+                    record['output']+=piece
                     if choice.get('finish_reason'):record['finish_reason']=choice['finish_reason']
                 yield chunk
         finally:

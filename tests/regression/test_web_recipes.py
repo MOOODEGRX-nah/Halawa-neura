@@ -113,7 +113,7 @@ def test_changed_recipe_while_resource_waiting_never_replays_new_contract(system
         end=time.monotonic()+2
         while not jobs.get(key)['blocked_reason'] and time.monotonic()<end:time.sleep(.01)
         assert jobs.get(key)['invoice']['web_recipe_sha256']==manifest()['sha256']
-        old=manifest();monkeypatch.setattr('src.tools.web_recipes.manifest',lambda:{**old,'sha256':'f'*64});ready[0]=True
+        old=manifest();monkeypatch.setattr('src.tools.web_recipes.manifest',lambda recipe_id=ID:{**old,'sha256':'f'*64});ready[0]=True
         job=terminal(jobs,key);assert job['state']=='failed' and 'وصفة' in job['error']
         assert not system.backend.calls and not store.committed_files(job['project_id'])
     finally:jobs.shutdown();store.close()

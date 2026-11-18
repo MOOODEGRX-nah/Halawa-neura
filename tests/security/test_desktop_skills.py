@@ -121,7 +121,7 @@ def test_api_grants_require_app_origin_and_token(system):
                 result=await client.post('/skills/execute',json={'name':'open_application','args':{'application_id':'calc.desktop'},'permission_id':grant['permission_id']})
                 assert result.status_code==200 and len(fake.calls)==1
                 description=(await client.get('/skills')).json()
-                assert {s['name'] for s in description['desktop_skills']}=={'prepare_static_cv','open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications'}
+                assert {s['name'] for s in description['desktop_skills']}=={'prepare_static_cv','prepare_static_services','open_website','search_web','search_youtube','open_file','open_folder','open_application','list_recent_applications'}
                 assert description['web_skills'][0]['id']=='arabic_cv_v1' and description['web_skills'][0]['available'] is True
                 assert all(x['input_schema'] and x['permissions'] for x in description['desktop_skills'])
     asyncio.run(invoke())

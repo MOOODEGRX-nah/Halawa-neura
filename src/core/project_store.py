@@ -279,6 +279,9 @@ class ProjectStore:
     def commit(self, project_id, files, expected_revision, *, accepted_requirements=None, execution_receipt=None):
         bounded_files(files)
         languages, preview, validation = inspect_files(files)
+        if preview.get('supported'):
+            from src.core.web_quality import report as quality_report
+            validation['quality']=quality_report(files,preview.get('entry_point'))
         if execution_receipt and execution_receipt.get('required_feature_contract'):
             from src.core.feature_intent import validate_contract
             validation['required_feature_contract']=validate_contract(execution_receipt['required_feature_contract'])
@@ -306,7 +309,7 @@ class ProjectStore:
             if execution_receipt is not None:meta['last_execution']=execution_receipt
             if execution_receipt and execution_receipt.get('web_recipe'):
                 from src.tools.web_recipes import manifest
-                meta.setdefault('generation_recipe',{k:v for k,v in manifest().items() if k in ('id','version','sha256')})
+                meta.setdefault('generation_recipe',{k:v for k,v in manifest(execution_receipt['web_recipe']).items() if k in ('id','version','sha256')})
             from src.core.edit_preservation import contract_summary
             meta['preserve_contract']=contract_summary(files,meta.get('accepted_requirements',[]))
             meta['type'] = 'static_web' if preview['supported'] else 'python' if 'Python' in languages else 'other'
