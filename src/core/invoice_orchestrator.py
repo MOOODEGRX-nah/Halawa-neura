@@ -19,6 +19,29 @@ from src.core.project_files import safe_path
 from src.tools.web_recipes import RECIPE_IDS
 
 
+
+class RepetitionGuard:
+    """Detect a degenerate generation loop: the same substantial line repeated many times in a row."""
+    def __init__(self, limit=12, minimum=12):
+        self.limit, self.minimum = limit, minimum
+        self.partial, self.line, self.count = '', '', 0
+
+    def feed(self, text):
+        self.partial += text
+        *lines, self.partial = self.partial.split('\n')
+        for raw in lines:
+            line = raw.strip()
+            if len(line) < self.minimum:
+                self.line, self.count = '', 0
+                continue
+            if line == self.line:
+                self.count += 1
+            else:
+                self.line, self.count = line, 1
+            if self.count >= self.limit:
+                return True
+        return False
+
 class TaskInvoice(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     task_id: str
@@ -258,17 +281,24 @@ class InvoiceOrchestrator:
                 {'role': 'user', 'content': invoice.model_dump_json() + '\nValidated implementation plan:\n' + plan_text},
             ]
             finish, model, token_metrics,resource_profile = None, None, None,None
-            for chunk in self.coordinator.stream(messages, tier='coder', max_tokens=request.max_tokens,
-                    temperature=.2, top_p=.9, cancel=cancel, deadline=deadline):
-                model = chunk.get('model', model)
-                resource_profile=chunk.get('resource_profile',resource_profile)
-                token_metrics=chunk.get('neura_token_metrics',token_metrics)
-                for choice in chunk.get('choices', []):
-                    text = choice.get('delta', {}).get('content')
-                    if text:
-                        yield {'kind': 'delta', 'text': text, 'model': model}
-                    if choice.get('finish_reason'):
-                        finish = choice['finish_reason']
+            guard = RepetitionGuard()
+            stream = self.coordinator.stream(messages, tier='coder', max_tokens=request.max_tokens,
+                    temperature=.2, top_p=.9, cancel=cancel, deadline=deadline)
+            try:
+                for chunk in stream:
+                    model = chunk.get('model', model)
+                    resource_profile=chunk.get('resource_profile',resource_profile)
+                    token_metrics=chunk.get('neura_token_metrics',token_metrics)
+                    for choice in chunk.get('choices', []):
+                        text = choice.get('delta', {}).get('content')
+                        if text:
+                            if guard.feed(text):
+                                raise InferenceError('توقف التوليد: حلقة تكرار في مخرج النموذج (السطر «' + guard.line[:60] + '» تكرر ' + str(guard.limit) + ' مرة متتالية). لم تُحفظ ملفات؛ أعد المحاولة أو اختر نموذج برمجة آخر من الإعدادات.', 422, 'repetition_loop')
+                            yield {'kind': 'delta', 'text': text, 'model': model}
+                        if choice.get('finish_reason'):
+                            finish = choice['finish_reason']
+            finally:
+                if hasattr(stream, 'close'):stream.close()
             if finish != 'stop':
                 raise InferenceError('توقف مخرج الملفات قبل اكتماله: ' + str(finish), 422, 'incomplete_project')
             yield {'kind': 'finished','resource_profile':resource_profile, 'model': model, 'finish_reason': finish,'token_metrics':token_metrics,'required_feature_contract':request.required_feature_contract}
