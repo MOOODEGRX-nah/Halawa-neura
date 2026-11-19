@@ -43,9 +43,7 @@ def backend_python():
     vendor = ROOT.parent / 'vendor'
     if vendor.is_dir() or importlib.util.find_spec('fastapi') is not None:
         return sys.executable
-    # Source checkout convenience only; release packages contain their own backend.
-    existing = Path.home() / 'Downloads/ai/neura-repo/.venv/bin/python'
-    return str(existing) if existing.is_file() else sys.executable
+    return sys.executable
 
 
 class BackendService:
@@ -116,6 +114,11 @@ class BackendService:
         try:
             self.process = self.popen([backend_python(), '-m', 'src.desktop.server', '--port', str(self.port)],
                                       cwd=ROOT, env=self.environment(), stdout=self._log, stderr=self._log)
+            from src.core.discovery import write_endpoint
+            try:
+                write_endpoint(data_directory(), self.port, self.instance, getattr(self.process, 'pid', None))
+            except OSError:
+                pass
         except BaseException:
             self._log.close()
             self._log = None
@@ -159,6 +162,8 @@ class BackendService:
         if self.update_reservation==reservation:self.update_reservation=None
 
     def stop(self):
+        from src.core.discovery import clear_endpoint
+        clear_endpoint(data_directory(), self.instance)
         if self.process is not None:
             if self.process.poll() is None:
                 self.process.terminate()

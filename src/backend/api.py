@@ -19,7 +19,7 @@ from pydantic import ValidationError
 
 from src.runtime import ROOT, Settings
 from src.desktop.paths import VERSION
-from src.backend.schemas import ChatRequest, RouteRequest, VaultSave, ToolRequest, PendingID, TTSRequest
+from src.backend.schemas import ChatRequest, RouteRequest, VaultSave, ToolRequest, PendingID, TTSRequest, VoiceSelect
 from src.core.neura_loop import NeuraLoop, InferenceError
 from src.core.invoice_orchestrator import InvoiceOrchestrator, ProjectRequest
 from src.core.vault import ConversationVault
@@ -37,6 +37,8 @@ from src.backend.chat_api import attach_chat
 from src.backend.assistant_api import attach_assistant
 from src.backend.design_api import attach_designs
 from src.core.design_store import DesignStore
+from src.backend.mcp_api import attach_mcp
+from src.core.mcp_client import McpRegistry
 from src.core.assistant import Assistant, fit_history
 
 
@@ -52,7 +54,7 @@ class LocalBoundary:
     deadline and could take the single model slot later. The buffered body is replayed once; every
     later receive() goes to the real connection, so request.is_disconnected() works again.
     """
-    PRIVATE = ('/vault', '/projects', '/project-jobs', '/workspace', '/skills', '/chat', '/resources', '/assistant', '/designs')
+    PRIVATE = ('/vault', '/projects', '/project-jobs', '/workspace', '/skills', '/chat', '/resources', '/assistant', '/designs', '/mcp', '/voice')
     HEADERS = {'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'no-store',
                'Content-Security-Policy': None}
     CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
@@ -155,6 +157,21 @@ async def run_worker(request, coordinator, callback):
             task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
 
+def unfinished_projects(store):
+    """N083: projects whose latest generation did not complete or whose files changed outside Neura."""
+    reasons = {'failed': 'فشل آخر توليد وحُفظت المسودة؛ افتحه في مساحة المبرمج وأعد المحاولة أو عدّل الطلب.',
+               'cancelled': 'أُلغي آخر توليد؛ المسودة محفوظة.', 'queued': 'ما زال في قائمة الانتظار.',
+               'planning': 'ما زال يعمل الآن.', 'generating': 'ما زال يعمل الآن.', 'validating': 'ما زال يعمل الآن.'}
+    items = []
+    for project in store.list():
+        status = project.get('generation_status')
+        if status in reasons:
+            items.append({'title': 'مشروع «' + project['display_name'] + '»', 'detail': reasons[status]})
+        elif project.get('source_freshness') not in (None, 'current'):
+            items.append({'title': 'مشروع «' + project['display_name'] + '»', 'detail': 'ملفاته تغيّرت خارج Neura ولم تُراجع بعد.'})
+    return items
+
+
 def create_app(settings=None, coordinator=None, actions=None, voice=None, desktop_adapter=None, assistant=None):
     settings = settings or Settings()
     coordinator = coordinator or NeuraLoop(settings=settings)
@@ -171,7 +188,8 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     knowledge = KnowledgeBase(settings.data_dir, LocalEmbedder(find_embedding_model(settings.models_dir), threads=max(1, min(4, settings.n_threads // 2))))
     assistant = assistant or Assistant(settings.data_dir, knowledge=knowledge, summarizer=lambda messages: coordinator.complete(
         messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9),
-        locations=lambda: (getattr(desktop_skills.adapter, 'configuration', lambda: {})() or {}).get('approved_locations', {}))
+        locations=lambda: (getattr(desktop_skills.adapter, 'configuration', lambda: {})() or {}).get('approved_locations', {}),
+        workspace=lambda: unfinished_projects(project_store))
     chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs,assistant)
     started = time.monotonic()
     try:
@@ -185,6 +203,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         assistant.start()
         yield
         await asyncio.to_thread(assistant.stop)
+        await asyncio.to_thread(mcp.close)
         await asyncio.to_thread(designs.close)
         await asyncio.to_thread(knowledge.close)
         await asyncio.to_thread(project_jobs.shutdown)
@@ -202,6 +221,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     designs = DesignStore(settings.data_dir)
     attach_designs(app, designs, project_store, coordinator)
     app.state.designs = designs
+    mcp = McpRegistry(settings.data_dir)
+    attach_mcp(app, mcp)
+    app.state.mcp = mcp
     app.state.assistant=assistant
     app.state.chat_dispatcher=chat_dispatcher
     app.state.desktop_skills=desktop_skills
@@ -531,12 +553,28 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
 
     @app.post('/stt')
     async def stt(request: Request):
-        return await asyncio.to_thread(voice.transcribe, await request.body(), request.headers.get('x-neura-lang', 'ar'))
+        result = await asyncio.to_thread(voice.transcribe, await request.body(), request.headers.get('x-neura-lang', 'ar'))
+        if request.headers.get('x-neura-wake') == '1':
+            from src.core.voice_service import wake_command
+            command = wake_command(result['text'])
+            result = {**result, 'wake': command is not None, 'command': command or ''}
+        return result
 
     @app.post('/tts')
     async def tts(req: TTSRequest):
-        audio = await asyncio.to_thread(voice.synthesize, req.text, req.lang)
-        return Response(audio, media_type='audio/wav')
+        began = time.perf_counter()
+        audio = await asyncio.to_thread(voice.synthesize, req.text, req.lang, req.voice)
+        elapsed = round((time.perf_counter() - began) * 1000)
+        return Response(audio, media_type='audio/wav', headers={'X-Neura-Synth-Ms': str(elapsed), 'X-Neura-Audio-Bytes': str(len(audio)),
+                                                                'Access-Control-Expose-Headers': 'X-Neura-Synth-Ms'})
+
+    @app.get('/voice/voices')
+    async def voices():
+        return voice.voices()
+
+    @app.post('/voice/select')
+    async def select_voice(req: VoiceSelect):
+        return await asyncio.to_thread(voice.select_voice, req.voice)
 
     return app
 

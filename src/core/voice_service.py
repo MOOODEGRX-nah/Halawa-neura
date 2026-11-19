@@ -15,6 +15,24 @@ from pathlib import Path
 from src.core.neura_loop import InferenceError
 from src.core.resource_policy import owned_run
 
+WAKE_NAMES = ('نيورا', 'نيوره', 'نورا', 'neura', 'nyura')
+WAKE_PREFIX = r'(?:يا|ياء|اي|أي|هاي|hey|hi|ok|okay|اوكي|أوكي)'
+SAMPLE_TEXT = 'مرحبًا، أنا نيورا. موعدك مع د. سارة يوم الأحد ٢٥ نوفمبر الساعة ٣:٣٠ مساءً؛ هل أذكّرك قبلها بـ ١٥ دقيقة؟'
+
+
+def wake_command(text, names=WAKE_NAMES):
+    """N092: the command after a wake phrase at the start of an utterance, '' for the phrase alone,
+    or None when the utterance does not begin with the wake word (so ordinary talk never triggers).
+    «نيورا» must be a whole word; «نيورون» or «neural network» do not trigger."""
+    clean = re.sub(r'[\u064B-\u0652\u0640]', '', (text or '').strip().lower())
+    clean = re.sub(r'^[\s.,،؛;:!؟?\-–—"«»]+', '', clean)
+    names_pattern = '|'.join(re.escape(n) for n in names)
+    match = re.match(r'^(?:' + WAKE_PREFIX + r'[\s,،]+)?(?:' + names_pattern + r')(?!\w)[\s.,،؛;:!؟?\-–—]*', clean)
+    if not match:
+        return None
+    return clean[match.end():].strip(' .,،؛;:!؟?')
+
+
 EMOJI = re.compile('[\U0001F000-\U0001FAFF☀-➿️‍]')
 
 
@@ -74,12 +92,47 @@ class VoiceService:
         preferred = [m for m in models if 'large-v3-turbo' in m.name] or [m for m in models if 'large' in m.name] or models
         return str(preferred[0]) if preferred else None
 
-    def _piper_voice(self):
+    def _voice_files(self):
         if not self.voice_dir or not (self.voice_dir / 'piper-voices').is_dir():
+            return []
+        return [v for v in sorted((self.voice_dir / 'piper-voices').glob('*.onnx')) if Path(str(v) + '.json').is_file()]
+
+    def _selected(self):
+        try:
+            return json.loads((self.voice_dir / 'selected.json').read_text(encoding='utf-8')).get('voice')
+        except (OSError, ValueError, AttributeError, TypeError):
             return None
-        voices = [v for v in sorted((self.voice_dir / 'piper-voices').glob('*.onnx')) if Path(str(v) + '.json').is_file()]
+
+    def _piper_voice(self):
+        voices = self._voice_files()
+        chosen = [v for v in voices if v.stem == self._selected()]
         arabic = [v for v in voices if v.name.startswith('ar')]
-        return str((arabic or voices)[0]) if voices else None
+        return str((chosen or arabic or voices)[0]) if voices else None
+
+    def voices(self):
+        """N089: every local Piper voice with its declared language and quality, and which is in use."""
+        listing = []
+        for path in self._voice_files():
+            try:
+                meta = json.loads(Path(str(path) + '.json').read_text(encoding='utf-8'))
+            except (OSError, ValueError):
+                continue
+            listing.append({'id': path.stem, 'language': self._voice_language(path) or '',
+                            'quality': str((meta.get('audio') or {}).get('quality') or ''),
+                            'sample_rate': (meta.get('audio') or {}).get('sample_rate'),
+                            'size_mb': round(path.stat().st_size / 1e6, 1),
+                            'selected': str(path) == str(self.piper_model)})
+        return {'voices': listing, 'sample_text': SAMPLE_TEXT, 'engine_available': bool(self.piper and shutil.which(self.piper))}
+
+    def select_voice(self, voice_id):
+        match = [v for v in self._voice_files() if v.stem == voice_id]
+        if not match:
+            raise InferenceError('Voice not found', 404, 'voice_not_found')
+        self.voice_dir.mkdir(parents=True, exist_ok=True)
+        (self.voice_dir / 'selected.json').write_text(json.dumps({'voice': voice_id}), encoding='utf-8')
+        self.piper_model = str(match[0])
+        self.piper_lang = self._voice_language(self.piper_model) or 'ar'
+        return self.voices()
 
     @staticmethod
     def _voice_language(model):
@@ -141,11 +194,17 @@ class VoiceService:
             raise InferenceError('No speech recognized', 422, 'no_speech')
         return {'text': text, 'language': language, 'engine': 'whisper.cpp'}
 
-    def synthesize(self, text, language='ar'):
+    def synthesize(self, text, language='ar', voice=None):
         if not self.capabilities()['tts']:
             raise InferenceError(self.capabilities()['tts_reason'], 501, 'tts_unavailable')
-        # A single configured voice must explicitly declare its language.
-        if language != self.piper_lang:
+        model, model_lang = self.piper_model, self.piper_lang
+        if voice:
+            match = [v for v in self._voice_files() if v.stem == voice]
+            if not match:
+                raise InferenceError('Voice not found', 404, 'voice_not_found')
+            model, model_lang = str(match[0]), self._voice_language(match[0]) or language
+        # A voice must explicitly declare the language it speaks.
+        if language != model_lang:
             raise InferenceError('Configured voice does not support this language', 501, 'tts_language_unavailable')
         spoken = speakable(text)
         if not spoken:
@@ -153,7 +212,7 @@ class VoiceService:
         with tempfile.TemporaryDirectory(prefix='neura-tts-') as directory:
             output = Path(directory) / 'speech.wav'
             try:
-                owned_run([self.piper, '--model', str(self.piper_model), '--output_file', str(output)],
+                owned_run([self.piper, '--model', str(model), '--output_file', str(output)],
                           input=spoken.encode(), check=True, timeout=90, capture_output=True)
                 audio = output.read_bytes()
             except (subprocess.SubprocessError, OSError) as exc:

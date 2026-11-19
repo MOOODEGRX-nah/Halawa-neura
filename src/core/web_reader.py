@@ -89,7 +89,7 @@ class WebReader:
         import httpx
         for _ in range(4):
             self.resolve(url)
-            with httpx.Client(timeout=TIMEOUT, follow_redirects=False, headers={'User-Agent': 'NeuraAI-desktop (reader)', 'Accept-Language': 'ar,en;q=0.8'}) as client:
+            with httpx.Client(timeout=TIMEOUT, follow_redirects=False, headers={'User-Agent': 'NeuraAI-desktop/0.7 (offline-first personal assistant; reader) httpx', 'Accept-Language': 'ar,en;q=0.8'}) as client:
                 with client.stream('GET', url) as response:
                     if response.status_code in (301, 302, 303, 307, 308) and response.headers.get('location'):
                         url = urljoin(url, response.headers['location'])
@@ -194,27 +194,78 @@ def _youtube(self, url):
             'language': track.get('languageCode', ''), 'automatic': track.get('kind') == 'asr'}
 
 
+GENERIC = {'تاريخ', 'عن', 'في', 'من', 'حول', 'ما', 'هو', 'هي', 'معلومات', 'بحث', 'شرح', 'history', 'of', 'the', 'about', 'on', 'what', 'is', 'a', 'an', 'and', 'و'}
+
+
+def _terms(topic):
+    words = re.findall(r'[\w\u0600-\u06FF]+', topic.lower())
+    core = [re.sub(r'^(?:وال|بال|لل|ال|و)(?=[\u0600-\u06FF]{3,})', '', w) for w in words if w not in GENERIC and len(w) > 1]
+    return core or [w for w in words if len(w) > 1]
+
+
 def _research(self, topic):
-    """N078: several Wikipedia articles (Arabic first, English second) as cited, bounded sources."""
+    """N078/N048 researcher stage: relevance-ranked Wikipedia search (Arabic first, English second);
+    a source is kept only if it mentions the topic's own words, so a generic word like «تاريخ» cannot
+    pull in unrelated articles."""
     import json as _json
-    sources = []
-    for language, limit in (('ar', 3), ('en', 2)):
-        base = 'https://' + language + '.wikipedia.org'
+    terms = _terms(topic)
+    arabic_topic = bool(re.search(r'[\u0600-\u06FF]', topic))
+    sources, limited = [], []
+
+    def summary_of(base, language, title):
         try:
-            _, _, body = self._fetch(base + '/w/api.php?action=opensearch&format=json&namespace=0&limit=' + str(limit) + '&search=' + quote(topic[:120]))
-            titles = _json.loads(body)[1]
-        except Exception:
-            continue
-        for title in titles:
+            _, _, raw = self._fetch(base + '/api/rest_v1/page/summary/' + quote(title.replace(' ', '_'), safe=''))
+            summary = _json.loads(raw)
+        except Exception as exc:
+            if '429' in str(exc):
+                limited.append(True)
+            return None
+        text = (summary.get('extract') or '').strip()
+        if len(text) <= 60:
+            return None
+        return {'title': summary.get('title') or title, 'text': text[:1800], 'language': language,
+                'url': (summary.get('content_urls') or {}).get('desktop', {}).get('page') or base + '/wiki/' + quote(title.replace(' ', '_'))}
+
+    def search(base, limit):
+        try:
+            _, _, body = self._fetch(base + '/w/api.php?action=query&list=search&format=json&srlimit=' + str(limit) + '&srsearch=' + quote(topic[:120]))
+            return [hit['title'] for hit in _json.loads(body)['query']['search']]
+        except Exception as exc:
+            if '429' in str(exc):
+                limited.append(True)
+                return []
             try:
-                _, _, raw = self._fetch(base + '/api/rest_v1/page/summary/' + quote(title.replace(' ', '_'), safe=''))
-                summary = _json.loads(raw)
+                _, _, body = self._fetch(base + '/w/api.php?action=opensearch&format=json&namespace=0&limit=' + str(limit) + '&search=' + quote(topic[:120]))
+                return _json.loads(body)[1]
             except Exception:
-                continue
-            text = (summary.get('extract') or '').strip()
-            if len(text) > 60:
-                sources.append({'title': summary.get('title') or title, 'text': text[:1800], 'language': language,
-                                'url': (summary.get('content_urls') or {}).get('desktop', {}).get('page') or base + '/wiki/' + quote(title.replace(' ', '_'))})
+                return []
+
+    def relevant(source):
+        haystack = (source['title'] + ' ' + source['text']).lower()
+        return any(t in haystack for t in terms)
+
+    primary = ('ar', 4) if arabic_topic else ('en', 4)
+    base = 'https://' + primary[0] + '.wikipedia.org'
+    for title in search(base, primary[1]):
+        found = summary_of(base, primary[0], title)
+        if found and relevant(found):
+            sources.append(found)
+    if arabic_topic:
+        # English counterparts of the Arabic articles found (Wikipedia's own language links),
+        # never a free-text English search that cannot be checked against Arabic topic words.
+        for source in sources[:2]:
+            try:
+                _, _, body = self._fetch('https://ar.wikipedia.org/w/api.php?action=query&prop=langlinks&lllang=en&format=json&titles=' + quote(source['title']))
+                pages = _json.loads(body)['query']['pages'].values()
+                english = [link['*'] for page in pages for link in page.get('langlinks', [])]
+            except Exception:
+                english = []
+            for title in english[:1]:
+                found = summary_of('https://en.wikipedia.org', 'en', title)
+                if found and all(found['url'] != s['url'] for s in sources):
+                    sources.append(found)
+    if not sources and limited:
+        raise ReaderError('ويكيبيديا طلبت الانتظار قليلًا (كثرة الطلبات، 429). أعد المحاولة بعد دقيقة؛ لم أكتب تقريرًا دون مصادر.')
     if not sources:
         raise ReaderError('لم أجد مصادر في ويكيبيديا عن «' + topic[:80] + '». جرّب صياغة أخرى أو أعطني رابطًا لألخصه.')
     return sources[:5]

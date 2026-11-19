@@ -237,6 +237,12 @@ def parse(text, now: datetime):
     if re.fullmatch(r'(?:ما|اعرض|وش)\s+(?:هي\s+)?(?:ال)?فيديوهات\s+(?:ال)?محفوظ[ةه]|(?:my )?saved videos', q):
         return Intent('video.list')
 
+    # Unfinished work, from Neura's own records only (N083) ---------------------------------
+    if re.fullmatch(r'(?:(?:ما|ماهي|ما هي|وش|ايش|شو|اعرض|اعطني|عطني)\s+)?(?:هي\s+)?(?:لي\s+)?(?:ال)?(?:اعمال|مهام|اشغال|مشاريع|شغل)(?:ي)?\s+'
+                    r'(?:ال)?(?:غير\s+(?:ال)?مكتمل[ةه]?|معلق[ةه]?|المعلق[ةه]?|ناقص[ةه]?|الناقص[ةه]?|اللي\s+ما\s+(?:خلصت|كملت|تمت|انتهت))\s*[؟?]?'
+                    r'|(?:وش|ايش|شو|ماذا)\s+(?:باقي|بقي|تبقى)\s+(?:علي|عليا|من\s+شغلي)\s*[؟?]?|what(?:.?s| is)\s+unfinished\s*\??|unfinished work\s*\??', q):
+        return Intent('work.unfinished', {})
+
     # Lasting reply preferences (N039) -------------------------------------------------------
     match = re.match(r'^(?:من\s+الان\s+(?:و)?(?:فصاعدا|فصاعدًا)?|من\s+اليوم\s+و?رايح|دائما|دايما|كل\s+مر[ةه]|from now on|always)\s*[،,]?\s*(?:رد|اجب|أجب|اكتب|تكلم|خاطبني|استخدم|reply|answer|write|use|talk)\b(.*)$', q)
     if match and not QUESTION.search(original):

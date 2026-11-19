@@ -6,6 +6,7 @@ from pathlib import Path
 import httpx
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.runtime import Settings
+from src.core.discovery import DiscoveryError, discover, read_token
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
@@ -17,9 +18,16 @@ if __name__=='__main__':
     parser.add_argument('--python-symbol',action='append',default=[])
     args=parser.parse_args()
     settings=Settings()
-    token=settings.token or (settings.data_dir/'.api-token').read_text().strip()
+    try:
+        base=discover(settings.data_dir);token=read_token(settings.data_dir)
+    except DiscoveryError as exc:
+        print(exc,file=sys.stderr);sys.exit(2)
     headers={'X-Neura-Token':token}
-    with httpx.Client(base_url='http://127.0.0.1:8000',headers=headers,timeout=settings.timeout_s+10,trust_env=False) as client:
+    with httpx.Client(base_url=base,headers=headers,timeout=settings.timeout_s+10,trust_env=False) as client:
+        if not (args.project or args.tier or args.stream):
+            handled=client.post('/assistant/remote',json={'text':args.text,'channel':'cli'})
+            if handled.is_success and handled.json().get('kind')!='chat':
+                print(handled.json().get('message',''));sys.exit(0)
         if args.project:
             response=client.post('/projects',json={'user_request':args.text,'requirements':[args.text],
                                  'required_files':args.required_file,'required_python_symbols':args.python_symbol})

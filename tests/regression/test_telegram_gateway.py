@@ -12,7 +12,7 @@ def update(user_id=999):
 
 def test_unauthorized_user_makes_no_http_request():
     client=SimpleNamespace(post=AsyncMock())
-    gateway=TelegramGateway('fake',999,api_token='token',client=client)
+    gateway=TelegramGateway('fake',999,data_dir='/nonexistent',api_token='token',client=client,locate=lambda:'http://127.0.0.1:41000')
     asyncio.run(gateway.handle_message(update(111),None))
     client.post.assert_not_awaited()
     assert not hasattr(gateway,'neura')
@@ -20,8 +20,8 @@ def test_unauthorized_user_makes_no_http_request():
 
 def test_authorized_user_uses_api_and_history():
     response=httpx.Response(200,json={'choices':[{'message':{'content':'Hello Sami'}}]})
-    client=SimpleNamespace(post=AsyncMock(return_value=response))
-    gateway=TelegramGateway('fake',999,api_token='token',client=client)
+    client=SimpleNamespace(post=AsyncMock(side_effect=[httpx.Response(200,json={'kind':'chat'}),response]))
+    gateway=TelegramGateway('fake',999,data_dir='/nonexistent',api_token='token',client=client,locate=lambda:'http://127.0.0.1:41000')
     message=update()
     asyncio.run(gateway.handle_message(message,None))
     assert client.post.call_args.kwargs['headers']['X-Neura-Token']=='token'

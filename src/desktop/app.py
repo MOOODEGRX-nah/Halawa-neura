@@ -118,6 +118,9 @@ class SettingsDialog(QDialog):
         self.updates.setChecked(settings.values['check_updates']); form.addRow(self.updates)
         self.background = QCheckBox('إبقاء Neura يعمل في شريط النظام عند إغلاق النافذة (لتصلك التذكيرات)')
         self.background.setChecked(settings.values['run_in_background']); form.addRow(self.background)
+        from src.desktop import reminder_agent
+        self.closed_reminders = QCheckBox('التذكيرات حتى عند إغلاق Neura بالكامل (مؤقت systemd للمستخدم، دون نموذج)')
+        self.closed_reminders.setChecked(reminder_agent.installed()); form.addRow(self.closed_reminders)
         self.brave=QComboBox()
         from src.desktop.actions import DesktopAdapter
         for entry in DesktopAdapter(None).catalog().values():
@@ -353,6 +356,12 @@ class SettingsDialog(QDialog):
         try: self.settings.save()
         except Exception as error:
             QMessageBox.warning(self, 'الإعدادات', str(error)); return
+        from src.desktop import reminder_agent
+        if self.closed_reminders.isChecked() != reminder_agent.installed():
+            try:
+                (reminder_agent.install if self.closed_reminders.isChecked() else reminder_agent.uninstall)()
+            except Exception as error:
+                QMessageBox.warning(self, 'التذكيرات', str(error))
         self.accept()
 
 

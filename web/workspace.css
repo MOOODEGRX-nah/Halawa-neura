@@ -13,3 +13,7 @@
 .ws-drawer{margin:0 0 0 auto;inset:0 0 0 auto;width:min(440px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;min-height:0;border:1px solid #37474f;border-radius:14px 0 0 14px;background:#131c22;padding:18px;overflow:auto;box-sizing:border-box;direction:rtl}.ws-drawer:not([open]){display:none}.ws-drawer[open]{display:block}.ws-drawer::backdrop{background:#0009}.ws-drawer .ws-list{grid-template-columns:1fr}.ws-drawer>p{color:#b0bec5;font-size:13px}.ws-drawer details{margin-top:18px}.ws-drawer #ws-drawer-message{color:#ffb74d}.chat-folder{flex:0 0 auto;padding:8px!important;min-width:36px;min-height:36px}
 
 .ws input{background:#111a20;color:#eceff1;border:1px solid #37474f;border-radius:8px;padding:8px}
+.ws-audit ul{margin:6px 0;padding-inline-start:18px;display:grid;gap:3px;font-size:13px}
+.ws-audit li[data-ok="0"]{color:#FFB74D}
+#ws-meta-form{flex-wrap:wrap}
+#ws-meta-form input:not([type=checkbox]){flex:1 1 200px}

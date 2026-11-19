@@ -123,3 +123,8 @@ class PendingID(Contract):
 class TTSRequest(Contract):
     text: str = Field(min_length=1, max_length=10_000)
     lang: Literal['ar', 'en'] = 'ar'
+    voice: str | None = Field(default=None, pattern=r'^[A-Za-z0-9_.-]{1,100}$')
+
+
+class VoiceSelect(Contract):
+    voice: str = Field(pattern=r'^[A-Za-z0-9_.-]{1,100}$')

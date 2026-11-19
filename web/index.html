@@ -300,7 +300,7 @@ const EX={ready:[0,0,0,0,1,.7,1,0],thinking:[.9,-.15,.25,0,1,0,.55,0],waiting:[.
 /* ---- 2. the "nervous system" ---- */
 const O={h:162,hv:0,e:.18,r:.25,lvl:0,ang:0,ph:0,shake:0,dp:0,tv:0,twT:2,blt:-1,nb:2,bq:0,blk:0,gx:0,gy:0,sx:0,sy:0,sT:4,heart:0,kick:0,sq:0,sv:0,vt:0,vw:1,mo:0,mw:1,lc:-9,
   x:new Float32Array([0,0,0,0,1,.7,1,0])};
-let py=0,T=0,DT=.016,pulse=0,micLvl=null,mx=0,my=0,mdown=0,lastMove=-9,fxH=0,ringT=0,ringH=0,lastSt='ready';
+let spkLvl=null,py=0,T=0,DT=.016,pulse=0,micLvl=null,mx=0,my=0,mdown=0,lastMove=-9,fxH=0,ringT=0,ringH=0,lastSt='ready';
 const lp=(a,b,k)=>a+(b-a)*(1-Math.exp(-k*DT));                                  // frame-rate independent lerp
 const col=(l,a,dh=0)=>`hsla(${(O.h+dh+360)%360},90%,${l}%,${a})`;
 function hueT(){const d=mode==='deep';return st==='ready'?(d?262:162):st==='speaking'?(d?268:205):st==='thinking'?(d?275:42):TGT[st].h}
@@ -360,13 +360,13 @@ function upd(dt){
   for(let i=0;i<8;i++)O.x[i]=lp(O.x[i],ex[i],7);                                   // smooth expression morph
   /* audio level (mic RMS or synthetic envelope) */
   const real=micLvl!=null&&st==='recording',spk=st==='speaking';let tg=.05+.03*Math.sin(T*1.4);
-  if(spk)tg=Math.min(1,.18+.55*Math.abs(Math.sin(T*8.3))*Math.abs(Math.sin(T*2.1+1))+.4*pulse);
+  if(spk)tg=spkLvl!=null?Math.min(1,.1+spkLvl):Math.min(1,.18+.55*Math.abs(Math.sin(T*8.3))*Math.abs(Math.sin(T*2.1+1))+.4*pulse);
   else if(st==='recording')tg=real?micLvl:.25+.5*Math.abs(Math.sin(T*6+Math.sin(T*2.3)*2))*Math.abs(Math.sin(T*1.7));
   else if(st==='happy')tg=.5+.3*Math.sin(T*9);
   O.lvl=lp(O.lvl,tg,tg>O.lvl?18-9*dp:9-5*dp);pulse*=Math.exp(-9*dt);               // (C10) heavier envelope in deep
   /* mouth: viseme-driven while chars stream, synthetic envelope otherwise */
   const live=spk&&T-O.lc<.25;
-  O.mo=lp(O.mo,live?O.vt:spk?.12+.5*O.lvl:st==='recording'?O.lvl*.45:0,34-10*dp);
+  O.mo=lp(O.mo,spk&&spkLvl!=null?.06+.8*spkLvl:live?O.vt:spk?.12+.5*O.lvl:st==='recording'?O.lvl*.45:0,34-10*dp);
   O.mw=lp(O.mw,live?O.vw:1,26);
   /* rings + pooled particles */
   ringT-=dt;if((spk||st==='recording')&&ringT<=0){ringAdd(spk?1:-1,.5);ringT=.55-.3*O.lvl}
@@ -627,6 +627,7 @@ const newSessionId=()=>'s_'+crypto.randomUUID().replaceAll('-','');
 let pin=null,prePin=null,shown='daily',hist=[],sid=newSessionId(),curAC=null,gaming=false,ttsAudio=null,pc=false;
 let pendingImage=null;
 const seen=new Set(),srvTTS={ar:true,en:true};
+let muted=false;const WK={on:false,stream:null,ctx:null,proc:null,pre:[],seg:[],speaking:false,quiet:0,start:0,busy:false,floor:.01,rate:48000};
 const api=(p,o={})=>fetch(CORE+p,{...o,headers:{'Content-Type':'application/json','X-Neura-Token':TOKEN,...(o.headers||{})}});
 const tinfo=t=>H&&H.tiers&&H.tiers[t]||null;
 const lbl=t=>{const i=tinfo(t);return['Neura ['+TIERS[t].n+(i&&i.label?' · '+i.label:'')+']',TIERS[t].c,TIERS[t].ic]};
@@ -640,7 +641,8 @@ function paintTiers(){Object.entries(TIERS).forEach(([k,T])=>{const b=$('t-'+k),
 const autoButton=document.createElement('button');autoButton.id='auto-tier';autoButton.type='button';autoButton.className=TB;autoButton.textContent='تلقائي';autoButton.onclick=()=>{pin=null;shown='daily';paintTiers();paintBadge();autoButton.setAttribute('aria-pressed','true')};$('tiers').prepend(autoButton);
 function setTier(k){autoButton.setAttribute('aria-pressed','false');if(gaming&&k!=='fast'){note('وضع الألعاب نشط — المتاح FAST فقط');return}pin=k;shown=k;setMode(k==='expert'?'deep':'fast');paintTiers();paintBadge(k);vib(10)}
 function paintHealth(){
-  const caps=H&&H.capabilities||{}; $('mic').disabled=!caps.stt; $('mic').title=caps.stt?'تسجيل صوتي':(caps.stt_reason||'التعرف على الصوت غير متاح');
+  const caps=H&&H.capabilities||{}; $('mic').disabled=!caps.stt||muted; $('mic').title=muted?'الميكروفون مكتوم':caps.stt?'تسجيل صوتي':(caps.stt_reason||'التعرف على الصوت غير متاح');
+  if(caps.stt&&!WK.on&&!muted&&!WK.tried){WK.tried=true;let saved=null;try{saved=localStorage.getItem('neura-wake')}catch(e){}if(saved==='1')wkStart()}
   srvTTS.ar=!!caps.tts; srvTTS.en=!!caps.tts;
   if($('auto-tier'))$('auto-tier').setAttribute('aria-pressed',String(pin===null));
   const g=!!(H&&H.state==='GAMING');
@@ -692,21 +694,47 @@ function finalize(b,full){
   if(!window.NeuraMarkdown){b.t.textContent=full;return;}
   b.t.replaceChildren(window.NeuraMarkdown.render(full,{codeBlock,onLink:url=>window.NeuraSkills.perform('open_website',{destination:url},{chat:true}).catch(e=>note(e.message))}));sc();
 }
-/* ---- voice out: Kokoro via Core if available, else a LOCAL OS voice (never network voices: they would leak the text) ---- */
-async function speak(s,force){
-  if(!tts&&!force)return;s=s.replace(/```[\s\S]*?```/g,' ').trim();if(!s)return;const lg=/[\u0600-\u06FF]/.test(s)?'ar':'en';
-  if(srvTTS[lg]){try{const r=await fetch(CORE+'/tts',{method:'POST',headers:{'Content-Type':'application/json','X-Neura-Token':TOKEN},body:JSON.stringify({text:s,lang:lg})});
-    if(r.ok){const u=URL.createObjectURL(await r.blob());await new Promise(res=>{const a=ttsAudio=new Audio(u);a.onended=a.onerror=()=>{URL.revokeObjectURL(u);res()};a.play().catch(res)});return}
-    if(r.status===501)srvTTS[lg]=false}catch(e){srvTTS[lg]=false}}
-  const v=window.speechSynthesis&&speechSynthesis.getVoices().find(v=>v.localService&&v.lang.toLowerCase().startsWith(lg));
-  if(!v)return;
-  await new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.voice=v;u.lang=v.lang;u.onend=u.onerror=res;speechSynthesis.speak(u)}catch(e){res()}})}
-function abortNow(){abort=true;if(curAC)curAC.abort();if(window.speechSynthesis)speechSynthesis.cancel();if(ttsAudio){ttsAudio.pause();ttsAudio=null}}
+/* ---- voice out (N090): sentences are queued while the reply streams and spoken in order.
+   Server Piper first (prefetching the next sentence), else a LOCAL OS voice (never network voices).
+   Stopping a reply clears the queue; a failed sentence is skipped, never fatal to the chat. ---- */
+const VQ={items:[],playing:false,gen:0,t0:0,buf:'',waiters:[]};let spkCtx=null;window.neuraVoiceStats={};
+function vClean(s){return s.replace(/```[\s\S]*?```/g,' ').replace(/`[^`]*`/g,' ').replace(/!?\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/https?:\/\/\S+/g,' ').replace(/^\s{0,3}(?:#{1,6}|[-*•]|\d+[.)])\s+/gm,'').replace(/[*_#>|~]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}☀-➿️‍]/gu,' ').replace(/\s+/g,' ').trim()}
+function vFeed(chunk,final){
+  VQ.buf+=chunk||'';
+  VQ.buf=VQ.buf.replace(/```[\s\S]*?```/g,' ');                       // finished code blocks are never read aloud
+  for(;;){let b=VQ.buf;const fence=b.split('```').length%2===0?b.lastIndexOf('```'):-1;const usable=fence>=0?b.slice(0,fence):b;   // never cut inside an open code block
+    const m=/[.!?؟…]+["»)]?(?=\s)|\n+/.exec(usable.length>8?usable.slice(8):'');let cut=m?m.index+8+m[0].length:-1;
+    if(cut<0&&usable.length>260){const c=Math.max(usable.lastIndexOf('،',240),usable.lastIndexOf(', ',240),usable.lastIndexOf(' ',240));cut=c>60?c+1:-1}
+    if(cut<0)break;vSay(b.slice(0,cut));VQ.buf=b.slice(cut)}
+  if(final){const rest=VQ.buf;VQ.buf='';vSay(rest)}}
+function vSay(text){const s=vClean(text);if(!s||!/[\p{L}\p{N}]/u.test(s)||VQ.items.length>=40)return;
+  VQ.items.push({text:s,lang:/[؀-ۿ]/.test(s)?'ar':'en',p:null});if(!VQ.playing)vPump(VQ.gen)}
+function vFetch(it){if(it.p)return it.p;
+  it.p=(async()=>{if(!srvTTS[it.lang])return null;const t=performance.now();
+    try{const r=await fetch(CORE+'/tts',{method:'POST',headers:{'Content-Type':'application/json','X-Neura-Token':TOKEN},body:JSON.stringify({text:it.text,lang:it.lang})});
+      if(r.ok){it.ms=Math.round(performance.now()-t);return URL.createObjectURL(await r.blob())}if(r.status===501)srvTTS[it.lang]=false}catch(e){}return null})();return it.p}
+async function vMeter(a){try{spkCtx=spkCtx||new(window.AudioContext||window.webkitAudioContext)();if(spkCtx.state!=='running')await spkCtx.resume().catch(()=>{});if(spkCtx.state!=='running')return;
+  const an=spkCtx.createAnalyser();an.fftSize=256;spkCtx.createMediaElementSource(a).connect(an);an.connect(spkCtx.destination);const d=new Uint8Array(an.fftSize);
+  (function m(){if(a.paused||a.ended){spkLvl=null;return}an.getByteTimeDomainData(d);let q=0;for(let i=0;i<d.length;i++){const v=(d[i]-128)/128;q+=v*v}spkLvl=Math.min(1,Math.sqrt(q/d.length)*5);requestAnimationFrame(m)})()}catch(e){spkLvl=null}}
+function vFirst(engine){if(VQ.t0){window.neuraVoiceStats={first_audio_ms:Math.round(performance.now()-VQ.t0),engine};$('stt').title='أول صوت بعد '+window.neuraVoiceStats.first_audio_ms+' ms ('+engine+')';VQ.t0=0}}
+async function vPump(gen){VQ.playing=true;
+  while(VQ.items.length&&gen===VQ.gen){const it=VQ.items[0];vFetch(it);if(VQ.items[1])vFetch(VQ.items[1]);
+    const url=await it.p;if(gen!==VQ.gen){if(url)URL.revokeObjectURL(url);break}
+    if(url){await new Promise(res=>{const a=ttsAudio=new Audio(url);a.onended=a.onerror=()=>{URL.revokeObjectURL(url);spkLvl=null;res()};vMeter(a).then(()=>a.play()).then(()=>vFirst('Piper')).catch(res)})}
+    else{const v=window.speechSynthesis&&speechSynthesis.getVoices().find(v=>v.localService&&v.lang.toLowerCase().startsWith(it.lang));
+      if(v)await new Promise(res=>{try{const u=new SpeechSynthesisUtterance(it.text);u.voice=v;u.lang=v.lang;u.onstart=()=>vFirst('system');u.onend=u.onerror=res;speechSynthesis.speak(u)}catch(e){res()}})}
+    if(gen===VQ.gen)VQ.items.shift()}
+  if(gen===VQ.gen){VQ.playing=false;ttsAudio=null;const w=VQ.waiters;VQ.waiters=[];w.forEach(f=>f())}}
+function vDrain(){return VQ.playing||VQ.items.length?new Promise(res=>VQ.waiters.push(res)):Promise.resolve()}
+function vStop(){VQ.gen++;VQ.items=[];VQ.buf='';VQ.playing=false;spkLvl=null;if(window.speechSynthesis)speechSynthesis.cancel();if(ttsAudio){ttsAudio.pause();ttsAudio=null}const w=VQ.waiters;VQ.waiters=[];w.forEach(f=>f())}
+window.neuraVoice={feed:vFeed,stop:vStop,drain:vDrain,state:()=>({queued:VQ.items.length,playing:VQ.playing,buffer:VQ.buf})};
+async function speak(s,force){if(!tts&&!force)return;vFeed(s,true);await vDrain()}
+function abortNow(){abort=true;if(curAC)curAC.abort();vStop()}
 function ui(b){busy=b;swap($('go'),b);tg($('go'),'bg-blue border-blue',!b);tg($('go'),'bg-red border-red',b);setTip($('go'),b?'إيقاف':'إرسال');$('deep').disabled=b;$('clr').disabled=b}
 function rip(e){const r=document.createElement('span');r.className='pointer-events-none absolute inset-0 rounded-full bg-white/50 animate-ping';e.append(r);setTimeout(()=>r.remove(),700)}
 async function send(q,voice,deep){
   q=(q||'').trim();if(!q||busy||trans)return;window.voiceTurn=!!voice;
-  ui(true);abort=false;setSt('thinking');
+  ui(true);abort=false;setSt('thinking');vStop();VQ.t0=performance.now();const talk=tts||!!voice;
   if(!pendingImage&&!window.NeuraChat){note('تعذر تحميل مسار المحادثة؛ أعد الاتصال من شريط التطبيق.');setSt('error');ui(false);return;}
   if(!pendingImage&&await window.NeuraChat.handleChat(q)){setSt('ready');ui(false);return;}
   if(await slash(q))return;
@@ -733,7 +761,7 @@ async function send(q,voice,deep){
         let j;try{j=JSON.parse(d)}catch(e){continue}
         if(j.error)throw new Error(j.error.message||'error');
         const dl=(j.choices&&j.choices[0]&&j.choices[0].delta)||{};
-        if(dl.content){if(!first){first=true;setSt('speaking');b.dots.remove();b.caret.classList.remove('hidden');tg(b.d,'animate-pop-in',0);tg(b.d,'animate-glow',1)}full+=dl.content;twPush(b.t,dl.content)}
+        if(dl.content){if(!first){first=true;setSt('speaking');b.dots.remove();b.caret.classList.remove('hidden');tg(b.d,'animate-pop-in',0);tg(b.d,'animate-glow',1)}full+=dl.content;twPush(b.t,dl.content);if(talk)vFeed(dl.content)}
         if(j.timings&&j.timings.predicted_per_second)tps=j.timings.predicted_per_second}}
     if(!full)throw new Error('رد فارغ من النموذج');
     await twDrain();
@@ -743,8 +771,8 @@ async function send(q,voice,deep){
   if(b){b.dots.remove();b.caret.classList.add('hidden');tg(b.d,'animate-glow',0)}
   if(full){hist.push({role:'assistant',content:full});finalize(b,full);$('live').textContent=full;if(err){bubble('n','Neura [Error]','#EF5350','warn',err);sc(true)}}
   else{hist.pop();if(err){if(b)b.d.remove();bubble('n','Neura [Error]','#EF5350','warn',err);sc(true)}}
-  if(ok){await speak(full,voice);if(TOKEN)try{const saved=await api('/vault/save',{method:'POST',body:JSON.stringify({session:sid,messages:hist})});if(!saved.ok)note('تعذّر حفظ الجلسة؛ المحادثة ما زالت ظاهرة هنا')}catch(e){note('تعذّر حفظ الجلسة')}}
-  if(!ok){setSt('error');await sleep(1700)}
+  if(ok){if(talk){vFeed('',true);await vDrain()}if(TOKEN)try{const saved=await api('/vault/save',{method:'POST',body:JSON.stringify({session:sid,messages:hist})});if(!saved.ok)note('تعذّر حفظ الجلسة؛ المحادثة ما زالت ظاهرة هنا')}catch(e){note('تعذّر حفظ الجلسة')}}
+  if(!ok){vStop();setSt('error');await sleep(1700)}
   setSt('ready');ui(false);
 }
 window.sendMessage=send;
@@ -811,6 +839,51 @@ const attachment=document.createElement('label');attachment.tabIndex=0;attachmen
 $('image-input').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>8000000){note('الحد الأقصى للصورة 8 MB');return}pendingImage=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});$('image-label').textContent='صورة مرفقة · '+f.name;note('سيستخدم الطلب التالي نموذج VISION')};
 const dictateButton=document.createElement('button');dictateButton.id='dictate';dictateButton.type='button';dictateButton.className=CHIP;dictateButton.textContent='إملاء ← نسخ';dictateButton.title='سجّل كلامك ليتحول إلى نص يُنسخ للحافظة دون إرساله';chatToolbar.append(dictateButton);
 dictateButton.onclick=()=>{if($('mic').disabled){note($('mic').title||'التعرف على الكلام غير متاح');return}if(busy||trans)return;if(st==='recording'){stopRec();return}dictating=true;$('mic').onclick();};
+/* ---- N092: microphone mute + optional wake word «نيورا» ----
+   Mute stops every capture immediately (recording, dictation and wake listening) before the UI says «مكتوم».
+   Wake listening is off unless the user turns it on; only speech segments (VAD) are transcribed locally,
+   never while Neura is busy or speaking (no self-trigger), and nothing is kept unless the phrase starts with «نيورا». */
+const wakeButton=document.createElement('button');wakeButton.id='wake';wakeButton.type='button';wakeButton.className=CHIP;wakeButton.setAttribute('aria-pressed','false');chatToolbar.append(wakeButton);
+const muteButton=document.createElement('button');muteButton.id='mute';muteButton.type='button';muteButton.className=CHIP;muteButton.setAttribute('aria-pressed','false');chatToolbar.append(muteButton);
+function paintVoiceChips(){wakeButton.textContent=WK.on?'● يستمع لـ«نيورا»':'كلمة التنبيه «نيورا»';wakeButton.setAttribute('aria-pressed',String(WK.on));wakeButton.classList.toggle('is-live',WK.on);
+  wakeButton.title=WK.on?'قل «يا نيورا» ثم طلبك. اضغط للإيقاف.':'تشغيل الاستماع لكلمة التنبيه (محلي بالكامل)';
+  muteButton.textContent=muted?'الميكروفون مكتوم':'كتم الميكروفون';muteButton.setAttribute('aria-pressed',String(muted));muteButton.classList.toggle('is-muted',muted)}
+function wkPCM(){const n=WK.seg.reduce((a,c)=>a+c.length,0),all=new Float32Array(n);let o=0;for(const c of WK.seg){all.set(c,o);o+=c.length}
+  const ratio=WK.rate/16000,len=Math.floor(n/ratio),out=new DataView(new ArrayBuffer(44+len*2));
+  const w=(p,t)=>{for(let i=0;i<t.length;i++)out.setUint8(p+i,t.charCodeAt(i))};w(0,'RIFF');out.setUint32(4,36+len*2,true);w(8,'WAVEfmt ');out.setUint32(16,16,true);out.setUint16(20,1,true);out.setUint16(22,1,true);
+  out.setUint32(24,16000,true);out.setUint32(28,32000,true);out.setUint16(32,2,true);out.setUint16(34,16,true);w(36,'data');out.setUint32(40,len*2,true);
+  for(let i=0;i<len;i++){const v=Math.max(-1,Math.min(1,all[Math.floor(i*ratio)]||0));out.setInt16(44+i*2,v<0?v*32768:v*32767,true)}return new Blob([out],{type:'audio/wav'})}
+async function wkSegment(){const seconds=WK.seg.reduce((a,c)=>a+c.length,0)/WK.rate;if(seconds<.45||WK.busy||muted)return;WK.busy=true;
+  try{const r=await fetch(CORE+'/stt',{method:'POST',headers:{'X-Neura-Lang':'ar','X-Neura-Wake':'1','X-Neura-Token':TOKEN},body:wkPCM()});
+    if(!r.ok)return;const j=await r.json();if(!j.wake||muted||busy||trans)return;
+    burst&&burst();if(j.command){send(j.command,true)}else if(!$('mic').disabled&&st!=='recording'){$('mic').onclick()}}
+  catch(e){}finally{WK.busy=false;WK.seg=[]}}
+async function wkStart(){if(WK.on||muted)return;if($('mic').disabled&&!muted){note($('mic').title||'التعرف على الكلام غير متاح');return}
+  try{WK.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){note('تعذّر الوصول إلى الميكروفون');return}
+  if(muted){WK.stream.getTracks().forEach(t=>t.stop());WK.stream=null;return}
+  try{WK.ctx=new(window.AudioContext||window.webkitAudioContext)();WK.rate=WK.ctx.sampleRate;const src=WK.ctx.createMediaStreamSource(WK.stream);WK.proc=WK.ctx.createScriptProcessor(4096,1,1);
+    WK.proc.onaudioprocess=e=>{const x=new Float32Array(e.inputBuffer.getChannelData(0));let q=0;for(let i=0;i<x.length;i++)q+=x[i]*x[i];const rms=Math.sqrt(q/x.length),now=performance.now();
+      const blocked=muted||busy||trans||st==='recording'||VQ.playing||WK.busy;
+      if(blocked){WK.speaking=false;WK.seg=[];WK.pre=[];return}
+      if(!WK.speaking){WK.floor=WK.floor*.97+rms*.03;WK.pre.push(x);if(WK.pre.length>4)WK.pre.shift();
+        if(rms>Math.max(.03,WK.floor*3)){WK.speaking=true;WK.start=now;WK.quiet=0;WK.seg=WK.pre.slice();WK.pre=[]}return}
+      WK.seg.push(x);if(rms>Math.max(.02,WK.floor*2))WK.quiet=0;else if(!WK.quiet)WK.quiet=now;
+      if((WK.quiet&&now-WK.quiet>800)||now-WK.start>6000){WK.speaking=false;wkSegment()}};
+    src.connect(WK.proc);WK.proc.connect(WK.ctx.destination);WK.on=true;try{localStorage.setItem('neura-wake','1')}catch(e){}}
+  catch(e){wkStop();note('المتصفح لا يدعم الاستماع المستمر')}
+  paintVoiceChips()}
+function wkStop(keepPreference){if(WK.stream){WK.stream.getTracks().forEach(t=>t.stop());WK.stream=null}
+  if(WK.proc){WK.proc.onaudioprocess=null;try{WK.proc.disconnect()}catch(e){}WK.proc=null}if(WK.ctx){WK.ctx.close().catch(()=>{});WK.ctx=null}
+  WK.on=false;WK.seg=[];WK.pre=[];WK.speaking=false;if(!keepPreference)try{localStorage.removeItem('neura-wake')}catch(e){}paintVoiceChips()}
+let wakeBeforeMute=false;
+function setMuted(on){
+  if(on){wakeBeforeMute=WK.on;wkStop(true);if(st==='recording'||mr||rS)stopRec(true);if(rS){rS.getTracks().forEach(k=>k.stop());rS=null}muted=true;$('mic').disabled=true;setTip($('mic'),'الميكروفون مكتوم')}
+  else{muted=false;paintHealth();if(wakeBeforeMute)wkStart()}
+  paintVoiceChips()}
+wakeButton.onclick=()=>{if(WK.on)wkStop();else if(muted)note('ألغِ كتم الميكروفون أولًا');else wkStart()};
+muteButton.onclick=()=>setMuted(!muted);
+window.neuraMic={get muted(){return muted},get wake(){return WK.on},capturing:()=>!!(rS||WK.stream),setMuted};
+paintVoiceChips();
 const sessionButton=document.createElement('button');sessionButton.id='saved-sessions';sessionButton.type='button';sessionButton.className=CHIP;sessionButton.textContent='الجلسات المحفوظة';chatToolbar.append(sessionButton);
 sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/sessions'),j=await r.json();if(!r.ok){note(j.error.message);return}const panel=document.createElement('div');panel.className='p-3 border border-ln rounded-xl';for(const item of j.sessions){const row=document.createElement('div'),open=document.createElement('button'),del=document.createElement('button');open.className=del.className=CHIP;open.textContent=item.session+' · '+item.updated_at;del.textContent='حذف';open.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session)),record=await response.json();if(!response.ok){note(record.error.message);return}hist=record.messages;sid=item.session;$('log').innerHTML='';setHas(true);for(const [historyIndex,m] of hist.entries()){if(m.role==='system')continue;const text=typeof m.content==='string'?m.content:m.content.filter(p=>p.type==='text').map(p=>p.text).join('\n');const b=bubble(m.role==='user'?'u':'n',m.role==='user'?'You':'Neura','#42A5F5','spark',text);finalize(b,text);b.d.dataset.historyIndex=historyIndex;if(m.project_job_id){b.d.dataset.projectJobId=m.project_job_id;b.t.dataset.jobText='true'}}await window.NeuraChat?.restoreStatus();panel.remove()};del.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session),{method:'DELETE'});if(response.ok)row.remove();else note('تعذّر حذف الجلسة')};row.append(open,del);panel.append(row)}if(!j.sessions.length)panel.textContent='لا جلسات محفوظة';$('log').append(panel);setHas(true)};
 

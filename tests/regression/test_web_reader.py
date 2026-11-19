@@ -110,10 +110,24 @@ def test_deep_research_cites_numbered_sources(tmp_path):
             titles = ['مكة', 'المسجد الحرام'] if 'ar.wikipedia' in url else []
             return url, 'application/json', json.dumps(['q', titles, [], []])
         title = 'مكة' if '%D9%85%D9%83%D8%A9' in url else 'المسجد الحرام'
-        return url, 'application/json', json.dumps({'title': title, 'extract': 'نص موسوعي طويل بما يكفي عن ' + title + ' ومكانته وتاريخه العريق في الجزيرة العربية.'})
+        return url, 'application/json', json.dumps({'title': title, 'extract': 'نص موسوعي طويل بما يكفي عن ' + title + ' في مكة ومكانته وتاريخه العريق في الجزيرة العربية.'})
     seen = []
     assistant = Assistant(tmp_path, reader=WebReader(fetch=fetch), summarizer=lambda m: seen.append(m) or {'choices': [{'message': {'content': 'تقرير [1] و[2].'}}]})
     intent = parse('ابحث بعمق عن تاريخ مكة', NOW)
     assert intent.name == 'web.research' and intent.args['topic'] == 'تاريخ مكة'
     result = assistant.handle(intent)
     assert '[1] مكة' in result['message'] and '[2] المسجد الحرام' in result['message'] and '[1]' in seen[0][1]['content']
+
+
+def test_research_drops_sources_unrelated_to_the_topic_words():
+    def fetch(url):
+        if 'list=search' in url:
+            titles = ['الدرعية', 'تاريخ الدراجة'] if 'ar.wikipedia' in url else []
+            return url, 'application/json', json.dumps({'query': {'search': [{'title': t} for t in titles]}})
+        if 'opensearch' in url:
+            return url, 'application/json', json.dumps(['q', [], [], []])
+        if '%D8%A7%D9%84%D8%AF%D8%B1%D8%B9%D9%8A%D8%A9' in url:
+            return url, 'application/json', json.dumps({'title': 'الدرعية', 'extract': 'الدرعية مدينة تاريخية في منطقة الرياض كانت عاصمة الدولة السعودية الأولى.'})
+        return url, 'application/json', json.dumps({'title': 'تاريخ الدراجة', 'extract': 'انتشرت الدراجات في أوروبا في القرن التاسع عشر وتطورت تصاميمها كثيرًا.'})
+    sources = WebReader(fetch=fetch).research('تاريخ الدرعية')
+    assert [s['title'] for s in sources] == ['الدرعية']

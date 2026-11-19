@@ -48,7 +48,65 @@ class UpdateReservation(Strict):
     instance_id:str|None=Field(default=None,max_length=64)
 
 
+class MetadataApply(Strict):
+    expected_revision: int = Field(ge=1)
+    name: str = Field(default='', max_length=70)
+    description: str = Field(default='', max_length=170)
+    url: str = Field(default='', max_length=300)
+    replace: bool = False
+
+
+def _audit(store, project_id, facts=None):
+    from src.core.project_validation import inspect_files
+    from src.core.site_audit import metadata_plan, performance
+    from src.core.web_quality import report as quality
+    meta = store.get(project_id)
+    files = store.committed_files(project_id)
+    _, preview, _ = inspect_files(files)
+    entry = preview.get('entry_point') if preview.get('supported') else None
+    if not entry:
+        raise HTTPException(422, 'هذا المشروع ليس موقعًا ثابتًا قابلًا للفحص (لا توجد صفحة HTML رئيسية).')
+    facts = facts or {'name': meta['display_name'], 'description': meta['purpose'][:170]}
+    return meta, files, entry, {'project_id': project_id, 'revision': meta['project_revision'], 'entry': entry,
+                                'performance': performance(files, entry), 'quality': quality(files, entry),
+                                'metadata': metadata_plan(files, entry, facts)}
+
+
 def attach_projects(app, store, jobs, preview):
+    def save_evidence(report):
+        folder = store.root.parent / 'audits'
+        folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+        path = folder / (report['project_id'] + '-r' + str(report['revision']) + '.json')
+        path.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding='utf-8')
+        path.chmod(0o600)
+        return str(path)
+
+    @app.get('/projects/{project_id}/audit')
+    async def audit(project_id: str):
+        def run():
+            _, _, _, report = _audit(store, project_id)
+            return {**report, 'evidence': save_evidence(report)}
+        return await asyncio.to_thread(run)
+
+    @app.post('/projects/{project_id}/metadata')
+    async def apply_site_metadata(project_id: str, req: MetadataApply):
+        def run():
+            from src.core.site_audit import apply_metadata
+            facts = {'name': req.name, 'description': req.description, 'url': req.url}
+            if not (req.name.strip() or req.description.strip()):
+                raise HTTPException(422, 'اكتب اسم الموقع أو وصفه؛ لا أخترع بيانات وصفية.')
+            meta, files, entry, report = _audit(store, project_id, facts)
+            if meta['project_revision'] != req.expected_revision:
+                from src.core.project_files import Conflict
+                raise Conflict('تغير المشروع؛ أعد التحميل ثم أعد المحاولة')
+            markup, changes = apply_metadata(files[entry], report['metadata'], req.replace)
+            if not changes:
+                return {'changed': [], 'revision': meta['project_revision'], 'message': 'البيانات الوصفية موجودة بالفعل؛ لم يتغير شيء.'}
+            committed = store.commit(project_id, {**files, entry: markup}, req.expected_revision)
+            return {'changed': changes, 'revision': committed.get('project_revision', req.expected_revision + 1),
+                    'message': 'أُضيفت: ' + '، '.join(changes) + '. ' + report['metadata']['note']}
+        return await asyncio.to_thread(run)
+
     from src.core.legacy_projects import LegacyProjects
     legacy=LegacyProjects(store)
     @app.post('/lifecycle/update/prepare')

@@ -37,6 +37,17 @@ class KnowledgeUpload(BaseModel):
     text: str = Field(min_length=1, max_length=2_000_000)
 
 
+class RemoteAsk(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    text: str = Field(min_length=1, max_length=4000)
+    channel: str = Field(default='remote', pattern=r'^[a-z]{1,20}$')
+
+
+class CalendarImport(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    ics: str = Field(min_length=10, max_length=2_000_000)
+
+
 class MemoryImport(BaseModel):
     model_config = ConfigDict(extra='forbid')
     format: str
@@ -54,6 +65,28 @@ def attach_assistant(app, assistant):
             raise HTTPException(404, 'العنصر غير موجود') from exc
         except AssistantError as exc:
             raise HTTPException(exc.status, str(exc)) from exc
+
+    @app.get('/assistant/reminders.ics')
+    async def reminders_ics():
+        from fastapi.responses import Response
+        from src.core.calendar_ics import export_reminders
+        body = export_reminders(await asyncio.to_thread(store.reminders), assistant.clock())
+        return Response(body, media_type='text/calendar; charset=utf-8', headers={'Content-Disposition': 'attachment; filename="neura-reminders.ics"'})
+
+    @app.post('/assistant/calendar/import')
+    async def calendar_import(req: CalendarImport):
+        from src.core.calendar_ics import CalendarError, import_events
+        def run():
+            try:
+                with store.lock:
+                    return import_events(store, req.ics, assistant.timezone, assistant.clock())
+            except CalendarError as exc:
+                raise HTTPException(400, str(exc)) from exc
+        return await asyncio.to_thread(guarded, run)
+
+    @app.post('/assistant/remote')
+    async def remote(req: RemoteAsk):
+        return await asyncio.to_thread(assistant.remote, req.text, 'remote-' + req.channel)
 
     @app.get('/assistant/memories')
     async def memories():
