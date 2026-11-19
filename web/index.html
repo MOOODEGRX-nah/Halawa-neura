@@ -123,6 +123,7 @@
   <div class="nx-tabs" role="tablist" aria-label="الصفحات">
 <button id="tab-chat" type="button" class="nx-tab" role="tab" aria-controls="pg-chat" aria-selected="true"><i data-i="chat" data-z="w-4 h-4"></i><span>المحادثة</span></button>
     <button id="tab-assistant" type="button" class="nx-tab" role="tab" aria-controls="pg-assistant" aria-selected="false" tabindex="-1"><i data-i="zap" data-z="w-4 h-4"></i><span>المساعد</span></button>
+    <button id="tab-studio" type="button" class="nx-tab" role="tab" aria-controls="pg-studio" aria-selected="false" tabindex="-1"><i data-i="target" data-z="w-4 h-4"></i><span>التصميم</span></button>
     <button id="tab-monitor" type="button" class="nx-tab" role="tab" aria-controls="pg-monitor" aria-selected="false" tabindex="-1"><i data-i="act" data-z="w-4 h-4"></i><span>المراقبة</span></button>
     <button id="tab-about" type="button" class="nx-tab" role="tab" aria-controls="pg-about" aria-selected="false" tabindex="-1"><i data-i="info" data-z="w-4 h-4"></i><span>حول</span></button>
   </div>
@@ -190,6 +191,7 @@
 </div>
 <section id="pg-workspace" role="region" aria-label="مساحة المبرمج" class="nx-page nx-off"></section>
 <section id="pg-assistant" role="tabpanel" aria-labelledby="tab-assistant" class="nx-page nx-off"></section>
+<section id="pg-studio" role="tabpanel" aria-labelledby="tab-studio" class="nx-page nx-off"></section>
 <section id="pg-monitor" role="tabpanel" aria-labelledby="tab-monitor" class="nx-page nx-off">
   <div class="nx-wrap">
     <div id="mon" class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>NEURA CORE</h3><div id="bars" class="nx-bars"></div></div>
@@ -253,6 +255,7 @@
 
 <link rel="stylesheet" href="/assets/workspace.css">
 <link rel="stylesheet" href="/assets/assistant.css">
+<link rel="stylesheet" href="/assets/studio.css">
 <script src="/assets/markdown-it.min.js"></script>
 <script src="/assets/markdown.js"></script>
 <script>
@@ -815,7 +818,7 @@ addEventListener('keydown',e=>{
 });
 async function typeTo(el,t){el.textContent='';for(const ch of t){el.textContent+=ch;await sleep(16)}}
 /* ===================== PAGES: chat / monitor / about ===================== */
-const PAGES=['chat','assistant','monitor','about'],VIEWS=[...PAGES,'workspace'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
+const PAGES=['chat','assistant','studio','monitor','about'],VIEWS=[...PAGES,'workspace'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
 const nf=(v,d=1)=>v==null||Number.isNaN(+v)?'—':(+v).toFixed(d),kf=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,'')+'k':String(Math.round(n||0));
 const hx=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function showPage(p,push=true){
@@ -825,6 +828,7 @@ function showPage(p,push=true){
   if(p==='monitor')monStart();else monStop();
   if(p==='about')paintAbout();
   if(p==='assistant')window.NeuraAssistant?.refresh();
+  if(p==='studio')window.NeuraStudio?.refresh();else window.NeuraStudio?.flush();
   if(p==='chat')window.NeuraChat?.restoreStatus();
   if(p==='chat')setTimeout(()=>window.dispatchEvent(new Event('resize')),30);        // canvases were hidden: let the orbs re-measure
 }
@@ -901,5 +905,6 @@ function paintAbout(){
 <script src="/assets/skills.js"></script>
 <script src="/assets/chat.js"></script>
 <script src="/assets/assistant.js"></script>
+<script src="/assets/studio.js"></script>
 </body>
 </html>

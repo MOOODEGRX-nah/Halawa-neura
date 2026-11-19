@@ -35,6 +35,8 @@ from src.tools.desktop_skills import DesktopSkills
 from src.core.chat_dispatch import ChatDispatcher
 from src.backend.chat_api import attach_chat
 from src.backend.assistant_api import attach_assistant
+from src.backend.design_api import attach_designs
+from src.core.design_store import DesignStore
 from src.core.assistant import Assistant, fit_history
 
 
@@ -50,7 +52,7 @@ class LocalBoundary:
     deadline and could take the single model slot later. The buffered body is replayed once; every
     later receive() goes to the real connection, so request.is_disconnected() works again.
     """
-    PRIVATE = ('/vault', '/projects', '/project-jobs', '/workspace', '/skills', '/chat', '/resources', '/assistant')
+    PRIVATE = ('/vault', '/projects', '/project-jobs', '/workspace', '/skills', '/chat', '/resources', '/assistant', '/designs')
     HEADERS = {'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'no-store',
                'Content-Security-Policy': None}
     CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
@@ -180,6 +182,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         assistant.start()
         yield
         await asyncio.to_thread(assistant.stop)
+        await asyncio.to_thread(designs.close)
         await asyncio.to_thread(project_jobs.shutdown)
         await asyncio.to_thread(preview.stop)
         await asyncio.to_thread(coordinator.shutdown)
@@ -192,6 +195,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     attach_skills(app,desktop_skills,chat_dispatcher)
     attach_chat(app,chat_dispatcher)
     attach_assistant(app,assistant)
+    designs = DesignStore(settings.data_dir)
+    attach_designs(app, designs, project_store, coordinator)
+    app.state.designs = designs
     app.state.assistant=assistant
     app.state.chat_dispatcher=chat_dispatcher
     app.state.desktop_skills=desktop_skills
@@ -266,7 +272,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
 
     @app.get('/assets/{asset_name}')
     async def chat_assets(asset_name:str):
-        sources={'chat.js':'chat.js','markdown.js':'markdown.js','markdown-it.min.js':'vendor/markdown-it.min.js','assistant.js':'assistant.js','assistant.css':'assistant.css'}
+        sources={'chat.js':'chat.js','markdown.js':'markdown.js','markdown-it.min.js':'vendor/markdown-it.min.js','assistant.js':'assistant.js','assistant.css':'assistant.css','studio.js':'studio.js','studio.css':'studio.css'}
         if asset_name not in sources:raise HTTPException(404,'Asset not found')
         return FileResponse(ROOT/'web'/sources[asset_name],media_type='text/css' if asset_name.endswith('.css') else 'text/javascript')
 
