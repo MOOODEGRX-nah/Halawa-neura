@@ -31,6 +31,12 @@ class Preferences(BaseModel):
     persona: str | None = Field(default=None, max_length=600)
 
 
+class KnowledgeUpload(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    filename: str = Field(min_length=1, max_length=200)
+    text: str = Field(min_length=1, max_length=2_000_000)
+
+
 class MemoryImport(BaseModel):
     model_config = ConfigDict(extra='forbid')
     format: str
@@ -97,6 +103,29 @@ def attach_assistant(app, assistant):
     async def events(after: int = 0):
         await asyncio.to_thread(assistant.deliver_due)
         return await asyncio.to_thread(store.events, after)
+
+    @app.get('/assistant/knowledge')
+    async def knowledge():
+        kb = assistant.knowledge
+        return {'documents': await asyncio.to_thread(kb.documents) if kb else [], 'available': bool(kb and kb.embedder.available)}
+
+    @app.post('/assistant/knowledge')
+    async def add_knowledge(req: KnowledgeUpload):
+        from src.core.knowledge import KnowledgeError, to_text
+        if not assistant.knowledge:
+            raise HTTPException(501, 'قاعدة المعرفة غير مفعّلة')
+        def run():
+            try:
+                return assistant.knowledge.add(req.filename, to_text(req.filename, req.text), 'upload')
+            except KnowledgeError as exc:
+                raise HTTPException(exc.status, str(exc)) from exc
+        return await asyncio.to_thread(run)
+
+    @app.delete('/assistant/knowledge/{document_id}')
+    async def delete_knowledge(document_id: str):
+        if not assistant.knowledge:
+            raise HTTPException(501, 'قاعدة المعرفة غير مفعّلة')
+        return await asyncio.to_thread(guarded, assistant.knowledge.delete, document_id)
 
     @app.get('/assistant/preferences')
     async def preferences():

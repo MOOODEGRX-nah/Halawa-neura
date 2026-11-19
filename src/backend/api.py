@@ -167,7 +167,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     project_jobs = ProjectJobs(project_store, coordinator)
     preview = PreviewServer(project_store)
     desktop_skills = DesktopSkills(project_store, desktop_adapter)
-    assistant = assistant or Assistant(settings.data_dir, summarizer=lambda messages: coordinator.complete(
+    from src.core.knowledge import KnowledgeBase, LocalEmbedder, find_embedding_model
+    knowledge = KnowledgeBase(settings.data_dir, LocalEmbedder(find_embedding_model(settings.models_dir), threads=max(1, min(4, settings.n_threads // 2))))
+    assistant = assistant or Assistant(settings.data_dir, knowledge=knowledge, summarizer=lambda messages: coordinator.complete(
         messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9),
         locations=lambda: (getattr(desktop_skills.adapter, 'configuration', lambda: {})() or {}).get('approved_locations', {}))
     chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs,assistant)
@@ -184,6 +186,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         yield
         await asyncio.to_thread(assistant.stop)
         await asyncio.to_thread(designs.close)
+        await asyncio.to_thread(knowledge.close)
         await asyncio.to_thread(project_jobs.shutdown)
         await asyncio.to_thread(preview.stop)
         await asyncio.to_thread(coordinator.shutdown)

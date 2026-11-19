@@ -95,6 +95,13 @@
         </div>
       </div>
       <div class="nx-card">
+        <h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>المعرفة — ملفاتك <span class="nx-tag" id="as-kb-count"></span></h3>
+        <p class="nx-sub">أضف ملفات نصية (txt، md، csv، html، كود) ثم اسأل في المحادثة: «من ملفاتي: …». تبقى على جهازك وتُفهرس محليًا.</p>
+        <div class="as-row"><label class="as-btn as-primary" for="as-kb-file">إضافة ملفات</label><input type="file" id="as-kb-file" multiple accept=".txt,.md,.markdown,.csv,.json,.html,.htm,.py,.js,.ts,.css,.yaml,.yml,.toml,.log,.srt,.vtt,.xml,.tex,.rst" hidden></div>
+        <p class="as-status" id="as-kb-status" role="status"></p>
+        <ul class="as-list" id="as-kb"></ul>
+      </div>
+      <div class="nx-card">
         <h3 class="nx-h"><i class="nx-dot" style="background:#42A5F5"></i>تفضيلات المساعد</h3>
         <div class="as-prefs">
           <label class="as-field">المدينة الافتراضية للطقس<input class="as-input" id="as-city" dir="auto" maxlength="80"></label>
@@ -117,6 +124,10 @@
       const a=document.createElement('a');a.href=url;a.download='neura-memories.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){status('as-mem-status',e.message,1);}};
     $a('as-import').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
       try{const result=await send('/assistant/memories/import','POST',JSON.parse(await file.text()));status('as-mem-status','أُضيفت '+result.added+'، وتُجوهلت '+result.skipped+' مكررة.');loadMemories();}catch(err){status('as-mem-status',err instanceof SyntaxError?'الملف ليس JSON صالحًا.':err.message,1);}};
+    $a('as-kb-file').onchange=async e=>{const files=[...e.target.files];e.target.value='';let ok=0;
+      for(const f of files){if(f.size>2000000){status('as-kb-status',f.name+': أكبر من 2 MB',1);continue;}status('as-kb-status','أفهرس '+f.name+'…');
+        try{const r=await send('/assistant/knowledge','POST',{filename:f.name,text:await f.text()});ok++;status('as-kb-status',r.duplicate?f.name+' موجود مسبقًا.':'أُضيف '+f.name+' ('+r.chunks+' مقطع).');}catch(err){status('as-kb-status',f.name+': '+err.message,1);}}
+      loadKnowledge();};
     $a('as-clear').onclick=async()=>{if(!confirm('حذف كل ما يتذكره Neura عنك؟ لا يمكن التراجع.'))return;try{await send('/assistant/memories','DELETE');loadMemories();status('as-mem-status','حُذفت كل الذاكرة.');}catch(e){status('as-mem-status',e.message,1);}};
     const savePref=async values=>{try{prefs=await send('/assistant/preferences','PUT',values);status('as-pref-status','حُفظ الإعداد.');}catch(e){status('as-pref-status',e.message,1);loadPrefs();}};
     $a('as-city').onchange=e=>e.target.value.trim()&&savePref({city:e.target.value.trim()});
@@ -124,7 +135,15 @@
     for(const key of ['desktop_notifications','speak_reminders','use_memory_in_chat'])$a('as-'+key).onchange=e=>savePref({[key]:e.target.checked});
   }
 
-  function refresh(){build();loadReminders();loadMemories();loadPrefs();}
+  async function loadKnowledge(){
+    const list=$a('as-kb');if(!list)return;
+    try{const data=await call('/assistant/knowledge');list.replaceChildren();$a('as-kb-count').textContent=data.documents.length?String(data.documents.length):'';
+      if(!data.available)status('as-kb-status','نموذج التضمين غير موجود في مجلد النماذج؛ المعرفة غير متاحة.',1);
+      if(!data.documents.length){list.innerHTML='<li class="nx-empty">لا مستندات بعد.</li>';return;}
+      for(const d of data.documents)list.append(row(d.title,d.chunks+' مقطع · '+Math.round(d.chars/1000)+' ألف حرف',[['حذف',async()=>{try{await send('/assistant/knowledge/'+d.id,'DELETE');loadKnowledge();}catch(e){status('as-kb-status',e.message,1);}},true]]));}
+    catch(e){list.innerHTML='<li class="nx-empty">'+esc(e.message)+'</li>';}
+  }
+  function refresh(){build();loadReminders();loadMemories();loadPrefs();loadKnowledge();}
 
   // In-chat reminder delivery --------------------------------------------------------------
   const KEY='neura.assistant.lastEvent';

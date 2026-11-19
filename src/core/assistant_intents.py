@@ -223,6 +223,16 @@ def parse(text, now: datetime):
         topic = next(g for g in match.groups() if g)
         return Intent('web.wikipedia', {'topic': original_span(original, topic.strip()), 'language': 'en' if re.match(r'^(?:what|wikipedia)', q) else 'ar'})
 
+    # Knowledge base (N038) ------------------------------------------------------------------
+    match = re.match(r'^(?:من\s+(?:ملفاتي|معرفتي|مستنداتي)|ابحث\s+في\s+(?:ملفاتي|معرفتي|مستنداتي)(?:\s+عن)?|اسال\s+(?:ملفاتي|معرفتي)|حسب\s+(?:ملفاتي|مستنداتي)|ask my (?:files|documents|notes))\s*[:،,]?\s*(.+)$', q)
+    if match:
+        return Intent('knowledge.ask', {'question': original_span(original, match[1].strip())})
+    if re.fullmatch(r'(?:ما|ماذا|وش|ايش)\s+(?:الملفات|المستندات)\s+(?:في|ب)\s*(?:معرفتك|المعرفه|المعرفة)|(?:اعرض|عرض)\s+(?:ال)?معرف[ةه]|list (?:my )?knowledge', q):
+        return Intent('knowledge.list')
+    match = re.match(r'^(?:اضف|احفظ|ادخل)\s+(?:ال)?(?:ملف\s+)?(.+?)\s+(?:الى|إلى|في|ل)\s*(?:ال)?(?:معرف[ةه]|معرفتك|قاعده المعرفه|قاعدة المعرفة)$', q)
+    if match:
+        return Intent('knowledge.add', {'target': original_span(original, match[1].strip())})
+
     # Files (N076) ---------------------------------------------------------------------------
     if re.fullmatch(r'(?:تراجع|ارجع|الغ|الغي|undo)\s+(?:عن\s+)?(?:اخر\s+|آخر\s+)?(?:عمليه\s+|عملية\s+)?(?:ال)?تنظيم(?:\s+(?:ال)?ملفات)?|undo (?:the )?last organi[sz]e', q):
         return Intent('files.undo')
