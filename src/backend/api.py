@@ -157,7 +157,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     settings = settings or Settings()
     coordinator = coordinator or NeuraLoop(settings=settings)
     actions = actions or SafeActions()
-    voice = voice or VoiceService()
+    voice = voice or VoiceService(data_dir=settings.data_dir)
     token = local_token(settings)
     vault = ConversationVault(settings.data_dir)
     projects = InvoiceOrchestrator(coordinator)
@@ -165,7 +165,8 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     project_jobs = ProjectJobs(project_store, coordinator)
     preview = PreviewServer(project_store)
     desktop_skills = DesktopSkills(project_store, desktop_adapter)
-    assistant = assistant or Assistant(settings.data_dir)
+    assistant = assistant or Assistant(settings.data_dir, summarizer=lambda messages: coordinator.complete(
+        messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9))
     chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs,assistant)
     started = time.monotonic()
 

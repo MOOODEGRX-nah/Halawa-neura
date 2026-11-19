@@ -90,7 +90,7 @@
       for(const app of result.applications||[]){const button=document.createElement('button');button.type='button';button.className='chat-action-choice';button.textContent=app.display_name||app.application_id;button.onclick=async()=>{if(busy)return;ui(true);try{const opened=await executeManual('open_application',{application_id:app.application_id});await display({kind:'action',result:opened});}catch(e){note(e.message);}finally{ui(false);}};box.append(document.createElement('br'),button);}
       if(data.kind==='pending'||data.retry){const button=document.createElement('button');button.type='button';button.className='chat-action-choice';button.textContent='استعادة نتيجة الطلب نفسه';button.onclick=()=>run('/chat/dispatch',body);box.append(document.createElement('br'),button);}
       remember(q,message,context);sc(true);
-      if(data.kind==='assistant'){if(data.reminder&&page==='assistant')window.NeuraAssistant?.refresh();if(typeof speak==='function')speak(message);}
+      if(data.kind==='assistant'){if(data.reminder&&page==='assistant')window.NeuraAssistant?.refresh();if(typeof speak==='function')speak(message,!!window.voiceTurn);}
       return true;
     }
     async function submit(path,payload){const controller=new AbortController();curAC=controller;try{return await display(await settle(await call(path,payload,controller.signal),controller.signal,context.session));}catch(e){return display({kind:'action',retry:true,result:{status:'unknown',message:e.name==='AbortError'?'توقف انتظار النتيجة؛ قد يكون طلب الفتح وصل. استعد نتيجة الطلب نفسه قبل تكراره.':e instanceof TypeError?'تعذر الاتصال بالخادم. استعد نتيجة الطلب نفسه؛ لن يُرسل تنفيذ مكرر.':e.message}});}finally{if(curAC===controller)curAC=null;}}

@@ -135,7 +135,7 @@
     const text='⏰ '+event.text+(event.late?'\n(فات موعده أثناء إغلاق Neura: '+when(event.due,event.timezone)+')':'');
     const card=bubble('n','Neura [تذكير]','#FFCA28','zap',text);card.d.dataset.reminderId=event.id;sc(true);
     if(typeof hist!=='undefined'){hist.push({role:'assistant',content:'تذكير: '+event.text});}
-    if(prefs.speak_reminders&&typeof speak==='function'&&!busy){const previous=tts;try{tts=true;await speak('تذكير: '+event.text);}catch(_){}finally{tts=previous;}}
+    if(prefs.speak_reminders&&typeof speak==='function'&&!busy){try{await speak('تذكير: '+event.text,true);}catch(_){}}
     if(page==='assistant')loadReminders();
   }
   async function poll(){

@@ -204,6 +204,18 @@ def parse(text, now: datetime):
     if not q or re.match(r'^(?:لا|لاتذكرني|ما تذكرني|don.?t|do not|never|كيف(?!\s+(?:الجو|الطقس|حال|الحال)\b)|اشرح|explain|how(?!.?s the weather))\b', q):
         return None
 
+    # Reading the web (explicit link or Wikipedia) -------------------------------------------
+    link = re.search(r'https?://[^\s<>"«»]+', original)
+    if link and re.match(r'^(?:لخص|لخصي|تلخيص|اقرا|اقرأ|ملخص|summari[sz]e|tl;?dr|read)\b', q):
+        return Intent('web.summary', {'url': link[0].rstrip('.,،؛)!?؟')})
+    match = re.fullmatch(r'(?:(?:ماذا|ما|وش|ايش|شو)\s+(?:تقول|يقول|تقوله|يقوله)\s+(?:ال)?ويكيبيديا\s+(?:عن|في)\s+(.+)'
+                         r'|(?:لخص(?:\s+لي)?|اعطني\s+ملخص(?:ا)?|ملخص)\s+(?:من\s+)?(?:ال)?ويكيبيديا\s+(?:عن\s+|ل)?(.+)'
+                         r'|(?:عرفني|عرفنا)\s+(?:ب|على)\s*(.+?)\s+من\s+(?:ال)?ويكيبيديا'
+                         r'|what does wikipedia say about\s+(.+)|wikipedia summary (?:of|for)\s+(.+))', q)
+    if match:
+        topic = next(g for g in match.groups() if g)
+        return Intent('web.wikipedia', {'topic': original_span(original, topic.strip()), 'language': 'en' if re.match(r'^(?:what|wikipedia)', q) else 'ar'})
+
     # Memory --------------------------------------------------------------------------------
     if re.fullmatch(r'(?:(?:ماذا|ما الذي|ما|وش|ايش|شو|شنو|what)\s+(?:تتذكر|تذكر|تعرف|تعرفه|تتذكره|حفظت|حفظته|do you (?:remember|know))\s+(?:عني|about me)'
                     r'|(?:اعرض|عرض|show|list)\s+(?:لي\s+)?(?:ذاكرتك|ذكرياتي|الذاكره|الذاكرة|محتوى ذاكرتك|your memory|memories|my memories)'
