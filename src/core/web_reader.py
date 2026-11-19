@@ -97,7 +97,7 @@ class WebReader:
                     if response.status_code >= 400:
                         raise ReaderError('الموقع رد بالخطأ ' + str(response.status_code) + '.')
                     kind = response.headers.get('content-type', '')
-                    if not re.match(r'text/(?:html|plain)|application/(?:xhtml\+xml|json)', kind):
+                    if not re.match(r'text/(?:html|plain|xml)|application/(?:xhtml\+xml|json|xml)', kind):
                         raise ReaderError('هذا الرابط ليس صفحة نصية (' + (kind.split(';')[0] or 'غير معروف') + ').')
                     body = b''
                     for chunk in response.iter_bytes():
@@ -144,3 +144,81 @@ class WebReader:
             raise ReaderError('مقالة «' + title + '» بلا ملخص متاح.')
         page = (summary.get('content_urls') or {}).get('desktop', {}).get('page') or base + '/wiki/' + quote(title.replace(' ', '_'))
         return {'title': summary.get('title') or title, 'text': extract_text, 'url': page}
+
+
+YOUTUBE_ID = re.compile(r'(?:youtube\.com/(?:watch\?(?:[^#\s]*&)?v=|shorts/|embed/|live/)|youtu\.be/)([A-Za-z0-9_-]{11})')
+
+
+def youtube_id(url):
+    match = YOUTUBE_ID.search(url or '')
+    return match.group(1) if match else None
+
+
+def _youtube(self, url):
+    """N075: the video's own caption track (Arabic, then English, then any); never the title alone."""
+    import json as _json
+    video = youtube_id(url)
+    if not video:
+        raise ReaderError('هذا ليس رابط فيديو YouTube صالحًا.')
+    try:
+        _, _, page = self._fetch('https://www.youtube.com/watch?v=' + video + '&hl=ar')
+    except ReaderError:
+        raise
+    except Exception as exc:
+        raise ReaderError('تعذر فتح صفحة الفيديو الآن.') from exc
+    title = re.search(r'"videoDetails":\{"videoId":"[^"]+","title":"((?:[^"\\]|\\.)*)"', page)
+    title = _json.loads('"' + title.group(1) + '"') if title else 'فيديو YouTube'
+    tracks = re.search(r'"captionTracks":(\[.*?\])\s*,\s*"(?:audioTracks|translationLanguages)"', page)
+    if not tracks:
+        raise ReaderError('لا توجد ترجمة نصية متاحة لهذا الفيديو، لذلك لا أستطيع تلخيص محتواه بصدق (لن ألخص من العنوان وحده).')
+    try:
+        options = _json.loads(tracks.group(1))
+    except ValueError as exc:
+        raise ReaderError('تعذر قراءة قائمة الترجمات في صفحة الفيديو.') from exc
+    def rank(track):
+        code = track.get('languageCode', '')
+        return (0 if code.startswith('ar') else 1 if code.startswith('en') else 2, 1 if track.get('kind') == 'asr' else 0)
+    track = sorted(options, key=rank)[0]
+    base = track.get('baseUrl', '')
+    if not base.startswith('https://www.youtube.com/'):
+        raise ReaderError('رابط الترجمة غير متوقع؛ توقفت حمايةً لجهازك.')
+    try:
+        _, _, xml = self._fetch(base)
+    except Exception as exc:
+        raise ReaderError('تعذر جلب نص الترجمة من YouTube.') from exc
+    lines = [html.unescape(re.sub(r'<[^>]+>', '', t)).strip() for t in re.findall(r'<text[^>]*>(.*?)</text>', xml, re.S)]
+    text = re.sub(r'\s+', ' ', ' '.join(l for l in lines if l)).strip()
+    if len(text) < 80:
+        raise ReaderError('رجعت ترجمة الفيديو فارغة أو قصيرة جدًا (قد يتطلب YouTube تحققًا إضافيًا)؛ لم ألخص شيئًا.')
+    return {'title': title, 'url': 'https://www.youtube.com/watch?v=' + video, 'text': text,
+            'language': track.get('languageCode', ''), 'automatic': track.get('kind') == 'asr'}
+
+
+def _research(self, topic):
+    """N078: several Wikipedia articles (Arabic first, English second) as cited, bounded sources."""
+    import json as _json
+    sources = []
+    for language, limit in (('ar', 3), ('en', 2)):
+        base = 'https://' + language + '.wikipedia.org'
+        try:
+            _, _, body = self._fetch(base + '/w/api.php?action=opensearch&format=json&namespace=0&limit=' + str(limit) + '&search=' + quote(topic[:120]))
+            titles = _json.loads(body)[1]
+        except Exception:
+            continue
+        for title in titles:
+            try:
+                _, _, raw = self._fetch(base + '/api/rest_v1/page/summary/' + quote(title.replace(' ', '_'), safe=''))
+                summary = _json.loads(raw)
+            except Exception:
+                continue
+            text = (summary.get('extract') or '').strip()
+            if len(text) > 60:
+                sources.append({'title': summary.get('title') or title, 'text': text[:1800], 'language': language,
+                                'url': (summary.get('content_urls') or {}).get('desktop', {}).get('page') or base + '/wiki/' + quote(title.replace(' ', '_'))})
+    if not sources:
+        raise ReaderError('لم أجد مصادر في ويكيبيديا عن «' + topic[:80] + '». جرّب صياغة أخرى أو أعطني رابطًا لألخصه.')
+    return sources[:5]
+
+
+WebReader.youtube = _youtube
+WebReader.research = _research

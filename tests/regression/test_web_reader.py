@@ -73,3 +73,47 @@ def test_wikipedia_summary_without_model(tmp_path):
 def test_other_link_requests_are_not_summaries(text):
     intent = parse(text, NOW)
     assert intent is None or not intent.name.startswith('web.')
+
+
+WATCH = ('<html><script>var x={"videoDetails":{"videoId":"abcdefghijk","title":"شرح \\u0627لبرمجة"},'
+         '"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"baseUrl":"https://www.youtube.com/api/timedtext?v=abcdefghijk&lang=en","languageCode":"en","kind":"asr"},'
+         '{"baseUrl":"https://www.youtube.com/api/timedtext?v=abcdefghijk&lang=ar","languageCode":"ar"}],"audioTracks":[]}}};</script></html>')
+CAPTIONS = '<transcript>' + ''.join('<text start="%d" dur="2">جملة رقم %d من الشرح &amp; التوضيح</text>' % (i, i) for i in range(20)) + '</transcript>'
+
+
+def test_youtube_summary_uses_the_arabic_caption_track(tmp_path):
+    fetched = []
+    def fetch(url):
+        fetched.append(url)
+        return (url, 'text/html', WATCH) if 'watch' in url else (url, 'text/xml', CAPTIONS)
+    seen = []
+    def summarizer(messages):
+        seen.append(messages)
+        return {'choices': [{'message': {'content': 'الفكرة: شرح البرمجة.'}}]}
+    assistant = Assistant(tmp_path, reader=WebReader(fetch=fetch), summarizer=summarizer)
+    intent = parse('لخص هذا الفيديو https://youtu.be/abcdefghijk', NOW)
+    assert intent.name == 'web.youtube'
+    result = assistant.handle(intent)
+    assert result['model_called'] and 'lang=ar' in fetched[1] and 'جملة رقم 3 من الشرح & التوضيح' in seen[0][1]['content']
+    assert 'youtube.com/watch?v=abcdefghijk' in result['message'] and 'مرفوعة' in result['message']
+
+
+def test_youtube_without_captions_is_honest(tmp_path):
+    reader = WebReader(fetch=lambda url: (url, 'text/html', '<html>no captions</html>'))
+    result = Assistant(tmp_path, reader=reader, summarizer=lambda m: 1 / 0).handle(parse('لخص https://www.youtube.com/watch?v=abcdefghijk', NOW))
+    assert result['result']['status'] == 'error' and 'لا توجد ترجمة' in result['message']
+
+
+def test_deep_research_cites_numbered_sources(tmp_path):
+    def fetch(url):
+        if 'opensearch' in url:
+            titles = ['مكة', 'المسجد الحرام'] if 'ar.wikipedia' in url else []
+            return url, 'application/json', json.dumps(['q', titles, [], []])
+        title = 'مكة' if '%D9%85%D9%83%D8%A9' in url else 'المسجد الحرام'
+        return url, 'application/json', json.dumps({'title': title, 'extract': 'نص موسوعي طويل بما يكفي عن ' + title + ' ومكانته وتاريخه العريق في الجزيرة العربية.'})
+    seen = []
+    assistant = Assistant(tmp_path, reader=WebReader(fetch=fetch), summarizer=lambda m: seen.append(m) or {'choices': [{'message': {'content': 'تقرير [1] و[2].'}}]})
+    intent = parse('ابحث بعمق عن تاريخ مكة', NOW)
+    assert intent.name == 'web.research' and intent.args['topic'] == 'تاريخ مكة'
+    result = assistant.handle(intent)
+    assert '[1] مكة' in result['message'] and '[2] المسجد الحرام' in result['message'] and '[1]' in seen[0][1]['content']

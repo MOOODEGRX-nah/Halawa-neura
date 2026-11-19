@@ -207,7 +207,14 @@ def parse(text, now: datetime):
     # Reading the web (explicit link or Wikipedia) -------------------------------------------
     link = re.search(r'https?://[^\s<>"«»]+', original)
     if link and re.match(r'^(?:لخص|لخصي|تلخيص|اقرا|اقرأ|ملخص|summari[sz]e|tl;?dr|read)\b', q):
-        return Intent('web.summary', {'url': link[0].rstrip('.,،؛)!?؟')})
+        url = link[0].rstrip('.,،؛)!?؟')
+        from src.core.web_reader import youtube_id
+        return Intent('web.youtube' if youtube_id(url) else 'web.summary', {'url': url})
+    match = re.match(r'^(?:ابحث|بحث|اعمل بحث|سو بحث|research)\s+(?:لي\s+)?(?:بعمق|بحثا\s+(?:موسعا|معمقا)|موسع|معمق|deeply|in depth)\s+(?:عن\s+|في\s+|about\s+|on\s+)?(.+)$'
+                     r'|^(?:بحث|تقرير)\s+(?:موسع|معمق|شامل)\s+(?:عن|حول)\s+(.+)$|^deep research\s+(?:on\s+|about\s+)?(.+)$', q)
+    if match:
+        topic = next(g for g in match.groups() if g)
+        return Intent('web.research', {'topic': original_span(original, topic.strip())})
     match = re.fullmatch(r'(?:(?:ماذا|ما|وش|ايش|شو)\s+(?:تقول|يقول|تقوله|يقوله)\s+(?:ال)?ويكيبيديا\s+(?:عن|في)\s+(.+)'
                          r'|(?:لخص(?:\s+لي)?|اعطني\s+ملخص(?:ا)?|ملخص)\s+(?:من\s+)?(?:ال)?ويكيبيديا\s+(?:عن\s+|ل)?(.+)'
                          r'|(?:عرفني|عرفنا)\s+(?:ب|على)\s*(.+?)\s+من\s+(?:ال)?ويكيبيديا'
@@ -215,6 +222,13 @@ def parse(text, now: datetime):
     if match:
         topic = next(g for g in match.groups() if g)
         return Intent('web.wikipedia', {'topic': original_span(original, topic.strip()), 'language': 'en' if re.match(r'^(?:what|wikipedia)', q) else 'ar'})
+
+    # Files (N076) ---------------------------------------------------------------------------
+    if re.fullmatch(r'(?:تراجع|ارجع|الغ|الغي|undo)\s+(?:عن\s+)?(?:اخر\s+|آخر\s+)?(?:عمليه\s+|عملية\s+)?(?:ال)?تنظيم(?:\s+(?:ال)?ملفات)?|undo (?:the )?last organi[sz]e', q):
+        return Intent('files.undo')
+    match = re.match(r'^(?:نظم|رتب|نظف|organi[sz]e|sort|tidy)\s+(?:لي\s+)?(?:(?:ملفات\s+(?:مجلد\s+)?)|(?:مجلد\s+)|(?:the\s+)?folder\s+|files in\s+)(.+)$', q)
+    if match:
+        return Intent('files.organize', {'target': original_span(original, match[1].strip())})
 
     # Memory --------------------------------------------------------------------------------
     if re.fullmatch(r'(?:(?:ماذا|ما الذي|ما|وش|ايش|شو|شنو|what)\s+(?:تتذكر|تذكر|تعرف|تعرفه|تتذكره|حفظت|حفظته|do you (?:remember|know))\s+(?:عني|about me)'

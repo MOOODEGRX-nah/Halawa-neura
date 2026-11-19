@@ -168,7 +168,8 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
     preview = PreviewServer(project_store)
     desktop_skills = DesktopSkills(project_store, desktop_adapter)
     assistant = assistant or Assistant(settings.data_dir, summarizer=lambda messages: coordinator.complete(
-        messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9))
+        messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9),
+        locations=lambda: (getattr(desktop_skills.adapter, 'configuration', lambda: {})() or {}).get('approved_locations', {}))
     chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs,assistant)
     started = time.monotonic()
     try:
