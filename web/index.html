@@ -249,6 +249,9 @@
         <ul class="nx-list"><li>تذكيرات ومؤقتات بالعربية مع إشعار سطح المكتب، وتُسلَّم عند الفتح إن فات موعدها والتطبيق مغلق.</li><li>ذاكرة لما تطلب حفظه تُستخدم في المحادثة.</li><li>الوقت والتاريخ الهجري والميلادي وحاسبة آمنة دون نموذج.</li><li>الطقس من Open-Meteo مع ذكر المصدر ووقت القياس.</li></ul></div>
     </div>
     <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#B0BEC5"></i>الاتصال والتشخيص</h3><dl class="nx-kv" id="ab-kv"></dl></div>
+    <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>الفحص الذاتي (Doctor)</h3>
+      <p class="nx-sub">فحوص فعلية للنماذج والصوت والمعرفة والإشعارات ومجلد البيانات؛ لا يُحسب إلا ما شُغّل.</p>
+      <button type="button" class="as-btn as-primary" id="doctor-run">تشغيل الفحص</button><p class="nx-sub" id="doctor-sum"></p><ul class="as-list" id="doctor-list"></ul></div>
   </div>
 </section>
 </div>
@@ -765,8 +768,12 @@ $('lk').disabled=true;setTip($('lk'),'جلسات المواقع الخارجية
 $('wv').innerHTML=[0,.12,.24,.36,.48,.6,.72].map(x=>`<i class="block h-full w-[3px] origin-center animate-eq rounded-full bg-red" style="animation-delay:${x}s"></i>`).join('');
 let rI=0,rS=null,mr=null,rt=0,aco=null,chunks=[],trans=false;
 function recUI(on){swap($('mic'),on);tg($('mic'),'border-red/60 text-red hover:bg-red/15',!on);tg($('mic'),'bg-orange border-orange text-bg animate-pulse-ring',on);tg($('in'),'hidden',on);tg($('recb'),'hidden',!on);tg($('recb'),'flex',on);$('rect').textContent='0:00';setTip($('mic'),on?'إيقاف التسجيل':'تسجيل صوتي')}
-function endRec(txt){
+let dictating=false;
+async function endRec(txt){
   clearInterval(rI);trans=false;recUI(false);micLvl=null;if(st==='recording'||st==='thinking')setSt('ready');
+  if(txt&&dictating){dictating=false;let copied=false;try{await navigator.clipboard.writeText(txt);copied=true}catch(e){}
+    $('in').value=txt;$('in').focus();$('in').select();note(copied?'نُسخ النص إلى الحافظة؛ الصقه في أي تطبيق بـ Ctrl+V.':'النص في حقل الكتابة ومحدد؛ اضغط Ctrl+C ثم الصقه حيث تريد.');return}
+  dictating=false;
   if(txt){$('in').value=txt;setTimeout(()=>{if($('in').value===txt){$('in').value='';send(txt,true)}},1000)}
 }
 function stopRec(cancel){                                   // local STT: MediaRecorder -> Core /stt (faster-whisper). Audio never leaves the machine.
@@ -802,6 +809,8 @@ $('mic').onclick=()=>{
 const chatToolbar=document.createElement('div');chatToolbar.id='chat-actions';chatToolbar.className='chat-toolbar';chatToolbar.setAttribute('role','toolbar');chatToolbar.setAttribute('aria-label','إجراءات المحادثة');$('ctl').before(chatToolbar);
 const attachment=document.createElement('label');attachment.tabIndex=0;attachment.setAttribute('role','button');attachment.setAttribute('aria-label','إرفاق صورة');attachment.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image-input').click();}};attachment.className=CHIP;attachment.innerHTML='<span id="image-label">إرفاق صورة</span><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>';chatToolbar.append(attachment);
 $('image-input').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>8000000){note('الحد الأقصى للصورة 8 MB');return}pendingImage=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f)});$('image-label').textContent='صورة مرفقة · '+f.name;note('سيستخدم الطلب التالي نموذج VISION')};
+const dictateButton=document.createElement('button');dictateButton.id='dictate';dictateButton.type='button';dictateButton.className=CHIP;dictateButton.textContent='إملاء ← نسخ';dictateButton.title='سجّل كلامك ليتحول إلى نص يُنسخ للحافظة دون إرساله';chatToolbar.append(dictateButton);
+dictateButton.onclick=()=>{if($('mic').disabled){note($('mic').title||'التعرف على الكلام غير متاح');return}if(busy||trans)return;if(st==='recording'){stopRec();return}dictating=true;$('mic').onclick();};
 const sessionButton=document.createElement('button');sessionButton.id='saved-sessions';sessionButton.type='button';sessionButton.className=CHIP;sessionButton.textContent='الجلسات المحفوظة';chatToolbar.append(sessionButton);
 sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/sessions'),j=await r.json();if(!r.ok){note(j.error.message);return}const panel=document.createElement('div');panel.className='p-3 border border-ln rounded-xl';for(const item of j.sessions){const row=document.createElement('div'),open=document.createElement('button'),del=document.createElement('button');open.className=del.className=CHIP;open.textContent=item.session+' · '+item.updated_at;del.textContent='حذف';open.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session)),record=await response.json();if(!response.ok){note(record.error.message);return}hist=record.messages;sid=item.session;$('log').innerHTML='';setHas(true);for(const [historyIndex,m] of hist.entries()){if(m.role==='system')continue;const text=typeof m.content==='string'?m.content:m.content.filter(p=>p.type==='text').map(p=>p.text).join('\n');const b=bubble(m.role==='user'?'u':'n',m.role==='user'?'You':'Neura','#42A5F5','spark',text);finalize(b,text);b.d.dataset.historyIndex=historyIndex;if(m.project_job_id){b.d.dataset.projectJobId=m.project_job_id;b.t.dataset.jobText='true'}}await window.NeuraChat?.restoreStatus();panel.remove()};del.onclick=async()=>{const response=await api('/vault/sessions/'+encodeURIComponent(item.session),{method:'DELETE'});if(response.ok)row.remove();else note('تعذّر حذف الجلسة')};row.append(open,del);panel.append(row)}if(!j.sessions.length)panel.textContent='لا جلسات محفوظة';$('log').append(panel);setHas(true)};
 
@@ -890,13 +899,19 @@ function paintMon(){buildMon();
   $('req-t').innerHTML='<tr><th>Time</th><th>Tier</th><th>Status</th><th class="r">Prompt</th><th class="r">Reused</th><th class="r">Output</th><th class="r">Prefill t/s</th><th class="r">Decode t/s</th><th class="r">Duration</th></tr>'+(rows||'<tr><td colspan="9" class="nx-empty" style="text-align:center">لا طلبات بعد — أرسل رسالة من صفحة المحادثة</td></tr>');
   const T=S&&S.totals;$('req-sum').textContent=T?`منذ تشغيل Core: ${T.requests} طلب · ${kf(T.prompt_tokens)} توكن مقروء · ${kf(T.output_tokens)} توكن مولَّد · ${T.errors} أخطاء · ${T.unknown_usage_requests||0} طلب دون عداد توكنات · مدة التشغيل ${Math.floor(S.uptime/60)} دقيقة`:''}
 /* ---- About ---- */
+async function runDoctor(){const list=$('doctor-list');list.innerHTML='<li class="nx-empty">جارٍ الفحص…</li>';
+  try{const r=await(await api('/assistant/doctor')).json();const icon={ok:'✅',warn:'⚠️',fail:'❌',unknown:'❔'};
+    $('doctor-sum').textContent=r.count+' فحصًا: '+r.summary.ok+' سليم، '+r.summary.warn+' تنبيه، '+r.summary.fail+' مشكلة'+(r.summary.unknown?'، '+r.summary.unknown+' غير معروف':'');
+    list.innerHTML=r.checks.map(c=>'<li class="as-item"><div class="as-body"><span class="as-text">'+icon[c.status]+' '+hx(c.label)+' — '+hx(c.detail)+'</span>'+(c.fix?'<span class="as-meta">'+hx(c.fix)+'</span>':'')+'</div></li>').join('');}
+  catch(e){list.innerHTML='<li class="nx-empty">'+hx(e.message)+'</li>';}}
+$('doctor-run')&&($('doctor-run').onclick=runDoctor);
 function paintAbout(){
   tierTable($('ab-tiers'),H);$('ab-ver').textContent='v'+(H?H.version:'0.1.0');
   const served=/^https?:/.test(location.protocol),kv=[['Core',CORE+(H?'  ●  متصل':'  ○  غير متصل')],['الصفحة',served?'يقدّمها Core (الأدوات متاحة)':'ملف محلي file:// (دردشة فقط)'],['الأدوات (بوابة الأمان)','بحث ومسودة فقط؛ تنفيذ الأوامر معطّل'],
-    ['حالة الجهاز',H?H.state+(H.game&&H.game!=='manual'?' · '+H.game:''):'—'],['بطاقة الاستدلال',H&&H.gpu0||'لم تُكتشف بعد'],['الاستدلال','llama-cpp-python · عملية واحدة'],['ميزانية VRAM',H?H.budget_gb+' GB':'—'],['ترخيص الشيفرة','MIT؛ النماذج لها تراخيص مستقلة']];
+    ['حالة الجهاز',H?H.state+(H.game&&H.game!=='manual'?' · '+H.game:''):'—'],['بطاقة الاستدلال',H&&H.gpu0||'لم تُكتشف بعد'],['الاستدلال','llama-cpp-python · عملية واحدة'],['ميزانية VRAM',H?H.budget_gb+' GB':'—'],['ترخيص الشيفرة','MIT؛ النماذج لها تراخيص مستقلة'],['زمن فتح الواجهة',window.neuraBootMs?(window.neuraBootMs/1000).toFixed(2)+' ث (من بدء الصفحة حتى رد Core الأول)':'—'],['عمر المحرك',H&&H.uptime_s!=null?Math.round(H.uptime_s)+' ث':'—']];
   $('ab-kv').innerHTML=kv.map(([a,b])=>`<dt>${hx(a)}</dt><dd>${hx(b)}</dd>`).join('')}
 {const h=location.hash.slice(1);showPage(PAGES.includes(h)?h:'chat',false);if(!PAGES.includes(h)&&h)history.replaceState(null,'','#chat')}
-(async()=>{await poll();const i=tinfo(pin);
+(async()=>{await poll();window.neuraBootMs=Math.round(performance.now());const i=tinfo(pin);
   for(const m of['NEURA CORE ... '+(H?'OK':'OFFLINE'),'VULKAN · '+((H&&H.gpu0)||'GPU0')+' ... '+(H&&H.gpu0?'OK':'—'),(i&&i.label?i.label+' ... '+(i.up?'LOADED':'READY'):'MODEL ... '+(H?'MISSING':'—'))]){await typeTo($('boot'),m);await sleep(380)}
   await typeTo($('boot'),H&&H.status==='ready'?'READY TO LOAD':'راجع حالة النظام واضغط «إعادة الاتصال» في شريط التطبيق');setSt(H?'happy':'error');await sleep(1500);if(!busy&&(st==='happy'||st==='error'))setSt('ready')})();
 

@@ -243,6 +243,9 @@ def parse(text, now: datetime):
         return Intent('persona.suggest', {'text': original.strip()[:300]})
 
     # Knowledge base (N038) ------------------------------------------------------------------
+    match = re.match(r'^(?:اكتب|حول|حوّل|اصنع)\s+(?:لي\s+)?(?:مقال(?:ا|ه|ة)?|مقاله|تقرير(?:ا)?)\s+(?:من|عن)\s+(?:ملفاتي|ملاحظاتي|معرفتي)\s*(?:عن|حول|في)?\s*(.*)$', q)
+    if match:
+        return Intent('knowledge.article', {'topic': original_span(original, match[1].strip()) if match[1].strip() else ''})
     match = re.match(r'^(?:من\s+(?:ملفاتي|معرفتي|مستنداتي)|ابحث\s+في\s+(?:ملفاتي|معرفتي|مستنداتي)(?:\s+عن)?|اسال\s+(?:ملفاتي|معرفتي)|حسب\s+(?:ملفاتي|مستنداتي)|ask my (?:files|documents|notes))\s*[:،,]?\s*(.+)$', q)
     if match:
         return Intent('knowledge.ask', {'question': original_span(original, match[1].strip())})

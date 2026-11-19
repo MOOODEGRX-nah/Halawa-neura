@@ -251,6 +251,11 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
                 'workspace': True, 'preview_origin': preview.origin,
                 'tools': actions.capabilities(), 'shell': False, 'email_send': False, **speech}
 
+    @app.get('/assistant/doctor')
+    async def doctor():
+        from src.core import doctor as checks
+        return await asyncio.to_thread(checks.run, settings, coordinator, voice, knowledge, assistant.notifier, desktop_skills.adapter)
+
     @app.get('/', response_class=HTMLResponse)
     async def index():
         page = (ROOT / 'web/index.html').read_text(encoding='utf-8')
@@ -285,7 +290,7 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         tiers = tiers_snapshot()
         daily = tiers.get('daily', {})
         status = 'ready' if daily.get('enabled') and not coordinator.last_error else 'degraded'
-        return {'status': status, 'state': status.upper(), 'version': VERSION, 'instance_id': os.environ.get('NEURA_INSTANCE_ID'),
+        return {'status': status, 'state': status.upper(), 'version': VERSION, 'uptime_s': round(time.monotonic() - started, 1), 'instance_id': os.environ.get('NEURA_INSTANCE_ID'),
                 'current_model': coordinator.current_model_id, 'phase': coordinator.phase,
                 'readiness': 'loadable' if daily.get('enabled') else 'unavailable',
                 'inference_verified': False, 'tiers': tiers, 'capabilities': capabilities(),

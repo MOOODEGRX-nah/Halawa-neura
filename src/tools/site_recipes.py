@@ -186,7 +186,7 @@ def validate_store(parser, elements, files):
     if _one(elements, 'cart-count').get('aria-live') != 'polite':
         raise ProjectError('عداد السلة يحتاج aria-live=polite')
     _one(elements, 'cart-total')
-    clear = _one(elements, 'clear-cart')
+    _one(elements, 'clear-cart')
     if not any(t == 'button' and a.get('id') == 'clear-cart' and a.get('type') == 'button' for t, a in elements):
         raise ProjectError('زر تفريغ السلة يحتاج button type=button')
     _arabic_words(parser, 16, 'المتجر')

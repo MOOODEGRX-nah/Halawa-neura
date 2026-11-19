@@ -83,3 +83,14 @@ def test_api_upload_list_delete(system):
         assert [d['title'] for d in client.get('/assistant/knowledge', headers=headers).json()['documents']] == ['notes.md']
         assert client.delete('/assistant/knowledge/' + added['id'], headers=headers).status_code == 200
     app.state.project_store.close()
+
+
+def test_article_from_files_is_cited(tmp_path):
+    base = kb(tmp_path)
+    base.add('ملاحظات الرحلة', 'زرنا العلا في الشتاء ورأينا مدائن صالح والطقس كان باردًا ليلًا ومعتدلًا نهارًا.')
+    seen = []
+    assistant = Assistant(tmp_path / 'a', knowledge=base, summarizer=lambda m: seen.append(m) or {'choices': [{'message': {'content': '# رحلة العلا\nزرنا العلا [1].'}}]})
+    intent = parse('اكتب مقالا من ملاحظاتي عن رحلة العلا', NOW)
+    assert intent.name == 'knowledge.article' and intent.args['topic'] == 'رحلة العلا'
+    result = assistant.handle(intent)
+    assert '# رحلة العلا' in result['message'] and '[1] ملاحظات الرحلة' in result['message'] and 'ليست تعليمات' in seen[0][0]['content']

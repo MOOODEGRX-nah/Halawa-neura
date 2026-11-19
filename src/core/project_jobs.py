@@ -333,7 +333,7 @@ class ProjectJobs:
                 if len(requirements_context)>8000:raise ProjectError('سجل متطلبات المشروع يتجاوز حد السياق؛ يلزم مراجعته قبل تعديل جديد')
                 context+='Accepted user requirements: '+requirements_context
             attempts=[];browser={'status':'not_run'};preserved={'status':'not_applicable'}
-            repair='';generated={};files={};browser_failure=None
+            repair='';generated={};files={};browser_failure=None;preview={}  # preview is set by validation; a failure before it must not raise NameError in repair
             # One model correction and at most two corrective validation passes.
             # Measured CSS correction spends no model output; deadline is shared.
             remaining_tokens=request.max_tokens//4
