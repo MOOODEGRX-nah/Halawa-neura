@@ -64,8 +64,9 @@ def workspace_intent(text):
 
 
 class ChatDispatcher:
-    def __init__(self,store,skills,jobs):
+    def __init__(self,store,skills,jobs,assistant=None):
         self.store,self.skills,self.jobs=store,skills,jobs
+        self.assistant=assistant
         self.jobs.skill_registry=skills
         self.targets=TargetContext(store)
         self.conversations=ProjectConversation(store)
@@ -140,7 +141,7 @@ class ChatDispatcher:
         options=result.pop('_options',[])
         session=self.store.db.execute('SELECT session_id FROM chat_request_sessions WHERE request_id=?',(request_id,)).fetchone()
         kind=result['kind'];project=result.get('project') or {};job=result.get('job') or {}
-        intent=('project.edit' if result.get('operation')=='edit' else 'project.create') if kind=='project' else {'chat':'explanation','workspace':'project.open','metadata':'project.metadata','proposal':'proposal','status':'task.status','action':'desktop.action','clarification':'clarification','plan':'plan'}.get(kind,'unknown')
+        intent=('project.edit' if result.get('operation')=='edit' else 'project.create') if kind=='project' else {'chat':'explanation','workspace':'project.open','metadata':'project.metadata','proposal':'proposal','status':'task.status','action':'desktop.action','clarification':'clarification','plan':'plan','assistant':'assistant'}.get(kind,'unknown')
         result['decision']=IntentDecision(intent=intent,session_id=session['session_id'] if session else None,source_turn_id=request_id,
             project_id=project.get('project_id') or result.get('project_id'),base_revision=project.get('project_revision') if project else result.get('base_revision'),
             job_id=job.get('job_id') or result.get('job_id'),proposal_id=result.get('proposal_id')).model_dump()
@@ -233,6 +234,7 @@ class ChatDispatcher:
                 'message':'فُتحت مساحة المشروع. راجع الملف المناسب وطلب التعديل قبل توليده.' if args.get('edit_request') else 'فُتحت مساحة المشروع المحفوظ.'}
 
     def _selected(self,name,args):
+        if name.startswith('assistant.') and self.assistant:return self.assistant.choose(name,args)
         if name=='project_edit':
             project=self.store.get(args['project_id'])
             if project['project_revision']!=args['expected_revision']:raise Conflict('تغير المشروع منذ اختيار الهدف؛ أعد طلب التعديل')
@@ -359,6 +361,11 @@ class ChatDispatcher:
         self.targets.validate(session_id)
         context=self.conversations.get(session_id)
         if context:active_project_id=context['project_id']
+        if self.assistant:
+            # Personal requests (memory, reminders, clock, calculator, weather) never load a model.
+            intent=self.assistant.match(text)
+            if intent:
+                return self._run(request_id,['assistant',text,session_id],lambda:self.assistant.handle(intent,session_id,request_id),session_id)
         contextual=followup_kind(text)
         planning=bool(q and re.match(r'^(?:خطط|ضع خطة|اعطني خطة|give me a plan|plan)\b',q))
         semantic=bool(session_id and active_project_id and q and not active_edit_intent(text) and

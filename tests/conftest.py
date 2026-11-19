@@ -49,6 +49,10 @@ def controlled_sensors(monkeypatch):
     def forbidden_probe():
         raise AssertionError('Controlled tests must not initialize Vulkan')
     monkeypatch.setattr('src.backends.devices.probe_devices',forbidden_probe)
+    # Never show real desktop notifications or reach the weather service from tests.
+    monkeypatch.setattr('src.core.assistant.Notifier._run',staticmethod(lambda argv:None))
+    def offline(*a,**k):raise AssertionError('Controlled tests must not reach the network')
+    monkeypatch.setattr('src.core.assistant_tools.Weather._http',staticmethod(offline))
 
 
 class FakeBackend:

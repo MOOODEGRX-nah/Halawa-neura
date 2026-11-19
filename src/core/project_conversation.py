@@ -21,7 +21,7 @@ class IntentDecision(BaseModel):
     """Durable user-turn resolution; executable arguments remain separately validated."""
     model_config=ConfigDict(extra='forbid')
     schema_version: Literal[1]=1
-    intent: Literal['explanation','project.create','project.edit','project.metadata','project.open','proposal','task.status','desktop.action','clarification','plan','unknown']
+    intent: Literal['explanation','project.create','project.edit','project.metadata','project.open','proposal','task.status','desktop.action','clarification','plan','assistant','unknown']
     session_id: str|None
     source_turn_id: str
     project_id: str|None=None
