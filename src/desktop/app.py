@@ -15,7 +15,7 @@ import urllib.request
 from PySide6.QtCore import QLockFile, QThread, QTimer, QUrl, Signal, Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket, QNetworkAccessManager, QNetworkProxy, QNetworkRequest
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QMenu, QSystemTrayIcon,
     QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMessageBox,
     QProgressBar, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
     QTextBrowser, QToolBar, QVBoxLayout, QWidget, QListWidget, QScrollArea, QGroupBox)
@@ -112,6 +112,8 @@ class SettingsDialog(QDialog):
         self.coder.setChecked(settings.values['dedicated_coder']); form.addRow(self.coder)
         self.updates = QCheckBox('التحقق من تحديثات GitHub عند فتح التطبيق')
         self.updates.setChecked(settings.values['check_updates']); form.addRow(self.updates)
+        self.background = QCheckBox('إبقاء Neura يعمل في شريط النظام عند إغلاق النافذة (لتصلك التذكيرات)')
+        self.background.setChecked(settings.values['run_in_background']); form.addRow(self.background)
         self.brave=QComboBox()
         from src.desktop.actions import DesktopAdapter
         for entry in DesktopAdapter(None).catalog().values():
@@ -243,7 +245,7 @@ class SettingsDialog(QDialog):
         except Exception as error:
             QMessageBox.warning(self,'حماية الموارد',str(error));return
         self.settings.values.update(models_dir=self.folder.text(), n_gpu_layers=-1 if self.mode.currentIndex() == 0 else 0,
-                                    n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(),
+                                    n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(), run_in_background=self.background.isChecked(),
                                     brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData(),
                                     disabled_skills=[name for name, check in self.skill_checks.items() if not check.isChecked()])
         try: self.settings.save()
@@ -360,6 +362,7 @@ class MainWindow(QMainWindow):
         self.smoke_check = smoke_check; self.update_dialog = None
         self.tasks = set(); self.closing = False; self.stopping = False; self.loaded = False
         self.close_checked=False;self.checking_close=False
+        self.quitting=False;self.tray=None;self.tray_notice_shown=False
         self.update_pending=False;self.update_preparing=False;self.update_release_requested=False;self.releasing_update=False
         self.setWindowTitle('Neura AI — معاينة' if os.environ.get('NEURA_PREVIEW') else 'Neura AI'); self.resize(1200, 850)
         self.setWindowIcon(QIcon(str(ROOT / 'assets/logo.png')))
@@ -561,7 +564,37 @@ class MainWindow(QMainWindow):
                 self.statusBar().showMessage('تحديث جديد متاح — افتح التحديثات لتثبيته.')
         self.task(lambda _: fetch_release(), checked, lambda _: None)
 
+    def setup_tray(self):
+        """Optional tray icon: closing the window hides it so the backend can still deliver reminders."""
+        if self.smoke_check or not QSystemTrayIcon.isSystemTrayAvailable():
+            return
+        self.tray = QSystemTrayIcon(QIcon(str(ROOT / 'assets/logo.png')), self)
+        self.tray.setToolTip('Neura AI')
+        menu = QMenu(self)
+        menu.addAction('فتح Neura', self.restore_from_tray)
+        menu.addSeparator()
+        menu.addAction('إنهاء Neura', self.quit_from_tray)
+        self.tray.setContextMenu(menu)
+        self.tray.activated.connect(lambda reason: self.restore_from_tray() if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick) else None)
+        self.tray.show()
+
+    def restore_from_tray(self):
+        self.showNormal(); self.raise_(); self.activateWindow()
+
+    def quit_from_tray(self):
+        self.quitting = True
+        self.showNormal(); self.close()
+
     def closeEvent(self, event):
+        if (self.tray and self.settings.values.get('run_in_background') and not self.quitting
+                and not self.update_release_requested and not self.releasing_update and not self.closing):
+            # Hide instead of stopping the backend: reminders and the scheduler keep running.
+            event.ignore(); self.hide()
+            if not self.tray_notice_shown:
+                self.tray_notice_shown = True
+                self.tray.showMessage('Neura يعمل في الخلفية', 'ستصلك التذكيرات. لإغلاقه تمامًا اختر «إنهاء Neura» من أيقونته في شريط النظام.',
+                                      QSystemTrayIcon.Information, 6000)
+            return
         if self.loaded and not self.close_checked and not self.smoke_check:
             event.ignore()
             def reviewed():
@@ -579,6 +612,8 @@ class MainWindow(QMainWindow):
             event.ignore(); QTimer.singleShot(200, self.close); return
         if self.page:self.view.setPage(QWebEnginePage(self.view));self.page.deleteLater();self.page=None
         event.accept()
+        if self.tray:
+            self.tray.hide(); QApplication.instance().quit()
 
 
 def main():
@@ -613,6 +648,8 @@ def main():
         except Exception as failure:
             QMessageBox.critical(None, 'Neura', str(failure)); return 1
     window = MainWindow(settings, args.smoke_check)
+    window.setup_tray()
+    if window.tray: app.setQuitOnLastWindowClosed(False)
     server = QLocalServer(app); QLocalServer.removeServer(name); server.listen(name)
     def activate():
         connection = server.nextPendingConnection()

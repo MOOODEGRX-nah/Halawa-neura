@@ -122,6 +122,8 @@ def ask(n, key, text, expect, check=None, keep_job=False, project=False, image=N
 
 def says(pattern):
     return lambda r, d: True if r.get('answer') and re.search(pattern, r['answer'], re.I) else 'answer does not match /' + pattern + '/: ' + str(r.get('answer'))[:160]
+def replies(pattern):
+    return lambda r, d: True if r.get('message') and re.search(pattern, r['message'], re.I) else 'reply does not match /' + pattern + '/: ' + str(r.get('message'))[:160]
 def skill(name, query=None):
     def f(r, d):
         if d.get('skill') != name: return 'skill ' + str(d.get('skill')) + ' != ' + name
@@ -139,8 +141,8 @@ try:
     ask(1, 'g', 'ما عاصمة فرنسا؟', 'chat', says('باريس|Paris'))
     ask(2, 'g', 'ما هي عاصمة اليابان؟', 'chat', says('طوكيو|Tokyo'))
     ask(3, 'e', 'What is the capital of Germany?', 'chat', says('Berlin'))
-    ask(4, 'm', 'كم يساوي 15 × 4؟', 'chat', says('60|٦٠'))
-    ask(5, 'm', 'What is 2 to the power of 10?', 'chat', says('1024|1,024'))
+    ask(4, 'm', 'كم يساوي 15 × 4؟', 'assistant', replies('60|٦٠'))
+    ask(5, 'm', 'What is 2 to the power of 10?', 'assistant', replies('1024|1,024'))
     ask(6, 'r', 'إذا كان عمر أحمد 10 سنوات وعمر أخيه ضعف عمره، كم عمر أخيه؟', 'chat', says('20|٢٠|عشرون|عشرين'))
     ask(7, 't', 'ترجم إلى الإنجليزية: صباح الخير', 'chat', says('good morning'))
     ask(8, 't', 'Translate to Arabic: Thank you very much', 'chat', says('شكر'))
@@ -183,6 +185,15 @@ try:
     ask(52, 'd', 'شغل لي يوتيوب', 'action', skill('open_website'))
     ask(53, 'd', 'افتح ستيم', 'action', lambda r, d: True if d.get('skill') in ('open_application', 'open_website') else 'skill: ' + str(d.get('skill')))
     ask(54, 'd', 'شغل موسيقى هادئة', 'chat')
+    # Personal assistant (0.5.0): handled without a model except the memory recall turn.
+    ask(55, 'a', 'تذكر أن اسمي سعد', 'assistant', replies('سعد'))
+    ask(56, 'a2', 'ما اسمي؟', 'chat', says('سعد'))
+    ask(57, 'a', 'ذكرني بعد ساعة أن أراجع البريد', 'assistant', replies('أراجع البريد'))
+    ask(58, 'a', 'ما هي تذكيراتي', 'assistant', replies('أراجع البريد'))
+    ask(59, 'a', 'كم الساعة الآن؟', 'assistant', replies('الساعة الآن'))
+    ask(60, 'a', 'ما تاريخ اليوم؟', 'assistant', replies('هـ'))
+    ask(61, 'a', 'ما الطقس في جدة؟', 'assistant', replies('Open-Meteo|تعذر'))
+    ask(62, 'a', 'ماذا تقول ويكيبيديا عن مكة', 'assistant', replies('ويكيبيديا|تعذر'))
     ask(37, 'd2', 'افتح تطبيق برنامج_غير_موجود_xyz', 'action', lambda r, d: True if 'لم أتعرف' in r['message'] and 'لم أفتح' in r['message'] else r['message'][:160])
     ask(38, 'd3', 'افتح ملف', 'action', lambda r, d: True if not d.get('skill') or d.get('kind') == 'clarification' else 'opened without a target')
     # --- a real saved project, then questions and edits bound to it ---

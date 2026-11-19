@@ -222,3 +222,14 @@ def test_assistant_page_assets_are_served_and_stale_ui_text_is_gone(system):
         assert client.get('/assets/assistant.css').headers['content-type'].startswith('text/css')
         assert client.get('/assets/other.js').status_code == 404
     app.state.project_store.close()
+
+
+def test_background_setting_defaults_on_and_is_validated(tmp_path):
+    from src.desktop.paths import DesktopSettings
+    path = tmp_path / 'settings.json'
+    assert DesktopSettings(path).values['run_in_background'] is True
+    path.write_text(json.dumps({'run_in_background': 'yes'}))
+    with pytest.raises(ValueError):
+        DesktopSettings(path)
+    path.write_text(json.dumps({'run_in_background': False}))
+    assert DesktopSettings(path).values['run_in_background'] is False

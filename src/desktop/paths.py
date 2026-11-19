@@ -59,7 +59,8 @@ class DesktopSettings:
         self.path = Path(path or config_directory() / 'settings.json')
         self.values = {'models_dir': str(model_directory()), 'check_updates': True,
                        'dedicated_coder': False, 'n_gpu_layers': -1, 'n_ctx': 4096,
-                       'brave_desktop_id':'brave-browser.desktop', 'approved_locations':{}, 'gpu_device':'auto','disabled_skills':[]}
+                       'brave_desktop_id':'brave-browser.desktop', 'approved_locations':{}, 'gpu_device':'auto','disabled_skills':[],
+                       'run_in_background': True}
         try:
             saved = json.loads(self.path.read_text(encoding='utf-8'))
             if not isinstance(saved, dict):
@@ -77,7 +78,7 @@ class DesktopSettings:
             raise ValueError('Invalid context length')
         if type(self.values['n_gpu_layers']) is not int or self.values['n_gpu_layers'] not in (-1, 0):
             raise ValueError('Choose GPU or CPU mode')
-        for name in ('check_updates', 'dedicated_coder'):
+        for name in ('check_updates', 'dedicated_coder', 'run_in_background'):
             if type(self.values[name]) is not bool:
                 raise ValueError('Invalid settings flag')
         self.values['models_dir'] = str(Path(self.values['models_dir']).expanduser().resolve())
