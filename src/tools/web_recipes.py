@@ -138,6 +138,9 @@ def repair_missing_button_type(files,recipe_id,failure,revision,binding):
     are never rewritten. The result still passes all independent gates.
     """
     if recipe_id==SERVICES_ID:return repair_missing_filter_attributes(files,failure,revision,binding)
+    if recipe_id in SITE_IDS:
+        from src.tools.site_recipes import repair_site_shape
+        return repair_site_shape(files,recipe_id,failure,revision,binding)
     if recipe_id!=ID or failure!='زر الخط لا يطابق عقد الوصفة' or not isinstance(files.get('index.html'),str):return None
     source=files['index.html'];matches=[];ids=[]
     class Tags(HTMLParser):

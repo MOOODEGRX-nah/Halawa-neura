@@ -11,9 +11,9 @@ from src.core.project_files import ProjectError
 
 COMMON = ('Offline Arabic site: index.html with html lang=ar dir=rtl, meta charset utf-8, meta viewport width=device-width, an Arabic meta description '
           'of 30 to 170 characters and exactly one h1; linked style.css and deferred script.js. No imports, remote assets, fonts, forms, fetch, cloud, '
-          'storage, build tools or dependencies. style.css: responsive (one column below 600px), a clearly visible :focus-visible outline, '
+          'storage, build tools or dependencies. style.css: responsive — main centred with max-width about 1100px and padding; repeated cards in a CSS grid using repeat(auto-fit, minmax(220px, 1fr)) so wide screens show several columns and phones one; tables width 100%; a clearly visible :focus-visible outline, '
           '[hidden]{display:none}, @media (prefers-reduced-motion: reduce) disabling transitions and animations, flat solid backgrounds and normal '
-          'text contrast at least 4.5:1. Use native button elements with type=button so Tab, Enter and Space work. Preserve content and behavior through edits.')
+          'text contrast at least 4.5:1 (for example white text only on dark backgrounds such as #0b4f8a or #1b5e20, and dark text such as #1a1a1a on light backgrounds; never pure red, light blue or grey text on white). Use native button elements with type=button so Tab, Enter and Space work. Preserve content and behavior through edits. Keep the files compact so all three fit one reply: style.css under 70 short lines and script.js under 50 lines, no comments, no unused rules, placeholder text kept short.')
 
 SITES = {
     'arabic_landing_v1': {
@@ -23,7 +23,7 @@ SITES = {
             COMMON,
             'Header nav with links to #services, #about, #faq and #contact. A hero section holds the single h1, a short Arabic value statement and one call-to-action link a.cta-button with href=#contact.',
             'Sections with ids services (at least three .service-item cards with an Arabic heading and placeholder description), about, faq and contact. Contact shows clearly labelled placeholder details only; do not invent real phone numbers, addresses or names.',
-            'FAQ: at least three .faq-item elements, each with button.faq-question (type=button, aria-expanded=false, aria-controls=<answer id>) and div.faq-answer with that id and the hidden attribute. script.js toggles aria-expanded and the hidden attribute of the controlled answer; a second activation closes it.',
+            'FAQ: at least three .faq-item elements, each with button.faq-question (type=button, aria-expanded=false, aria-controls=<answer id>) and div.faq-answer with that id and the hidden attribute. script.js on click: const open = button.getAttribute("aria-expanded") === "true"; button.setAttribute("aria-expanded", String(!open)); answer.hidden = open. Use the hidden property, never a CSS class.',
         ]},
     'arabic_dashboard_v1': {
         'label': 'وصفة لوحة بيانات تجريبية', 'plan_id': 'REC03',
@@ -31,8 +31,9 @@ SITES = {
         'constraints': [
             COMMON,
             'At least four .kpi-card elements, each with an Arabic label and a .kpi-value. Values are declared sample data.',
-            'A table id=data-table with a caption containing «بيانات تجريبية», a thead and at least six tbody rows; every row has data-status equal to one of the status filter values.',
-            'Controls: input id=table-search type=search with an Arabic aria-label; select id=status-filter with option value=all plus at least two status options. script.js hides (hidden attribute) every row that does not match both the search text (case-insensitive, any cell) and the status, updates id=row-count (aria-live=polite) with the visible count in Arabic, and shows id=empty-state (initially hidden) only when no row matches.',
+            'A table id=data-table with a caption containing «بيانات تجريبية», a thead and at least six tbody rows; every row has data-status equal to one of the status filter values. On narrow screens the table scrolls inside its own container (display:block; overflow-x:auto) so the page never scrolls sideways.',
+            'Controls: input id=table-search type=search with an Arabic aria-label; select id=status-filter with option value=all plus at least two status options; id=row-count with aria-live=polite; p id=empty-state with the hidden attribute.',
+            'script.js exactly: on input/change, for each tbody row set row.hidden = !(row.textContent.toLowerCase().includes(term) && (status === "all" || row.dataset.status === status)) where term is the trimmed lower-case search text (an empty term matches); count visible rows; write the count in Arabic to row-count; set emptyState.hidden = count !== 0. Call this update once on load so the count is right from the start. Use the hidden property, never a CSS class, to show or hide. The caption is a <caption> element inside the table, not an attribute.',
         ]},
     'arabic_blog_v1': {
         'label': 'وصفة مدونة أو توثيق', 'plan_id': 'REC04',
@@ -40,7 +41,7 @@ SITES = {
         'constraints': [
             COMMON,
             'At least four article.post-card elements, each with an h2 title, an Arabic placeholder excerpt and data-tags listing one or more tag slugs separated by spaces.',
-            'A group id=tag-filters with role=group and an Arabic aria-label holds button.tag-filter elements (type=button, data-tag, aria-pressed): exactly one data-tag=all labelled الكل pressed initially, plus at least two tags actually used by posts.',
+            'A group id=tag-filters with role=group and an Arabic aria-label holds button.tag-filter elements (type=button, data-tag, aria-pressed): exactly one data-tag=all labelled الكل pressed initially, plus at least two tags actually used by posts. script.js: keep the active tag; post.hidden = !((tag === "all" || post.dataset.tags.split(/\\s+/).includes(tag)) && post.textContent.toLowerCase().includes(term)); use the hidden property, never a CSS class.',
             'An input id=post-search type=search with an Arabic aria-label. script.js shows only posts matching the active tag and the search text (title or excerpt), keeps aria-pressed on the active tag only, and writes the visible count in Arabic to id=post-count (aria-live=polite).',
         ]},
     'arabic_store_v1': {
@@ -50,14 +51,14 @@ SITES = {
             COMMON,
             'An element id=demo-notice states in Arabic that the cart is a demo with no real payment or order (سلة تجريبية — لا يوجد دفع أو طلب حقيقي).',
             'At least six .product-card elements, each with an h3 name, a .price text and data-price (a plain number), and a button.add-to-cart (type=button) with data-product. Product names and prices are placeholders.',
-            'Cart: id=cart-count (aria-live=polite) shows the number of items, id=cart-total shows the sum of data-price of added items, button id=clear-cart (type=button) empties the cart. Keep the cart in memory only (no storage).',
+            'Cart: id=cart-count (aria-live=polite) shows the number of items, id=cart-total shows the sum of data-price of added items, button id=clear-cart (type=button) empties the cart. Keep the cart in memory only (no storage): let count = 0, total = 0; each add does count++ and total += Number(card.dataset.price); clear resets both; write them as plain numbers.',
         ]},
     'arabic_saas_v1': {
         'label': 'وصفة واجهة تطبيق SaaS', 'plan_id': 'REC06',
         'detect': r'\bsaas\b|منص[ةه]\s+(?:رقمي[ةه]|سحابي[ةه]|اشتراك|خدم[ةه])|واجه[ةه]\s+تطبيق|خطط\s+(?:ال)?اسعار|خطط\s+(?:ال)?أسعار|(?:ال)?اشتراكات\s+(?:الشهري[ةه]|السنوي[ةه])',
         'constraints': [
             COMMON,
-            'Features as tabs: an element with role=tablist holds at least three button elements with role=tab (type=button, aria-selected, aria-controls) and exactly one aria-selected=true; each controls an element with role=tabpanel; only the selected panel is visible (others have hidden). script.js switches selection on activation.',
+            'Features as tabs: an element with role=tablist holds at least three button elements with role=tab (type=button, aria-selected, aria-controls) and exactly one aria-selected=true; each controls an element with role=tabpanel; only the selected panel is visible (others have hidden). script.js on tab click: for every tab set aria-selected to String(tab === clicked) and its panel.hidden = tab !== clicked. Use the hidden property.',
             'Pricing: at least three .plan-card elements, each with a .plan-price carrying data-monthly and data-yearly text values (the monthly value shown initially), and a button id=billing-toggle (type=button, aria-pressed=false). Activating it switches every .plan-price to data-yearly and aria-pressed=true; again restores monthly. State that prices are illustrative (أسعار توضيحية).',
             'No real sign-up, login or payment: any such button is labelled as a demo placeholder.',
         ]},
@@ -67,7 +68,8 @@ FILES = ['index.html', 'style.css', 'script.js']
 
 
 def detect(q):
-    for recipe_id in ('arabic_store_v1', 'arabic_dashboard_v1', 'arabic_blog_v1', 'arabic_saas_v1', 'arabic_landing_v1'):
+    # The head noun wins: «لوحة بيانات لطلبات متجر» is a dashboard, «مدونة متجري» a blog.
+    for recipe_id in ('arabic_dashboard_v1', 'arabic_blog_v1', 'arabic_saas_v1', 'arabic_store_v1', 'arabic_landing_v1'):
         if re.search(SITES[recipe_id]['detect'], q, re.I):
             return recipe_id
     return None
@@ -269,3 +271,93 @@ return JSON.stringify({errors,proof:{before,yearly}});""",
 
 def probe_script(recipe_id):
     return '(()=>{' + PROBES[recipe_id] + '})()'
+
+
+def _shape_additions(tag, values, selected_panels):
+    """Missing attributes a recipe control must carry; existing values are never changed."""
+    classes = (values.get('class') or '').split()
+    add = {}
+    is_control = tag == 'button' and (set(classes) & {'faq-question', 'tag-filter', 'add-to-cart'} or values.get('role') == 'tab'
+                                      or values.get('id') in ('billing-toggle', 'clear-cart'))
+    if is_control and 'type' not in values:
+        add['type'] = 'button'
+    if tag == 'button' and 'faq-question' in classes and 'aria-expanded' not in values:
+        add['aria-expanded'] = 'false'
+    if tag == 'button' and 'tag-filter' in classes and 'aria-pressed' not in values and values.get('data-tag'):
+        add['aria-pressed'] = 'true' if values['data-tag'] == 'all' else 'false'
+    if tag == 'button' and values.get('id') == 'billing-toggle' and 'aria-pressed' not in values:
+        add['aria-pressed'] = 'false'
+    if tag == 'table' and values.get('id') == 'data-table' and not values.get('_has_caption'):
+        add['_after'] = '<caption>بيانات تجريبية</caption>'
+    hide = values.get('id') == 'empty-state' or 'faq-answer' in classes or (values.get('role') == 'tabpanel' and values.get('id') not in selected_panels)
+    if hide and 'hidden' not in values:
+        add['hidden'] = None
+    return add
+
+
+def repair_site_shape(files, recipe_id, failure, revision, binding):
+    """Deterministic shape repair for REC02–REC06 controls; no model call, no fuzzy anchors."""
+    from html.parser import HTMLParser
+    if recipe_id not in SITES or not isinstance(files.get('index.html'), str):
+        return None
+    source = files['index.html']
+    offsets = [0]
+    for line in source.splitlines(keepends=True):
+        offsets.append(offsets[-1] + len(line))
+    selected = set(re.findall(r'role\s*=\s*["\']tab["\'][^>]*aria-selected\s*=\s*["\']true["\'][^>]*aria-controls\s*=\s*["\']([^"\']+)', source)
+                   + re.findall(r'aria-controls\s*=\s*["\']([^"\']+)["\'][^>]*aria-selected\s*=\s*["\']true["\'][^>]*role\s*=\s*["\']tab', source))
+    ranges, edits, conflict = [], [], []
+
+    class Tags(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            values = dict(attrs)
+            if tag == 'table' and values.get('id') == 'data-table':
+                values['_has_caption'] = bool(re.search(r'<caption[\s>]', source, re.I))
+            add = _shape_additions(tag, values, selected)
+            values.pop('_has_caption', None)
+            if not add:
+                return
+            line, column = self.getpos()
+            start = offsets[line - 1] + column
+            raw = self.get_starttag_text()
+            if len(attrs) != len(values) or source[start:start + len(raw)] != raw:
+                conflict.append(raw)
+                return
+            closing = '/>' if raw.endswith('/>') else '>'
+            extra = ''.join(' ' + k if v is None else ' ' + k + '="' + v + '"' for k, v in add.items() if k != '_after')
+            ranges.append((start, start + len(raw)))
+            edits.append((raw[:-len(closing)].rstrip() + extra + closing if extra else raw) + add.get('_after', ''))
+
+    Tags().feed(source)
+    if len(re.findall(r'<h1[\s>]', source, re.I)) == 0:
+        # No h1 at all: add one from the page's own <title>, right after <body> (or <header>) opens.
+        title = re.search(r'<title[^>]*>([^<]{1,120})</title>', source, re.I)
+        opener = re.search(r'<header[^>]*>', source, re.I) or re.search(r'<body[^>]*>', source, re.I)
+        if title and opener and not any(start <= opener.start() < end for start, end in ranges):
+            ranges.append(opener.span())
+            edits.append(opener.group(0) + '<h1>' + title.group(1).strip() + '</h1>')
+    css = files.get('style.css')
+    css_rules = [rule for pattern, rule in BASELINE_CSS if isinstance(css, str) and not re.search(pattern, css, re.I)]
+    if isinstance(css, str) and 'horizontal overflow' in str(failure) and 'neura-overflow-guard' not in css:
+        # Measured narrow-screen overflow: contain wide tables/media instead of letting the page scroll sideways.
+        css_rules.append('/* neura-overflow-guard */ html,body{max-width:100%;overflow-x:hidden} img,video,svg{max-width:100%;height:auto} '
+                         'table{display:block;max-width:100%;overflow-x:auto} pre,code{white-space:pre-wrap;overflow-wrap:anywhere}')
+    if conflict or not (edits or css_rules):
+        return None
+    result, patch, manifest_ = dict(files), [], None
+    if edits:
+        from src.core.repair_targets import RepairTargets
+        targets = RepairTargets(files, revision, binding, ranges={'index.html': ranges})
+        by_start = {t.start: t.target_id for t in targets.targets.values()}
+        patch = [{'target_id': by_start[start], 'after': after} for (start, _), after in zip(ranges, edits)]
+        result = targets.apply(files, patch, revision, binding)
+        manifest_ = targets.manifest()
+    if css_rules:
+        result['style.css'] = css.rstrip() + '\n' + '\n'.join(css_rules) + '\n'
+    return result, {'mode': 'site_recipe_missing_control_attributes', 'repair_targets': manifest_, 'edits': patch, 'appended_css': css_rules, 'model_called': False,
+                    'scope': 'Only missing type/hidden/aria-expanded/aria-pressed on recipe controls and missing baseline accessibility CSS rules appended; not acceptance until source/browser revalidation'}
+
+
+BASELINE_CSS = [(r'\[hidden\]', '[hidden]{display:none!important}'),
+                (r':focus-visible', ':focus-visible{outline:3px solid #b35900;outline-offset:2px}'),
+                (r'@media[^{]*prefers-reduced-motion\s*:\s*reduce', '@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}')]

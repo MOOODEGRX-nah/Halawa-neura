@@ -54,6 +54,7 @@ def test_remote_assets_and_storage_are_rejected_for_every_site():
     ('أنشئ مدونة عربية محلية', 'arabic_blog_v1'),
     ('برمج لي متجر عربي بدون انترنت', 'arabic_store_v1'),
     ('صمم واجهة تطبيق SaaS عربية محلية مع خطط أسعار', 'arabic_saas_v1'),
+    ('برمج لي لوحة بيانات عربية محلية لطلبات متجر', 'arabic_dashboard_v1'),
     ('برمج لي متجر', None),                                   # no explicit local/Arabic signal: the general path
     ('برمج لي متجر عربي محلي بـ React', None),               # an unsupported stack is never forced into a recipe
     ('برمج لي موقع سيرة ذاتية عربي محلي', 'arabic_cv_v1'),
@@ -93,3 +94,41 @@ def test_isolated_browser_probe_accepts_working_and_rejects_broken_behavior(reci
     broken['script.js'] = broken['script.js'].replace(BREAK_BEHAVIOR[recipe_id], '', 1)
     passed, report = browser(broken, recipe_id)
     assert not passed and report['errors']
+
+
+@pytest.mark.parametrize('text,recipe_id', [('برمج لي متجر عربي بدون انترنت', 'arabic_store_v1'), ('برمج لي لوحة بيانات عربية محلية', 'arabic_dashboard_v1'),
+                                            ('أنشئ مدونة عربية محلية', 'arabic_blog_v1')])
+def test_chat_request_creates_a_recipe_project(system, text, recipe_id):
+    from tests.regression.test_chat_dispatch import application, request_id
+    app, desktop, dispatch = application(system)
+    try:
+        result = dispatch.dispatch(text, request_id(), session_id='s-recipe')
+        assert result['kind'] == 'project' and result['job']['invoice']['web_recipe'] == recipe_id
+        app.state.project_jobs.cancel(result['job']['job_id'])
+    finally:
+        app.state.project_jobs.shutdown(); app.state.project_store.close()
+
+
+def test_shape_repair_adds_only_missing_attributes_caption_and_baseline_css():
+    from src.tools.web_recipes import repair_missing_button_type
+    files = dict(FIXTURES['arabic_dashboard_v1'])
+    files['index.html'] = (files['index.html'].replace('<caption>بيانات تجريبية للطلبات</caption>', '')
+                           .replace('<p id="empty-state" hidden>', '<p id="empty-state">'))
+    files['style.css'] = files['style.css'].replace('[hidden]{display:none!important}', '')
+    with pytest.raises(ProjectError):
+        validate_source(files, 'arabic_dashboard_v1')
+    repaired, receipt = repair_missing_button_type(files, 'arabic_dashboard_v1', 'x', 0, {'project_id': 'p', 'job_id': 'j', 'purpose': 't'})
+    assert receipt['model_called'] is False and validate_source(repaired, 'arabic_dashboard_v1')['status'] == 'passed'
+    assert '<caption>بيانات تجريبية</caption>' in repaired['index.html'] and '<p id="empty-state" hidden>' in repaired['index.html']
+    overflow, receipt = repair_missing_button_type(repaired, 'arabic_dashboard_v1', 'فشل فحص المعاينة: 480px horizontal overflow', 0, {'project_id': 'p', 'job_id': 'j', 'purpose': 't'})
+    assert 'neura-overflow-guard' in overflow['style.css']
+    assert repair_missing_button_type(overflow, 'arabic_dashboard_v1', '480px horizontal overflow', 0, {'project_id': 'p', 'job_id': 'j', 'purpose': 't'}) is None
+
+
+def test_shape_repair_never_changes_existing_values():
+    from src.tools.web_recipes import repair_missing_button_type
+    files = dict(FIXTURES['arabic_landing_v1'])
+    files['index.html'] = files['index.html'].replace('aria-controls="faq-1"', 'aria-controls="faq-1" aria-expanded="true"', 1).replace(
+        '<button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-1" aria-expanded="true">', '<button class="faq-question" aria-controls="faq-1" aria-expanded="true">')
+    repaired, _ = repair_missing_button_type(files, 'arabic_landing_v1', 'x', 0, {'project_id': 'p', 'job_id': 'j', 'purpose': 't'})
+    assert '<button class="faq-question" aria-controls="faq-1" aria-expanded="true" type="button">' in repaired['index.html']

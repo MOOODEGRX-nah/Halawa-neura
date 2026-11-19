@@ -26,7 +26,7 @@ from src.core.user_commands import command_text
 
 def project_intent(text):
     q=command_text(text)
-    return bool(re.match(r'^(?:برمج|تبرمج|انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:(?:python|javascript|html|css)\s+)?(?:موقعا?|برنامجا?|تطبيقا?|صفحة|مشروعا?|لعبة|كود|سكربت|دليلا?\s+(?:ال|لل)?خدمات|website|web ?app|application|project|program|game|code|script|landing page|services? directory)\b',q))
+    return bool(re.match(r'^(?:برمج|تبرمج|انشئ|تنشئ|اصنع|تصنع|صمم|تصمم|ابن|ابني|تبني|اكتب|تكتب|create|build|design|make|write)\s+(?:لي\s+)?(?:(?:a|an|the)\s+)?(?:(?:python|javascript|html|css)\s+)?(?:موقعا?|برنامجا?|تطبيقا?|صفحة|مشروعا?|لعبة|كود|سكربت|دليلا?\s+(?:ال|لل)?خدمات|لوح[ةه]\s+(?:ال)?(?:بيانات|تحكم|معلومات|مؤشرات)|مدون[ةه]|متجرا?|منص[ةه]|واجه[ةه]\s+(?:تطبيق|موقع|ويب)|website|web ?app|application|project|program|game|code|script|landing page|services? directory|dashboard|blog|store|online shop|saas)\b',q))
 
 
 def active_edit_intent(text):
