@@ -122,6 +122,7 @@
   <span class="nx-brand">NEURA</span>
   <div class="nx-tabs" role="tablist" aria-label="الصفحات">
 <button id="tab-chat" type="button" class="nx-tab" role="tab" aria-controls="pg-chat" aria-selected="true"><i data-i="chat" data-z="w-4 h-4"></i><span>المحادثة</span></button>
+    <button id="tab-assistant" type="button" class="nx-tab" role="tab" aria-controls="pg-assistant" aria-selected="false" tabindex="-1"><i data-i="zap" data-z="w-4 h-4"></i><span>المساعد</span></button>
     <button id="tab-monitor" type="button" class="nx-tab" role="tab" aria-controls="pg-monitor" aria-selected="false" tabindex="-1"><i data-i="act" data-z="w-4 h-4"></i><span>المراقبة</span></button>
     <button id="tab-about" type="button" class="nx-tab" role="tab" aria-controls="pg-about" aria-selected="false" tabindex="-1"><i data-i="info" data-z="w-4 h-4"></i><span>حول</span></button>
   </div>
@@ -143,7 +144,7 @@
         </div>
         <span id="mb" dir="ltr" class="rounded-full border border-blue/40 bg-blue/15 px-2.5 py-0.5 font-mono text-[11px] text-[#90CAF9] transition-all duration-500">Qwen 7B</span>
         <span id="gp" dir="rtl" class="hidden rounded-full border border-orange/50 bg-orange/15 px-2.5 py-0.5 text-[11px] text-orange transition-all duration-500" role="status">🎮 وضع الألعاب</span>
-        <button id="lk" type="button" class="group/b relative grid h-6 w-6 place-items-center rounded-full border border-green/50 bg-green/10 text-green transition-all duration-300 ease-spring hover:scale-110" data-tip="الجلسة: جامعتي (UQU) — نشطة" data-below="1"><i data-i="lock" data-z="w-3.5 h-3.5"></i></button>
+        <button id="lk" type="button" class="group/b relative grid h-6 w-6 place-items-center rounded-full border border-green/50 bg-green/10 text-green transition-all duration-300 ease-spring hover:scale-110" data-tip="اتصال محلي آمن بـ Neura Core — لا شيء يغادر جهازك إلا ما تطلبه (بحث، طقس)" data-below="1"><i data-i="lock" data-z="w-3.5 h-3.5"></i></button>
       </div>
       <div id="tiers" role="group" aria-label="مستوى النموذج" class="mt-1.5 flex flex-wrap items-center gap-1"></div>
     </div>
@@ -188,6 +189,7 @@
 </div>
 </div>
 <section id="pg-workspace" role="region" aria-label="مساحة المبرمج" class="nx-page nx-off"></section>
+<section id="pg-assistant" role="tabpanel" aria-labelledby="tab-assistant" class="nx-page nx-off"></section>
 <section id="pg-monitor" role="tabpanel" aria-labelledby="tab-monitor" class="nx-page nx-off">
   <div class="nx-wrap">
     <div id="mon" class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>NEURA CORE</h3><div id="bars" class="nx-bars"></div></div>
@@ -234,13 +236,15 @@
     </div>
     <div class="nx-grid">
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#66BB6A"></i>الأوضاع</h3>
-        <ul class="nx-list"><li><b>NORMAL</b> — نموذج كبير واحد على الجهاز المختار من قياسات الذاكرة أو الإعدادات؛ تُبدَّل النماذج عند الطلب.</li><li><b>GAMING</b> — مراقبة الألعاب اختيارية وليست مفعّلة افتراضيًا في تطبيق سطح المكتب.</li><li><b>DEEP</b> — دور EXPERT للتحليل؛ يشارك دورة التحميل والإلغاء نفسها مع الأدوار الأخرى.</li></ul></div>
+        <ul class="nx-list"><li><b>NORMAL</b> — نموذج كبير واحد على الجهاز المختار من قياسات الذاكرة أو الإعدادات؛ تُبدَّل النماذج عند الطلب.</li><li><b>حماية الألعاب</b> — في الوضع التلقائي يكتشف Neura اللعبة ويحوّل الاستدلال إلى البطاقة الثانية (مثل RX 580) بنموذج أخف، ثم يعود بعد خروجك. الإعداد في «الإعدادات والنماذج».</li><li><b>DEEP</b> — دور EXPERT للتحليل؛ يشارك دورة التحميل والإلغاء نفسها مع الأدوار الأخرى.</li></ul></div>
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#42A5F5"></i>الاختصارات والأوامر</h3>
-        <ul class="nx-list"><li><span class="nx-key">Enter</span> إرسال · <span class="nx-key">Ctrl+Enter</span> تفكير عميق · <span class="nx-key">Esc</span> إيقاف</li><li><span class="nx-key">/run</span> أمر عبر بوابة الأمان</li><li><span class="nx-key">/harvest</span> اسم الملاحظة: تحويل ملاحظة مشروع إلى مقالة معرفة</li><li><span class="nx-key">?style=face</span> نمط البداية · <span class="nx-key">#monitor</span> <span class="nx-key">#about</span> فتح صفحة مباشرة</li></ul></div>
+        <ul class="nx-list"><li><span class="nx-key">Enter</span> إرسال · <span class="nx-key">Ctrl+Enter</span> تفكير عميق · <span class="nx-key">Esc</span> إيقاف</li><li><span class="nx-key">/help</span> ما يستطيع Neura فعله · <span class="nx-key">/</span> التركيز على حقل الكتابة</li><li><span class="nx-key">?style=face</span> نمط البداية · <span class="nx-key">#assistant</span> <span class="nx-key">#monitor</span> <span class="nx-key">#about</span> فتح صفحة مباشرة</li></ul></div>
     </div>
     <div class="nx-grid">
       <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#EF5350"></i>الأمان والخصوصية</h3>
-        <ul class="nx-list"><li>كل المعالجة محلية: لا استدلال سحابي ولا تتبّع.</li><li>مهارات سطح المكتب تتطلب طلبك الصريح وصلاحية محددة قابلة للإلغاء. تنفيذ الأوامر والتثبيت وإرسال الرسائل غير متاح.</li><li>الأدوات تعمل فقط من الصفحة التي يقدّمها Core؛ ملفات المشاريع تُعاين في إطار معزول؛ لا يملك رمز وصول التطبيق أو جسرًا أصليًا.</li><li>الصوت يُفرَّغ محلياً، ولا تُستخدم أصوات المتصفح الشبكية.</li></ul></div>
+        <ul class="nx-list"><li>كل المعالجة محلية: لا استدلال سحابي ولا تتبّع.</li><li>مهارات سطح المكتب تتطلب طلبك الصريح وصلاحية محددة قابلة للإلغاء. تنفيذ الأوامر والتثبيت وإرسال الرسائل غير متاح.</li><li>الأدوات تعمل فقط من الصفحة التي يقدّمها Core؛ ملفات المشاريع تُعاين في إطار معزول؛ لا يملك رمز وصول التطبيق أو جسرًا أصليًا.</li><li>الصوت يُفرَّغ محلياً، ولا تُستخدم أصوات المتصفح الشبكية.</li><li>الذاكرة لا تحفظ إلا ما تطلبه صراحةً، وتُدار وتُحذف من صفحة «المساعد».</li></ul></div>
+      <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#FFCA28"></i>المساعد الشخصي</h3>
+        <ul class="nx-list"><li>تذكيرات ومؤقتات بالعربية مع إشعار سطح المكتب، وتُسلَّم عند الفتح إن فات موعدها والتطبيق مغلق.</li><li>ذاكرة لما تطلب حفظه تُستخدم في المحادثة.</li><li>الوقت والتاريخ الهجري والميلادي وحاسبة آمنة دون نموذج.</li><li>الطقس من Open-Meteo مع ذكر المصدر ووقت القياس.</li></ul></div>
     </div>
     <div class="nx-card"><h3 class="nx-h"><i class="nx-dot" style="background:#B0BEC5"></i>الاتصال والتشخيص</h3><dl class="nx-kv" id="ab-kv"></dl></div>
   </div>
@@ -248,6 +252,7 @@
 </div>
 
 <link rel="stylesheet" href="/assets/workspace.css">
+<link rel="stylesheet" href="/assets/assistant.css">
 <script src="/assets/markdown-it.min.js"></script>
 <script src="/assets/markdown.js"></script>
 <script>
@@ -656,12 +661,12 @@ async function runTool(tool,args){
   if(j.status==='pending'){seen.add(j.id);setSt('waiting');const ok=await approve('Safety Gate'+(j.destructive?' ⚠ عملية خطرة':'')+': '+toolLabel(j),true);setSt('thinking');
     j=await(await api(ok?'/tool/approve':'/tool/deny',{method:'POST',body:JSON.stringify({id:j.id})})).json()}
   return j}
-async function slash(q){                                   // /run <cmd>  and  /harvest <note>  (/think goes to the router)
+const HELP='ماذا أستطيع أن أفعل؟\n• المحادثة والشرح والكتابة والترجمة (نموذج محلي).\n• «برمج لي موقع/لعبة/برنامج…» ينشئ مشروعًا حقيقيًا مع معاينة، و«أضف/احذف…» يعدّله.\n• «افتح يوتيوب/ديسكورد/ملف التقرير» و«ابحث في جوجل عن…».\n• «ذكرني بعد 20 دقيقة أن…» و«اضبط مؤقت 5 دقائق» و«ما هي تذكيراتي».\n• «تذكر أن…» و«ماذا تتذكر عني؟» و«انسَ…».\n• «كم الساعة؟» و«ما تاريخ اليوم؟» و«احسب 15% من 200» و«ما الطقس في جدة؟».\n• أرفق صورة واسألني عنها.\nكل شيء يعمل على جهازك؛ الطقس والبحث فقط يتصلان بالإنترنت عند طلبك.';
+async function slash(q){                                   // /help  (/think goes to the router)
+  if(/^\/(?:help|مساعدة|\?)$/i.test(q.trim())){if(!document.body.classList.contains('has'))setHas(true);bubble('u','You','#42A5F5','spark',q);bubble('n','Neura [مساعدة]','#81C784','info',HELP);sc(true);ui(false);setSt('ready');return true}
   const m=q.match(/^\/(run|harvest)\s+([\s\S]+)$/i);if(!m)return false;
   ui(true);if(!document.body.classList.contains('has'))setHas(true);bubble('u','You','#42A5F5','spark',q);sc(true);setSt('thinking');let bad=false;
-  try{if(m[1].toLowerCase()==='run')showTool(await runTool('terminal',{command:m[2].trim()}));
-    else{const r=await api('/vault/harvest',{method:'POST',body:JSON.stringify({name:m[2].trim()})}),j=await r.json();
-      if(!r.ok)throw new Error((j.error&&j.error.message)||'harvest');bubble('n','Neura [Vault]','#66BB6A','file','تم تحويل «'+j.title+'» إلى مقالة معرفة:\n'+j.article);sc(true)}}
+  try{throw new Error('الأمر /'+m[1]+' غير متاح في هذه النسخة: تنفيذ أوامر الطرفية معطّل للأمان، وتحويل الملاحظات إلى مقالات لم يُنفَّذ بعد. اكتب /help لعرض ما يمكنني فعله.')}
   catch(e){bad=true;bubble('n','Neura [Error]','#EF5350','warn',e instanceof TypeError?'تعذّر الاتصال بـ Neura Core — اضغط «إعادة الاتصال» في شريط التطبيق':e.message);sc(true)}
   if(bad){setSt('error');await sleep(1700)}setSt('ready');ui(false);return true}
 /* ---- rendering: typewriter queue + fenced code blocks ---- */
@@ -736,6 +741,7 @@ async function send(q,voice,deep){
   if(!ok){setSt('error');await sleep(1700)}
   setSt('ready');ui(false);
 }
+window.sendMessage=send;
 const go=()=>{if(busy){abortNow();return}send($('in').value);$('in').value=''};
 $('go').addEventListener('click',e=>{rip($('go'));go()});
 $('in').onkeydown=e=>{if(e.key==='Enter'&&!e.ctrlKey&&!e.isComposing)go()};
@@ -794,7 +800,7 @@ sessionButton.onclick=async()=>{if(busy)return;const r=await api('/vault/session
 const projectButton=document.createElement('button');projectButton.id='coding-workspace';projectButton.type='button';projectButton.className=CHIP;projectButton.classList.add('chat-folder');projectButton.setAttribute('aria-label','المشاريع المحفوظة');projectButton.setAttribute('title','المشاريع المحفوظة');projectButton.setAttribute('aria-haspopup','dialog');projectButton.setAttribute('aria-controls','ws-projects');projectButton.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z"/></svg>';chatToolbar.append(projectButton);projectButton.onclick=()=>window.NeuraWorkspace?.openDrawer();
 
 /* ---- suggestions, shortcuts, boot ---- */
-[['spark','مرحباً'],['brain','أثبت أن جذر 2 عدد غير نسبي'],['code','اكتب لي كوداً بسيطاً بلغة Python']].forEach(([ic,tx])=>{
+[['globe','ما الطقس اليوم؟'],['zap','ذكرني بعد 10 دقائق أن أشرب الماء'],['code','برمج لي موقع سيرة ذاتية عربي'],['brain','أثبت أن جذر 2 عدد غير نسبي']].forEach(([ic,tx])=>{
   const c=document.createElement('button');c.type='button';c.className=CHIP;c.innerHTML=I(ic,'text-blue','w-4 h-4');const sp=document.createElement('span');sp.dir='auto';sp.textContent=tx;c.append(sp);c.onclick=()=>send(tx);$('sugg').appendChild(c)});
 addEventListener('keydown',e=>{
   if(e.key==='/'&&document.activeElement!==$('in')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();$('in').focus()}
@@ -803,7 +809,7 @@ addEventListener('keydown',e=>{
 });
 async function typeTo(el,t){el.textContent='';for(const ch of t){el.textContent+=ch;await sleep(16)}}
 /* ===================== PAGES: chat / monitor / about ===================== */
-const PAGES=['chat','monitor','about'],VIEWS=[...PAGES,'workspace'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
+const PAGES=['chat','assistant','monitor','about'],VIEWS=[...PAGES,'workspace'],HIS={tps:[],gpu:[],vram:[],cpu:[],ram:[]};let monT=0,monBuilt=false;
 const nf=(v,d=1)=>v==null||Number.isNaN(+v)?'—':(+v).toFixed(d),kf=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,'')+'k':String(Math.round(n||0));
 const hx=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function showPage(p,push=true){
@@ -812,6 +818,7 @@ function showPage(p,push=true){
   if(push){try{history.replaceState(null,'','#'+p)}catch(e){}}
   if(p==='monitor')monStart();else monStop();
   if(p==='about')paintAbout();
+  if(p==='assistant')window.NeuraAssistant?.refresh();
   if(p==='chat')window.NeuraChat?.restoreStatus();
   if(p==='chat')setTimeout(()=>window.dispatchEvent(new Event('resize')),30);        // canvases were hidden: let the orbs re-measure
 }
@@ -887,5 +894,6 @@ function paintAbout(){
 <script src="/assets/workspace.js"></script>
 <script src="/assets/skills.js"></script>
 <script src="/assets/chat.js"></script>
+<script src="/assets/assistant.js"></script>
 </body>
 </html>

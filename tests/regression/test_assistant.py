@@ -154,6 +154,7 @@ def test_fit_history_keeps_latest_turns_and_summarizes_older_requests():
     fitted, dropped = fit_history(messages, 4096, 800)
     assert dropped > 0 and fitted[-1]['content'] == 'السؤال الأخير' and fitted[0]['role'] == 'system'
     assert 'ملخص طلبات المستخدم الأقدم' in fitted[0]['content']
+    assert '(1) طلب رقم 0' in fitted[0]['content']          # the task-defining first request is never the one dropped
     assert fitted[1]['role'] == 'user'
     assert sum(len(m['content']) for m in fitted) < (4096 - 800) * 2.5
     short = [{'role': 'user', 'content': 'مرحبا'}]
@@ -207,4 +208,17 @@ def test_api_management_requires_token_and_injects_memory(system):
         assert 'أعيش في جدة' in system_prompt and 'Asia/Riyadh' in system_prompt
         assert client.delete('/assistant/memories/' + saved['id'], headers=headers).status_code == 200
         assert client.delete('/assistant/memories/' + saved['id'], headers=headers).status_code == 404
+    app.state.project_store.close()
+
+
+def test_assistant_page_assets_are_served_and_stale_ui_text_is_gone(system):
+    app, desktop, dispatch = application(system)
+    with TestClient(app, base_url='http://127.0.0.1') as client:
+        page = client.get('/').text
+        assert 'id="tab-assistant"' in page and 'id="pg-assistant"' in page and '/assets/assistant.js' in page
+        assert 'جامعتي' not in page and '/run</span>' not in page
+        script = client.get('/assets/assistant.js')
+        assert script.status_code == 200 and script.headers['content-type'].startswith('text/javascript')
+        assert client.get('/assets/assistant.css').headers['content-type'].startswith('text/css')
+        assert client.get('/assets/other.js').status_code == 404
     app.state.project_store.close()

@@ -261,9 +261,9 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
 
     @app.get('/assets/{asset_name}')
     async def chat_assets(asset_name:str):
-        sources={'chat.js':'chat.js','markdown.js':'markdown.js','markdown-it.min.js':'vendor/markdown-it.min.js'}
+        sources={'chat.js':'chat.js','markdown.js':'markdown.js','markdown-it.min.js':'vendor/markdown-it.min.js','assistant.js':'assistant.js','assistant.css':'assistant.css'}
         if asset_name not in sources:raise HTTPException(404,'Asset not found')
-        return FileResponse(ROOT/'web'/sources[asset_name],media_type='text/javascript')
+        return FileResponse(ROOT/'web'/sources[asset_name],media_type='text/css' if asset_name.endswith('.css') else 'text/javascript')
 
     @app.get('/health')
     async def health():

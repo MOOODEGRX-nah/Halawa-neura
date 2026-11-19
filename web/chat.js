@@ -81,7 +81,7 @@
         if(opened){remember(q,data.message,context);if(context.card)context.card.t.replaceChildren(document.createTextNode(data.message));else{setHas(true);bubble('u','You','#42A5F5','code',q);bubble('n','Neura [المشروع]','#81C784','code',data.message);}}
         return true;
       }
-      if(!context.card){setHas(true);bubble('u','You','#42A5F5','spark',q);context.card=bubble('n',data.kind==='metadata'?'Neura [المشروع]':data.kind==='clarification'?'Neura [تحديد الهدف]':'Neura [إجراء]','#81C784','shield','');}
+      if(!context.card){setHas(true);bubble('u','You','#42A5F5','spark',q);context.card=bubble('n',data.kind==='metadata'?'Neura [المشروع]':data.kind==='clarification'?'Neura [تحديد الهدف]':data.kind==='assistant'?'Neura [المساعد]':'Neura [إجراء]',data.kind==='assistant'?'#FFCA28':'#81C784',data.kind==='assistant'?'zap':'shield','');}
       const result=data.result||{},message=data.message||result.message||'تعذر تأكيد نتيجة الطلب.';
       const box=context.card.t;box.replaceChildren(document.createTextNode(message));
       context.card.d.dataset.actionStatus=result.status||data.kind;
@@ -89,7 +89,9 @@
       for(const choice of data.choices||[]){const button=document.createElement('button');button.type='button';button.className='chat-action-choice';button.textContent=choice.label;button.onclick=()=>run('/chat/choose',{request_id:context.id,choice_id:choice.id,session_id:context.session});box.append(document.createElement('br'),button);}
       for(const app of result.applications||[]){const button=document.createElement('button');button.type='button';button.className='chat-action-choice';button.textContent=app.display_name||app.application_id;button.onclick=async()=>{if(busy)return;ui(true);try{const opened=await executeManual('open_application',{application_id:app.application_id});await display({kind:'action',result:opened});}catch(e){note(e.message);}finally{ui(false);}};box.append(document.createElement('br'),button);}
       if(data.kind==='pending'||data.retry){const button=document.createElement('button');button.type='button';button.className='chat-action-choice';button.textContent='استعادة نتيجة الطلب نفسه';button.onclick=()=>run('/chat/dispatch',body);box.append(document.createElement('br'),button);}
-      remember(q,message,context);sc(true);return true;
+      remember(q,message,context);sc(true);
+      if(data.kind==='assistant'){if(data.reminder&&page==='assistant')window.NeuraAssistant?.refresh();if(typeof speak==='function')speak(message);}
+      return true;
     }
     async function submit(path,payload){const controller=new AbortController();curAC=controller;try{return await display(await settle(await call(path,payload,controller.signal),controller.signal,context.session));}catch(e){return display({kind:'action',retry:true,result:{status:'unknown',message:e.name==='AbortError'?'توقف انتظار النتيجة؛ قد يكون طلب الفتح وصل. استعد نتيجة الطلب نفسه قبل تكراره.':e instanceof TypeError?'تعذر الاتصال بالخادم. استعد نتيجة الطلب نفسه؛ لن يُرسل تنفيذ مكرر.':e.message}});}finally{if(curAC===controller)curAC=null;}}
     async function run(path,payload){if(busy)return;if(sid!==context.session){note('هذا الاختيار يخص محادثة أخرى؛ اكتب طلبًا جديدًا في المحادثة الحالية.');return;}ui(true);setSt('thinking');try{await submit(path,payload);}finally{setSt('ready');ui(false);}}

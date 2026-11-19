@@ -1,0 +1,30 @@
+/* Assistant page. Plain CSS on the existing nx-* design tokens; no build step required. */
+.as-hero-top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.as-hero-top b{font-size:18px;color:var(--nx-tx)}
+.as-examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.as-chip{padding:7px 14px;border-radius:999px;border:1px solid rgba(66,165,245,.35);background:rgba(66,165,245,.08);color:#cfe8ff;font:inherit;font-size:13px;cursor:pointer;transition:background .2s,transform .2s}
+.as-chip:hover{background:rgba(66,165,245,.18);transform:translateY(-1px)}
+.as-chip:focus-visible,.as-btn:focus-visible,.as-input:focus-visible{outline:2px solid #42A5F5;outline-offset:2px}
+.as-form{display:flex;gap:8px;margin-bottom:6px}
+.as-input{flex:1;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--nx-ln);background:rgba(255,255,255,.04);color:var(--nx-tx);font:inherit;font-size:14px}
+.as-input::placeholder{color:#78909c}
+.as-btn{display:inline-flex;align-items:center;justify-content:center;padding:7px 13px;border-radius:9px;border:1px solid #37474f;background:rgba(255,255,255,.04);color:var(--nx-tx);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;transition:border-color .2s,background .2s}
+.as-btn:hover{border-color:#78909c;background:rgba(255,255,255,.08)}
+.as-primary{border-color:rgba(66,165,245,.6);background:rgba(66,165,245,.16);color:#e3f2fd}
+.as-danger{color:#ff8a80;border-color:rgba(255,82,82,.35)}
+.as-danger:hover{background:rgba(255,82,82,.12);border-color:rgba(255,82,82,.6)}
+.as-list{list-style:none;margin:6px 0 10px;padding:0;display:grid;gap:6px;max-height:340px;overflow-y:auto;scrollbar-width:thin}
+.as-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.03);border:1px solid var(--nx-ln)}
+.as-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.as-text{color:var(--nx-tx);font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.as-meta{color:#FFCA28;font-size:12px}
+.as-actions{display:flex;gap:6px;flex:none}
+.as-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.as-status{min-height:1.2em;margin:2px 0 4px;font-size:12.5px;color:#81C784;white-space:pre-line}
+.as-status[data-bad="1"]{color:#FFB74D}
+.as-prefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 18px;align-items:end}
+.as-field{display:grid;gap:6px;font-size:13px;color:var(--nx-tx2)}
+.as-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--nx-tx);cursor:pointer}
+.as-check input{width:17px;height:17px;accent-color:#42A5F5}
+@media (max-width:520px){.as-form{flex-direction:column}.as-item{flex-wrap:wrap}.as-actions{width:100%;justify-content:flex-end}}
+@media (prefers-reduced-motion:reduce){.as-chip,.as-btn{transition:none}.as-chip:hover{transform:none}}

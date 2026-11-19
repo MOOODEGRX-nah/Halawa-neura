@@ -288,14 +288,24 @@ def fit_history(messages, n_ctx, max_tokens, system_chars=0):
         return messages, 0
     earlier = [m['content'] if isinstance(m.get('content'), str) else ' '.join(p.get('text', '') for p in m['content'] if p.get('type') == 'text')
                for m in dropped if m.get('role') == 'user']
-    summary, room = [], max(0, budget_chars - used)
-    for text in reversed(earlier):
-        line = '- ' + re.sub(r'\s+', ' ', text).strip()[:160]
+    room = max(0, budget_chars - used)
+    lines = ['- (' + str(number) + ') ' + re.sub(r'\s+', ' ', text).strip()[:160] for number, text in enumerate(earlier, 1)]
+    # The first request usually defines the task: keep it, then the newest earlier requests that fit.
+    summary = []
+    if lines and len(lines[0]) <= room:
+        summary.append(lines[0]); room -= len(lines[0])
+    newest = []
+    for line in reversed(lines[1:]):
         if room - len(line) < 0:
             break
-        summary.append(line); room -= len(line)
+        newest.append(line); room -= len(line)
+    newest.reverse()
+    if newest and summary and newest[0] != lines[1]:
+        summary.append('- …')
+    summary += newest
     if summary:
-        note = 'ملخص طلبات المستخدم الأقدم في هذه المحادثة (اختُصرت لتناسب الذاكرة المؤقتة للنموذج):\n' + '\n'.join(reversed(summary))
+        note = ('ملخص طلبات المستخدم الأقدم في هذه المحادثة بترتيبها (الرقم بين القوسين هو ترتيب الطلب، واختُصرت لتناسب الذاكرة المؤقتة للنموذج):\n'
+                + '\n'.join(summary))
         if leading:
             leading = [{**leading[0], 'content': leading[0]['content'] + '\n\n' + note}] + leading[1:]
         else:
