@@ -68,7 +68,7 @@ def test_registry_lists_both_recipes_and_grant_is_scoped(system):
     app,desktop,_=application(system);skills=app.state.desktop_skills
     try:
         web=skills.describe()['web_skills']
-        assert [w['id'] for w in web]==[ID,SERVICES_ID] and web[0]['sha256']==CV_MANIFEST_SHA256 and all(w['available'] for w in web)
+        assert [w['id'] for w in web]==[ID,SERVICES_ID,'arabic_landing_v1','arabic_dashboard_v1','arabic_blog_v1','arabic_store_v1','arabic_saas_v1'] and web[0]['sha256']==CV_MANIFEST_SHA256 and all(w['available'] for w in web)
         grant=skills.authorize('prepare_static_services',{'recipe_id':SERVICES_ID})['permission_id']
         result=skills.execute('prepare_static_services',{'recipe_id':SERVICES_ID},grant)
         assert result['status']=='selected' and result['recipe']==manifest(SERVICES_ID)

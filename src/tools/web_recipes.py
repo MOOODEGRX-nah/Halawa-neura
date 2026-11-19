@@ -27,7 +27,13 @@ SERVICES_CONSTRAINTS=[
 ]
 RECIPES={ID:{'files':FILES,'constraints':CONSTRAINTS,'scope':'Static offline Arabic CV; model-generated files, mandatory planning and independent source/browser checks; no native program execution','skill':'prepare_static_cv','label':'وصفة CV عربية محلية v1'},
          SERVICES_ID:{'version':2,'files':FILES,'constraints':SERVICES_CONSTRAINTS,'scope':'Static offline Arabic RTL service directory with a keyboard-operable category filter; model-generated files, mandatory planning and independent source/browser checks; no native program execution','skill':'prepare_static_services','label':'وصفة دليل خدمات عربي محلي v1'}}
+from src.tools.site_recipes import SITES,FILES as SITE_FILES,validate as validate_site,detect as detect_site
+assert SITE_FILES==FILES
+for _site_id,_site in SITES.items():
+    RECIPES[_site_id]={'version':1,'files':FILES,'constraints':_site['constraints'],'skill':'prepare_static_site','label':_site['label'],
+        'scope':'Static offline Arabic RTL site ('+_site['plan_id']+'); model-generated files, mandatory planning, independent source checks and an isolated browser probe of the declared interaction; no backend, payment or native execution'}
 RECIPE_IDS=tuple(RECIPES)
+SITE_IDS=tuple(SITES)
 
 
 class RecipeArguments(BaseModel):
@@ -40,10 +46,15 @@ class ServicesRecipeArguments(BaseModel):
     recipe_id:Literal['arabic_services_v1']=SERVICES_ID
 
 
+class SiteRecipeArguments(BaseModel):
+    model_config=ConfigDict(extra='forbid',strict=True)
+    recipe_id:Literal[SITE_IDS]
+
+
 class RecipeManifest(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
-    id:Literal['arabic_cv_v1','arabic_services_v1']
-    version:Literal[1,2]
+    id:Literal[RECIPE_IDS]
+    version:int=Field(ge=1,le=99)
     sha256:str=Field(pattern=r'^[a-f0-9]{64}$')
     required_files:list[str]
     constraints:list[str]
@@ -74,7 +85,9 @@ def select_for_request(text,validated_intent):
     if not q:return None
     if re.search(r'(?<!\w)cv\b|سير[هة]\s+(?:ال)?ذاتي[هة]',q,re.I):recipe=ID
     elif re.search(r'دليل\s+(?:ال)?خدمات|(?:ال)?خدمات\s+(?:مع|مصنف|حسب|بفلتر|بتصفي)|\bservices?\s+directory\b',q,re.I):recipe=SERVICES_ID
-    else:return None
+    else:
+        recipe=detect_site(q)
+        if not recipe:return None
     if not re.search(LOCAL,q,re.I):return None
     if re.search(STACKS,q,re.I):return None
     named=re.findall(r'[\w./-]+\.(?:html?|css|js|jsx|ts|tsx)\b',q,re.I)
@@ -95,6 +108,7 @@ class Structure(HTMLParser):
 
 def validate_source(files,recipe_id):
     if recipe_id==SERVICES_ID:return validate_services(files)
+    if recipe_id in SITE_IDS:return validate_site(files,recipe_id)
     if recipe_id!=ID:raise ProjectError('وصفة الويب غير معروفة')
     if set(FILES)-files.keys():raise ProjectError('الوصفة تحتاج index.html وstyle.css وscript.js بأسمائها الصحيحة')
     if any(not isinstance(files[p],str) for p in FILES):raise ProjectError('ملفات الوصفة يجب أن تكون نصية')

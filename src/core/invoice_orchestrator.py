@@ -16,6 +16,9 @@ from src.core.neura_loop import InferenceError
 from src.core.project_files import safe_path
 
 
+from src.tools.web_recipes import RECIPE_IDS
+
+
 class TaskInvoice(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     task_id: str
@@ -24,7 +27,7 @@ class TaskInvoice(BaseModel):
     user_request: str = Field(min_length=1, max_length=30_000)
     language: str = 'auto'
     requirements: list[str] = Field(min_length=1, max_length=30)
-    web_recipe:Literal['arabic_cv_v1','arabic_services_v1']|None=None
+    web_recipe:Literal[RECIPE_IDS]|None=None
     web_recipe_sha256:str|None=Field(default=None,pattern=r'^[a-f0-9]{64}$')
     required_feature_contract: dict = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list, max_length=30)
@@ -40,7 +43,7 @@ class ProjectRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     user_request: str = Field(min_length=1, max_length=30_000)
     requirements: list[str] = Field(min_length=1, max_length=30)
-    web_recipe:Literal['arabic_cv_v1','arabic_services_v1']|None=None
+    web_recipe:Literal[RECIPE_IDS]|None=None
     web_recipe_sha256:str|None=Field(default=None,pattern=r'^[a-f0-9]{64}$')
     required_feature_contract: dict = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list, max_length=28)

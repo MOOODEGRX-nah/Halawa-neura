@@ -198,9 +198,9 @@ def main(source,destination):
         report['required_feature_contract']=required.get('feature_contract')
         report['required_interaction']=required.get('interaction')
         report['color_schemes']=['light','dark']
-        from src.tools.web_recipes import ID,SERVICES_ID
+        from src.tools.web_recipes import ID,SERVICES_ID,SITE_IDS
         if required.get('web_recipe'):
-            if required['web_recipe'] not in (ID,SERVICES_ID):raise ValueError('Unsupported web recipe')
+            if required['web_recipe'] not in (ID,SERVICES_ID,*SITE_IDS):raise ValueError('Unsupported web recipe')
             report['web_recipe']={'id':required['web_recipe'],'samples':[]}
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
@@ -283,6 +283,15 @@ def main(source,destination):
                     view.resize(width,800);pump(.25)
                     proof,errors=services_pass(scheme+' '+str(width)+'px');proof.update(width=width,color_scheme=scheme)
                     report['web_recipe']['samples'].append(proof);report['errors'].extend(errors)
+            elif required.get('web_recipe') in SITE_IDS:
+                from src.tools.site_recipes import probe_script
+                for width in (1280,480):
+                    loaded.clear();page.load(QUrl(parent_origin+'/?scheme='+scheme));end=time.monotonic()+10
+                    while not loaded and time.monotonic()<end:pump(.01)
+                    view.resize(width,800);pump(.25)
+                    probe=json.loads(js(probe_script(required['web_recipe'])))
+                    report['web_recipe']['samples'].append({'width':width,'color_scheme':scheme,**probe})
+                    report['errors'].extend(scheme+' '+str(width)+'px: '+e for e in probe.get('errors',[]))
             elif required.get('web_recipe'):
                 for width in (1280,480):
                     view.resize(width,800);pump(.2)
