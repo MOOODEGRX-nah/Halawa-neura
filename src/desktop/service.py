@@ -14,6 +14,29 @@ from src.runtime import ROOT
 from src.desktop.paths import data_directory, state_directory
 
 
+def apply_model_settings(models, tiers, folder, values):
+    """Add the user's GGUF files to the runtime registry and apply role bindings.
+
+    Files stay confined to the models folder (residency re-checks this). A role bound to a
+    missing or disabled model keeps the binding so the UI reports the real reason instead of
+    silently falling back to another model.
+    """
+    registry = models['models']
+    for model_id, model in values.get('custom_models', {}).items():
+        path = (folder / model['file'])
+        size = path.stat().st_size if path.is_file() else 0
+        registry[model_id] = {'name': model['name'], 'file': model['file'], 'size_gb': round(size / 1e9, 3), 'enabled': True,
+                              'user_added': True, 'license_status': 'user supplied; check the publisher terms'}
+    places = {**{k: tiers['tiers'] for k in tiers.get('tiers', {})}, **{k: tiers['hidden_tiers'] for k in tiers.get('hidden_tiers', {})}}
+    for role, model_id in values.get('model_roles', {}).items():
+        if role in places and model_id in registry:
+            if role == 'vision' and not registry[model_id].get('projector'):
+                continue
+            places[role][role]['model_id'] = model_id
+            if role == 'coder' and model_id == 'qwen2.5-coder-14b-q4':
+                registry[model_id]['enabled'] = registry[model_id].get('enabled') or values.get('dedicated_coder', False)
+
+
 def backend_python():
     if os.environ.get('NEURA_BACKEND_PYTHON'):
         return os.environ['NEURA_BACKEND_PYTHON']
@@ -57,6 +80,7 @@ class BackendService:
             coder['enabled'] = True
             coder.pop('disabled_reason', None)
             tiers['hidden_tiers']['coder']['model_id'] = 'qwen2.5-coder-14b-q4'
+        apply_model_settings(models, tiers, folder, self.settings.values)
         for name, value in [('models.yaml', models), ('tiers.yaml', tiers)]:
             (config / name).write_text(yaml.safe_dump(value, allow_unicode=True, sort_keys=False), encoding='utf-8')
         vendor = ROOT.parent / 'vendor'
@@ -74,7 +98,8 @@ class BackendService:
                 'NEURA_MODELS_DIR': str(folder), 'NEURA_INSTANCE_ID': self.instance,
                 'NEURA_N_CTX': str(self.settings.values['n_ctx']),
                 'NEURA_N_GPU_LAYERS': str(self.settings.values['n_gpu_layers']),
-                'NEURA_GPU_DEVICE': self.settings.values.get('gpu_device','auto')}
+                'NEURA_GPU_DEVICE': self.settings.values.get('gpu_device','auto'),
+                'NEURA_GENERATION': json.dumps(self.settings.values['generation'])}
 
     def start(self):
         if self.process is not None and self.process.poll() is None:

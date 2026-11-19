@@ -169,6 +169,10 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         messages, tier='daily', max_tokens=700, temperature=0.3, top_p=0.9))
     chat_dispatcher = ChatDispatcher(project_store,desktop_skills,project_jobs,assistant)
     started = time.monotonic()
+    try:
+        generation_defaults = {k: v for k, v in json.loads(os.environ.get('NEURA_GENERATION') or '{}').items() if k in ('temperature', 'top_p', 'max_tokens')}
+    except ValueError:
+        generation_defaults = {}
 
     @asynccontextmanager
     async def lifespan(application):
@@ -354,12 +358,14 @@ def create_app(settings=None, coordinator=None, actions=None, voice=None, deskto
         instructions = await asyncio.to_thread(assistant.context_instructions) + '\n\n' + instructions
         messages = capability_messages(req.messages,instructions)
         context_size = coordinator._effective_settings.n_ctx if getattr(coordinator, '_effective_settings', None) else settings.n_ctx
-        messages, trimmed = fit_history(messages, context_size, req.max_tokens)
+        chosen = {name: getattr(req, name) if name in req.model_fields_set or name not in generation_defaults else generation_defaults[name]
+                  for name in ('temperature', 'top_p', 'max_tokens')}
+        messages, trimmed = fit_history(messages, context_size, chosen['max_tokens'])
         try:
             tier = req.selected_tier()
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
-        options = dict(tier=tier, model=req.model, max_tokens=req.max_tokens, temperature=req.temperature, top_p=req.top_p)
+        options = dict(tier=tier, model=req.model, **chosen)
         from src.core.chat_claims import guard_receipt, NOTICE
         if not req.stream:
             result = await run_worker(request, coordinator,

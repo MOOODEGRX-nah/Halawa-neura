@@ -273,6 +273,8 @@ class Assistant:
                  'الوقت الحالي لدى المستخدم: ' + date_text(moment) + ' الساعة ' + clock_text(moment) + ' (' + self.timezone + ').',
                  'التذكيرات والذاكرة والحاسبة والطقس تنفذها الواجهة عندما يكتب المستخدم أمرًا صريحًا مثل «ذكرني بعد 10 دقائق…» أو «تذكر أن…» أو «ما الطقس في جدة؟». لا تدّعِ أنك أنشأت تذكيرًا أو حفظت معلومة من كلامك؛ اقترح على المستخدم صيغة الأمر بدلًا من ذلك.']
         prefs = self.store.preferences()
+        if prefs.get('persona'):
+            lines.append('أسلوب الرد الذي اختاره المستخدم (التزم به ما لم يتعارض مع الدقة أو الأمان): ' + prefs['persona'])
         if prefs['use_memory_in_chat']:
             facts = self.store.profile()
             if facts:

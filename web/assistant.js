@@ -54,7 +54,7 @@
   async function loadPrefs(){
     try{prefs=await call('/assistant/preferences');}catch(_){return;}
     if(!$a('as-city'))return;
-    $a('as-city').value=prefs.city||'';
+    $a('as-city').value=prefs.city||'';if($a('as-persona'))$a('as-persona').value=prefs.persona||'';
     for(const key of ['desktop_notifications','speak_reminders','use_memory_in_chat']){const box=$a('as-'+key);if(box)box.checked=!!prefs[key];}
   }
 
@@ -102,6 +102,7 @@
           <label class="as-check"><input type="checkbox" id="as-speak_reminders"> قراءة التذكير بصوت عند توفر النطق</label>
           <label class="as-check"><input type="checkbox" id="as-use_memory_in_chat"> استخدام ما أتذكره في المحادثة</label>
         </div>
+        <label class="as-field as-wide">أسلوب Neura في الرد (اختياري)<textarea class="as-input" id="as-persona" dir="auto" rows="2" maxlength="600" placeholder="مثال: رد باختصار وبلهجة سعودية ودودة، واذكر الخطوات مرقمة."></textarea></label>
         <p class="as-status" id="as-pref-status" role="status"></p>
       </div>
     </div>`;
@@ -119,6 +120,7 @@
     $a('as-clear').onclick=async()=>{if(!confirm('حذف كل ما يتذكره Neura عنك؟ لا يمكن التراجع.'))return;try{await send('/assistant/memories','DELETE');loadMemories();status('as-mem-status','حُذفت كل الذاكرة.');}catch(e){status('as-mem-status',e.message,1);}};
     const savePref=async values=>{try{prefs=await send('/assistant/preferences','PUT',values);status('as-pref-status','حُفظ الإعداد.');}catch(e){status('as-pref-status',e.message,1);loadPrefs();}};
     $a('as-city').onchange=e=>e.target.value.trim()&&savePref({city:e.target.value.trim()});
+    $a('as-persona').onchange=e=>savePref({persona:e.target.value});
     for(const key of ['desktop_notifications','speak_reminders','use_memory_in_chat'])$a('as-'+key).onchange=e=>savePref({[key]:e.target.checked});
   }
 

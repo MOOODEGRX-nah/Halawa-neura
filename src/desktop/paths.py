@@ -54,13 +54,43 @@ def setup_preview_environment():
         settings.save()
 
 
+ROLE_NAMES = ('fast', 'daily', 'expert', 'vision', 'coder')
+
+
+def validate_model_settings(values):
+    """User model registry, role bindings and generation defaults (CFG01/03/05)."""
+    custom = values['custom_models']
+    if not isinstance(custom, dict) or len(custom) > 32:
+        raise ValueError('قائمة النماذج المضافة غير صالحة')
+    for model_id, model in custom.items():
+        if not re.fullmatch(r'user-[a-z0-9-]{1,40}', str(model_id)) or not isinstance(model, dict) or set(model) != {'name', 'file'}:
+            raise ValueError('نموذج مضاف غير صالح')
+        if not isinstance(model['name'], str) or not 1 <= len(model['name']) <= 80 or any(ord(c) < 32 for c in model['name']):
+            raise ValueError('اسم النموذج غير صالح')
+        if not isinstance(model['file'], str) or not re.fullmatch(r'[^/\\\x00]{1,200}\.gguf', model['file'], re.I) or model['file'].startswith('.'):
+            raise ValueError('ملف النموذج يجب أن يكون اسم ملف GGUF داخل مجلد النماذج')
+    roles = values['model_roles']
+    if not isinstance(roles, dict) or any(role not in ROLE_NAMES or not isinstance(model, str) or not re.fullmatch(r'[a-z0-9.-]{1,60}', model) for role, model in roles.items()):
+        raise ValueError('إسناد أدوار النماذج غير صالح')
+    generation = values['generation']
+    if not isinstance(generation, dict) or set(generation) != {'temperature', 'top_p', 'max_tokens'}:
+        raise ValueError('إعدادات التوليد غير صالحة')
+    if type(generation['temperature']) not in (int, float) or not 0 <= generation['temperature'] <= 2:
+        raise ValueError('العشوائية يجب أن تكون بين 0 و2')
+    if type(generation['top_p']) not in (int, float) or not 0 < generation['top_p'] <= 1:
+        raise ValueError('Top-P يجب أن يكون أكبر من 0 وحتى 1')
+    if type(generation['max_tokens']) is not int or not 64 <= generation['max_tokens'] <= 4096:
+        raise ValueError('طول الرد يجب أن يكون بين 64 و4096')
+
+
 class DesktopSettings:
     def __init__(self, path=None):
         self.path = Path(path or config_directory() / 'settings.json')
         self.values = {'models_dir': str(model_directory()), 'check_updates': True,
                        'dedicated_coder': False, 'n_gpu_layers': -1, 'n_ctx': 4096,
                        'brave_desktop_id':'brave-browser.desktop', 'approved_locations':{}, 'gpu_device':'auto','disabled_skills':[],
-                       'run_in_background': True}
+                       'run_in_background': True, 'model_roles': {}, 'custom_models': {},
+                       'generation': {'temperature': 0.7, 'top_p': 0.9, 'max_tokens': 800}}
         try:
             saved = json.loads(self.path.read_text(encoding='utf-8'))
             if not isinstance(saved, dict):
@@ -94,6 +124,8 @@ class DesktopSettings:
                 raise ValueError('مكان مختار غير صالح')
             if location['kind'] not in ('file','folder') or not isinstance(location['path'],str) or not Path(location['path']).is_absolute():
                 raise ValueError('المكان المختار يجب أن يكون ملفًا أو مجلدًا بمسار مطلق')
+
+        validate_model_settings(self.values)
 
     def save(self):
         self.validate()

@@ -95,7 +95,7 @@ try:
  dialog.grants.setCurrentRow(0);dialog.revoke_skill_grant();wait(lambda:dialog.grants.count()==0 and dialog.revoke_grant.isEnabled())
  record('native-settings-revokes-grant',api('/skills/grants')['grants']==[])
  from PySide6.QtWidgets import QScrollArea
- dialog.findChild(QScrollArea).ensureWidgetVisible(dialog.grants);pump(.15);record('settings-permissions-reachable-by-scroll',dialog.grants.visibleRegion().isEmpty()==False);dialog.grab().save(str(args.output/'settings-permissions.png'));dialog.reject()
+ dialog.tabs.setCurrentIndex(3);pump(.15);[area for area in dialog.findChildren(QScrollArea) if area.widget().isAncestorOf(dialog.grants)][0].ensureWidgetVisible(dialog.grants);pump(.15);record('settings-permissions-reachable-by-scroll',dialog.grants.visibleRegion().isEmpty()==False);dialog.grab().save(str(args.output/'settings-permissions.png'));dialog.reject()
  # Actual Settings entry point: a permission-only save must not restart the engine or erase the editor.
  process=window.service.process.pid
  def disable_in_modal():

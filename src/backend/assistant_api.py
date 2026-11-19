@@ -28,6 +28,7 @@ class Preferences(BaseModel):
     desktop_notifications: bool | None = None
     speak_reminders: bool | None = None
     use_memory_in_chat: bool | None = None
+    persona: str | None = Field(default=None, max_length=600)
 
 
 class MemoryImport(BaseModel):

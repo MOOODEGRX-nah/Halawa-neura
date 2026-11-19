@@ -24,6 +24,8 @@
 .as-status[data-bad="1"]{color:#FFB74D}
 .as-prefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 18px;align-items:end}
 .as-field{display:grid;gap:6px;font-size:13px;color:var(--nx-tx2)}
+.as-wide{grid-column:1/-1}
+textarea.as-input{resize:vertical;min-height:52px;line-height:1.7}
 .as-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--nx-tx);cursor:pointer}
 .as-check input{width:17px;height:17px;accent-color:#42A5F5}
 @media (max-width:520px){.as-form{flex-direction:column}.as-item{flex-wrap:wrap}.as-actions{width:100%;justify-content:flex-end}}

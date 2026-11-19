@@ -78,11 +78,15 @@ class SettingsDialog(QDialog):
         self.settings = settings
         self.skill_url = parent.service.url
         self.setWindowTitle('إعدادات Neura')
-        self.resize(760, 470)
+        self.resize(820, 620)
         outer = QVBoxLayout(self)
-        scroll = QScrollArea(); scroll.setWidgetResizable(True)
-        content = QWidget(); layout = QVBoxLayout(content)
-        scroll.setWidget(content); outer.addWidget(scroll)
+        from PySide6.QtWidgets import QTabWidget
+        self.tabs = QTabWidget(); outer.addWidget(self.tabs)
+        def page(title):
+            scroll = QScrollArea(); scroll.setWidgetResizable(True)
+            content = QWidget(); box = QVBoxLayout(content); scroll.setWidget(content)
+            self.tabs.addTab(scroll, title); return box
+        layout = general = page('عام')
         form = QFormLayout()
         row = QHBoxLayout()
         self.folder = QLineEdit(settings.values['models_dir'])
@@ -122,9 +126,14 @@ class SettingsDialog(QDialog):
         index=self.brave.findData(settings.values['brave_desktop_id'])
         self.brave.setCurrentIndex(max(index,0));form.addRow('Brave للمهارات',self.brave)
         layout.addLayout(form)
+        models_page = page('النماذج والأدوار'); models_page.addWidget(self.model_group(settings))
+        layout = page('الألعاب والموارد')
         from src.desktop.resource_settings import ResourceSettings
         resource_group=QGroupBox('حماية الموارد أثناء اللعب والأحمال الخارجية');resource_layout=QVBoxLayout(resource_group)
         self.resource_settings=ResourceSettings();resource_layout.addWidget(self.resource_settings);layout.addWidget(resource_group)
+        layout.addStretch()
+        layout = page('الأذونات والأماكن')
+        layout.addWidget(QLabel('الملفات والمجلدات التي يُسمح لـ Neura بفتحها عند طلبك:'))
         self.locations=copy.deepcopy(settings.values['approved_locations'])
         self.locations_list=QListWidget();self.locations_list.setMaximumHeight(90);layout.addWidget(self.locations_list)
         controls=QHBoxLayout()
@@ -154,10 +163,12 @@ class SettingsDialog(QDialog):
         self.revoke_grant = QPushButton('إلغاء الصلاحية المحددة'); self.revoke_grant.setObjectName('revoke-skill-grant')
         self.revoke_grant.clicked.connect(self.revoke_skill_grant); grant_actions.addWidget(self.revoke_grant)
         permission_layout.addLayout(grant_actions); layout.addWidget(permissions)
+        layout = models_page
         note = QLabel('الأوزان منفصلة عن التطبيق. اختر المجلد الذي يحتوي ملفات GGUF وملف mmproj للصور. لا تُنقل ملفاتك ولا تُنزّل نماذج تلقائيًا.')
         note.setWordWrap(True); layout.addWidget(note)
         self.table = QTableWidget(0, 2); self.table.setHorizontalHeaderLabels(['الملف', 'الحالة'])
-        self.table.horizontalHeader().setStretchLastSection(True); layout.addWidget(self.table)
+        self.table.horizontalHeader().setStretchLastSection(True); self.table.setMinimumHeight(200); layout.addWidget(self.table)
+        general.addStretch()
         self.refresh_files()
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.save); buttons.rejected.connect(self.reject); outer.addWidget(buttons)
@@ -197,6 +208,95 @@ class SettingsDialog(QDialog):
         def failed(error):
             self.revoke_grant.setEnabled(True); self.skill_message.setText('تعذر إلغاء الصلاحية: ' + error)
         self.parent().task(lambda _: self.skill_request('/skills/revoke', {'permission_id': permission_id}), finished, failed)
+
+    ROLE_LABELS = {'daily': 'المحادثة اليومية (DAILY)', 'fast': 'السريع (FAST)', 'expert': 'الخبير والتخطيط (EXPERT)',
+                   'coder': 'المبرمج (CODER)', 'vision': 'الصور (VISION — يحتاج نموذجًا معه mmproj)'}
+
+    def model_group(self, settings):
+        """CFG01/03/05: register GGUF files from the models folder, bind roles, choose generation defaults."""
+        import yaml
+        group = QGroupBox('النماذج والأدوار'); box = QVBoxLayout(group)
+        self.custom_models = copy.deepcopy(settings.values['custom_models'])
+        self.registry = yaml.safe_load((ROOT / 'configs/models.yaml').read_text(encoding='utf-8'))['models']
+        tiers = yaml.safe_load((ROOT / 'configs/tiers.yaml').read_text(encoding='utf-8'))
+        self.default_roles = {**{k: v['model_id'] for k, v in tiers['tiers'].items()}, **{k: v['model_id'] for k, v in tiers['hidden_tiers'].items()}}
+        info = QLabel('اختر النموذج الذي يؤدي كل دور. يُحمَّل نموذج واحد فقط في كل مرة، وتُبدَّل النماذج عند الحاجة. التغيير يعيد تشغيل المحرك.')
+        info.setWordWrap(True); box.addWidget(info)
+        roles = QFormLayout(); self.role_boxes = {}
+        for role, label in self.ROLE_LABELS.items():
+            combo = QComboBox(); self.role_boxes[role] = combo; roles.addRow(label, combo)
+        box.addLayout(roles)
+        box.addWidget(QLabel('نماذجك المضافة (ملفات GGUF داخل مجلد النماذج):'))
+        self.custom_list = QListWidget(); self.custom_list.setMaximumHeight(80); box.addWidget(self.custom_list)
+        actions = QHBoxLayout()
+        add = QPushButton('إضافة ملف GGUF'); add.clicked.connect(self.add_custom_model); actions.addWidget(add)
+        remove = QPushButton('إزالة المحدد من القائمة'); remove.clicked.connect(self.remove_custom_model); actions.addWidget(remove)
+        box.addLayout(actions)
+        generation = QFormLayout(); values = settings.values['generation']
+        from PySide6.QtWidgets import QDoubleSpinBox
+        self.temperature = QDoubleSpinBox(); self.temperature.setRange(0, 2); self.temperature.setSingleStep(.1); self.temperature.setValue(values['temperature'])
+        self.top_p = QDoubleSpinBox(); self.top_p.setRange(.05, 1); self.top_p.setSingleStep(.05); self.top_p.setValue(values['top_p'])
+        self.max_tokens = QSpinBox(); self.max_tokens.setRange(64, 4096); self.max_tokens.setSingleStep(64); self.max_tokens.setValue(values['max_tokens'])
+        generation.addRow('العشوائية (Temperature): أقل = أدق، أعلى = أكثر إبداعًا', self.temperature)
+        generation.addRow('Top-P', self.top_p)
+        generation.addRow('أقصى طول للرد (توكن)', self.max_tokens)
+        box.addLayout(generation)
+        self.fill_roles(settings.values['model_roles'])
+        return group
+
+    def model_choices(self):
+        choices = {mid: m.get('name', mid) for mid, m in self.registry.items()}
+        choices.update({mid: m['name'] + ' (مضاف)' for mid, m in self.custom_models.items()})
+        return choices
+
+    def fill_roles(self, chosen):
+        choices = self.model_choices()
+        for role, combo in self.role_boxes.items():
+            current = combo.currentData() if combo.count() else chosen.get(role)
+            combo.clear()
+            default = self.default_roles.get(role)
+            combo.addItem('الافتراضي — ' + choices.get(default, str(default)), None)
+            for mid, name in choices.items():
+                if role == 'vision' and not self.registry.get(mid, {}).get('projector'):
+                    continue
+                exists = (Path(self.folder.text()) / (self.registry.get(mid) or self.custom_models.get(mid))['file']).is_file()
+                combo.addItem(name + ('' if exists else ' — الملف غير موجود'), mid)
+            index = combo.findData(current)
+            combo.setCurrentIndex(index if index >= 0 else 0)
+        self.custom_list.clear()
+        for mid, model in self.custom_models.items():
+            self.custom_list.addItem(model['name'] + ' — ' + model['file'])
+
+    def add_custom_model(self):
+        folder = Path(self.folder.text())
+        path, _ = QFileDialog.getOpenFileName(self, 'اختر ملف GGUF من مجلد النماذج', str(folder), 'GGUF (*.gguf)')
+        if not path: return
+        path = Path(path).resolve()
+        if path.parent != folder.resolve():
+            QMessageBox.warning(self, 'النماذج', 'انسخ الملف إلى مجلد النماذج المحدد أولًا، ثم أضفه من هناك.'); return
+        try:
+            with path.open('rb') as stream:
+                if stream.read(4) != b'GGUF': raise ValueError('not gguf')
+        except (OSError, ValueError):
+            QMessageBox.warning(self, 'النماذج', 'هذا الملف ليس GGUF صالحًا.'); return
+        if any(m['file'] == path.name for m in [*self.registry.values(), *self.custom_models.values()]):
+            QMessageBox.information(self, 'النماذج', 'هذا الملف مسجل بالفعل ويمكن اختياره للأدوار.'); return
+        from PySide6.QtWidgets import QInputDialog
+        name, ok = QInputDialog.getText(self, 'اسم النموذج', 'اسم يظهر في القوائم:', text=path.stem[:80])
+        if not ok or not name.strip(): return
+        import re as _re
+        model_id = 'user-' + (_re.sub(r'[^a-z0-9]+', '-', path.stem.lower()).strip('-')[:30] or 'model') + '-' + uuid.uuid4().hex[:6]
+        self.custom_models[model_id] = {'name': name.strip()[:80], 'file': path.name}
+        self.fill_roles({})
+
+    def remove_custom_model(self):
+        row = self.custom_list.currentRow()
+        if row < 0: return
+        model_id = list(self.custom_models)[row]
+        del self.custom_models[model_id]
+        for combo in self.role_boxes.values():
+            if combo.currentData() == model_id: combo.setCurrentIndex(0)
+        self.fill_roles({})
 
     def choose_folder(self):
         chosen = QFileDialog.getExistingDirectory(self, 'مجلد النماذج', self.folder.text())
@@ -246,6 +346,8 @@ class SettingsDialog(QDialog):
             QMessageBox.warning(self,'حماية الموارد',str(error));return
         self.settings.values.update(models_dir=self.folder.text(), n_gpu_layers=-1 if self.mode.currentIndex() == 0 else 0,
                                     n_ctx=self.context.value(), dedicated_coder=self.coder.isChecked(), check_updates=self.updates.isChecked(), run_in_background=self.background.isChecked(),
+                                    custom_models=self.custom_models, model_roles={role: combo.currentData() for role, combo in self.role_boxes.items() if combo.currentData()},
+                                    generation={'temperature': round(self.temperature.value(), 2), 'top_p': round(self.top_p.value(), 2), 'max_tokens': self.max_tokens.value()},
                                     brave_desktop_id=self.brave.currentData(),approved_locations=self.locations,gpu_device=self.gpu_device.currentData(),
                                     disabled_skills=[name for name, check in self.skill_checks.items() if not check.isChecked()])
         try: self.settings.save()
@@ -545,7 +647,7 @@ class MainWindow(QMainWindow):
     def settings_dialog(self):
         if self.update_pending:
             self.statusBar().showMessage('أكمل التحديث أو أجّله قبل تغيير إعدادات المحرك.',6000);return
-        model_keys = ('models_dir', 'n_gpu_layers', 'n_ctx', 'dedicated_coder', 'gpu_device')
+        model_keys = ('models_dir', 'n_gpu_layers', 'n_ctx', 'dedicated_coder', 'gpu_device', 'custom_models', 'model_roles', 'generation')
         before = {key:self.settings.values[key] for key in model_keys}
         dialog = SettingsDialog(self.settings, self)
         if dialog.exec() == QDialog.Accepted:

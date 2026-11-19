@@ -16,7 +16,7 @@ MAX_MEMORY_CHARS = 500
 MAX_REMINDERS = 500
 MAX_REMINDER_CHARS = 300
 DEFAULT_PREFERENCES = {'city': 'الرياض', 'timezone': 'Asia/Riyadh', 'desktop_notifications': True,
-                       'speak_reminders': True, 'use_memory_in_chat': True}
+                       'speak_reminders': True, 'use_memory_in_chat': True, 'persona': ''}
 
 
 class AssistantError(ValueError):
@@ -202,6 +202,10 @@ class AssistantStore:
                     if isinstance(DEFAULT_PREFERENCES[key], bool):
                         if not isinstance(value, bool):
                             raise AssistantError('قيمة غير صالحة للإعداد ' + key)
+                    elif key == 'persona':
+                        value = re.sub(r'[ \t]+', ' ', str(value or '')).strip()
+                        if len(value) > 600:
+                            raise AssistantError('تعليمات الأسلوب أطول من 600 حرف')
                     else:
                         value = _clean(value, 80)
                     current[key] = value
