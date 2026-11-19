@@ -281,6 +281,36 @@ class Assistant:
             raise ToolError('لم يرجع النموذج إجابة.')
         return {**self._reply(answer + '\n\nمن ملفاتك:\n' + listing, sources=useful), 'model_called': True}
 
+    @staticmethod
+    def _resume_url(video):
+        from src.core.web_reader import youtube_id
+        url = 'https://www.youtube.com/watch?v=' + youtube_id(video['url'])
+        return url + ('&t=' + str(video['seconds']) + 's' if video.get('seconds') else '')
+
+    @staticmethod
+    def _clock(seconds):
+        if not seconds:
+            return 'من البداية'
+        return 'عند ' + (str(seconds // 3600) + ':' if seconds >= 3600 else '') + str(seconds % 3600 // 60).zfill(2 if seconds >= 3600 else 1) + ':' + str(seconds % 60).zfill(2)
+
+    def _video_save(self, url, seconds=None, **_):
+        saved = self.store.save_video(url, seconds)
+        return self._reply('حفظت الفيديو ' + self._clock(seconds) + '. لاحقًا قل «أكمل الفيديو» لأفتحه من الموضع نفسه.' + ('' if seconds else ' (لم تذكر الدقيقة؛ اكتب مثلًا «احفظ الفيديو … عند 12:30».)'), video=saved)
+
+    def _video_list(self, **_):
+        videos = self.store.videos()
+        if not videos:
+            return self._reply('لا توجد فيديوهات محفوظة.')
+        return self._reply('الفيديوهات المحفوظة:\n' + '\n'.join('• ' + self._clock(v['seconds']) + ' — ' + self._resume_url(v) for v in videos[:15]))
+
+    def video_to_open(self):
+        videos = self.store.videos()
+        return self._resume_url(videos[0]) if videos else None
+
+    def _persona_suggest(self, text, **_):
+        return self._choices('هل أحفظ هذا كأسلوب رد دائم؟ «' + text + '» — يمكنك تعديله أو حذفه من صفحة المساعد.',
+                             [('نعم، احفظه كأسلوب دائم', 'assistant.persona_add', {'text': text})])
+
     def _files_undo(self, **_):
         from src.core import file_organizer
         result = file_organizer.undo_last(self.data_dir / 'organizer')
@@ -289,6 +319,13 @@ class Assistant:
 
     def choose(self, name, args):
         """Execute a clarification option previously offered to this same user request."""
+        if name == 'assistant.persona_add':
+            current = self.store.preferences().get('persona') or ''
+            combined = (current + '\n' + args['text']).strip() if args['text'] not in current else current
+            if len(combined) > 600:
+                combined = combined[-600:]
+            self.store.preferences({'persona': combined})
+            return self._reply('حفظت أسلوب الرد: «' + args['text'] + '». سأتبعه في المحادثات القادمة.')
         if name == 'assistant.organize_plan':
             return self._organize_plan(args['location_id'])
         if name == 'assistant.organize_apply':
@@ -391,6 +428,32 @@ class Assistant:
     def _web_wikipedia(self, topic, language='ar', **_):
         article = self.reader.wikipedia(topic, language)
         return self._reply(article['text'] + '\nالمصدر: ويكيبيديا — ' + article['title'] + ' (' + article['url'] + ')', source=article['url'])
+
+    # Multi-step requests (N047) ---------------------------------------------------------
+    def chain(self, text):
+        """«ذكرني بعد ساعة … ثم ما الطقس في جدة»: up to three explicit steps, each an assistant request."""
+        parts = [p.strip(' ،,.') for p in re.split(r'\s+(?:ثم|وبعدين|وبعدها|بعد ذلك|and then|then)\s+', text.strip()) if p.strip(' ،,.')]
+        if not 2 <= len(parts) <= 3:
+            return None
+        intents = [self.match(p) for p in parts]
+        if any(i is None or i.name in ('clarify', 'video.open') or i.name.endswith(('forget_all', 'cancel_all')) for i in intents):
+            return None
+        return intents
+
+    def run_chain(self, steps, session_id=None, request_id=None):
+        replies, statuses, used_model = [], [], False
+        for number, intent in enumerate(steps, 1):
+            result = self.handle(intent, session_id, (request_id + '-' + str(number)) if request_id else None)
+            text = result.get('message') or (result.get('result') or {}).get('message') or ''
+            if result.get('kind') == 'clarification':
+                text += ' (يحتاج اختيارًا؛ اطلبه وحده)'
+            replies.append(str(number) + ') ' + text)
+            statuses.append((result.get('result') or {}).get('status', 'done'))
+            used_model = used_model or bool(result.get('model_called'))
+            if statuses[-1] == 'error':
+                replies.append('توقفت هنا لأن الخطوة ' + str(number) + ' فشلت؛ لم أنفذ ما بعدها.')
+                break
+        return {**self._reply('\n\n'.join(replies), status='error' if 'error' in statuses else 'done'), 'model_called': used_model, 'steps': len(steps)}
 
     # Chat context ---------------------------------------------------------------------
     def context_instructions(self):

@@ -363,7 +363,18 @@ class ChatDispatcher:
         if context:active_project_id=context['project_id']
         if self.assistant:
             # Personal requests (memory, reminders, clock, calculator, weather) never load a model.
+            steps=self.assistant.chain(text)
+            if steps:
+                return self._run(request_id,['assistant-chain',text,session_id],lambda:self.assistant.run_chain(steps,session_id,request_id),session_id)
             intent=self.assistant.match(text)
+            if intent and intent.name=='video.open':
+                def resume():
+                    url=self.assistant.video_to_open()
+                    if not url:return {'kind':'assistant','message':'لا يوجد فيديو محفوظ بعد. احفظه أولًا: «احفظ الفيديو <الرابط> عند 12:30».','result':{'status':'unavailable','message':'لا يوجد فيديو محفوظ'}}
+                    result=self._skill('open_website',{'destination':url})
+                    if result['result'].get('status')=='launched':result['result']['message']='فتحت آخر فيديو محفوظ من موضعه في Brave.'
+                    return result
+                return self._run(request_id,['assistant',text,session_id],resume,session_id)
             if intent:
                 return self._run(request_id,['assistant',text,session_id],lambda:self.assistant.handle(intent,session_id,request_id),session_id)
         contextual=followup_kind(text)

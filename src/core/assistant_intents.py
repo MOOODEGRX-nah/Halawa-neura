@@ -223,6 +223,25 @@ def parse(text, now: datetime):
         topic = next(g for g in match.groups() if g)
         return Intent('web.wikipedia', {'topic': original_span(original, topic.strip()), 'language': 'en' if re.match(r'^(?:what|wikipedia)', q) else 'ar'})
 
+    # Video bookmarks (N082) -----------------------------------------------------------------
+    from src.core.web_reader import youtube_id
+    if link and youtube_id(link[0]) and re.match(r'^(?:احفظ|سجل|save|bookmark)\b', q):
+        stamp = re.search(r'(?:عند|من|في|at)\s+(?:الدقيق[ةه]\s+|الثاني[ةه]\s+|minute\s+)?(\d{1,2}(?::\d{2}){1,2}|\d{1,3})', ascii_digits(original))
+        seconds = None
+        if stamp:
+            parts = [int(x) for x in stamp.group(1).split(':')]
+            seconds = parts[0] * 60 if len(parts) == 1 else parts[0] * 60 + parts[1] if len(parts) == 2 else parts[0] * 3600 + parts[1] * 60 + parts[2]
+        return Intent('video.save', {'url': link[0].rstrip('.,،؛)!?؟'), 'seconds': seconds})
+    if re.fullmatch(r'(?:افتح|شغل|كمل|اكمل|أكمل|resume|open)\s+(?:لي\s+)?(?:اخر|آخر)?\s*(?:ال)?فيديو\s+(?:ال)?محفوظ|(?:كمل|اكمل)\s+(?:ال)?فيديو|resume (?:the )?(?:last )?video', q):
+        return Intent('video.open')
+    if re.fullmatch(r'(?:ما|اعرض|وش)\s+(?:هي\s+)?(?:ال)?فيديوهات\s+(?:ال)?محفوظ[ةه]|(?:my )?saved videos', q):
+        return Intent('video.list')
+
+    # Lasting reply preferences (N039) -------------------------------------------------------
+    match = re.match(r'^(?:من\s+الان\s+(?:و)?(?:فصاعدا|فصاعدًا)?|من\s+اليوم\s+و?رايح|دائما|دايما|كل\s+مر[ةه]|from now on|always)\s*[،,]?\s*(?:رد|اجب|أجب|اكتب|تكلم|خاطبني|استخدم|reply|answer|write|use|talk)\b(.*)$', q)
+    if match and not QUESTION.search(original):
+        return Intent('persona.suggest', {'text': original.strip()[:300]})
+
     # Knowledge base (N038) ------------------------------------------------------------------
     match = re.match(r'^(?:من\s+(?:ملفاتي|معرفتي|مستنداتي)|ابحث\s+في\s+(?:ملفاتي|معرفتي|مستنداتي)(?:\s+عن)?|اسال\s+(?:ملفاتي|معرفتي)|حسب\s+(?:ملفاتي|مستنداتي)|ask my (?:files|documents|notes))\s*[:،,]?\s*(.+)$', q)
     if match:

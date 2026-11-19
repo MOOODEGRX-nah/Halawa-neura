@@ -46,6 +46,7 @@ class AssistantStore:
                         ' created REAL NOT NULL, state TEXT NOT NULL, fired REAL, late INTEGER NOT NULL DEFAULT 0, session_id TEXT, request_id TEXT UNIQUE)')
         self.db.execute('CREATE INDEX IF NOT EXISTS reminders_due ON reminders(state, due)')
         self.db.execute('CREATE TABLE IF NOT EXISTS events(seq INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, payload TEXT NOT NULL, created REAL NOT NULL)')
+        self.db.execute('CREATE TABLE IF NOT EXISTS videos(id TEXT PRIMARY KEY, url TEXT NOT NULL, seconds INTEGER, saved REAL NOT NULL)')
         self.db.execute('CREATE TABLE IF NOT EXISTS preferences(id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL)')
         self.db.commit()
         self.path.chmod(0o600)
@@ -188,6 +189,20 @@ class AssistantStore:
             rows = self.db.execute('SELECT * FROM events WHERE seq>? ORDER BY seq LIMIT ?', (int(after), int(limit))).fetchall()
             last = self.db.execute('SELECT COALESCE(MAX(seq),0) FROM events').fetchone()[0]
         return {'events': [{'seq': r['seq'], 'kind': r['kind'], **json.loads(r['payload'])} for r in rows], 'last': last}
+
+    # Video bookmarks ------------------------------------------------------------------------
+    def save_video(self, url, seconds):
+        with self.lock:
+            self.db.execute('DELETE FROM videos WHERE url=?', (url,))
+            video_id = 'v_' + uuid.uuid4().hex
+            self.db.execute('INSERT INTO videos VALUES(?,?,?,?)', (video_id, url, seconds, time.time()))
+            self.db.execute('DELETE FROM videos WHERE id NOT IN (SELECT id FROM videos ORDER BY saved DESC LIMIT 100)')
+            self.db.commit()
+        return {'id': video_id, 'url': url, 'seconds': seconds}
+
+    def videos(self):
+        with self.lock:
+            return [dict(r) for r in self.db.execute('SELECT * FROM videos ORDER BY saved DESC').fetchall()]
 
     # Preferences --------------------------------------------------------------------------
     def preferences(self, values=None):
